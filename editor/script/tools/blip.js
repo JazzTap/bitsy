@@ -55,12 +55,13 @@ function makeBlipTool() {
 			BLEEP : 3,
 			MAGIC : 4,
 			MEOW : 5,
-			RANDOM : 6,
-			MUTATE : 7,
-			COUNT : 8,
+			RANDPITCH : 6,
+			RANDOM : 7,
+			MUTATE : 8,
+			COUNT : 9,
 		};
 
-		var blipNames = ["pick up", "greeting", "bloop", "bleep", "magic", "meow", "random", "mutate"];
+		var blipNames = ["pick up", "greeting", "bloop", "bleep", "magic", "meow", "randpitch", "random", "mutate"];
 		var blipDescriptions = [
 			"sounds an item might make when you pick it up",
 			"sounds a sprite could say hello with",
@@ -68,8 +69,9 @@ function makeBlipTool() {
 			"higher pitched, tinnier sounds",
 			"weird sounds",
 			"I'm a cat",
+			"low to high pitch sounds",
 			"who knows???",
-			"make a new blip from the selected one, with random tweaks"
+			"make a new blip from the selected one, with random tweaks",
 		];
 
 		var curGenerator = BlipGenerator.PICKUP;
@@ -180,6 +182,21 @@ function makeBlipTool() {
 					curBlip.beat.delay = randInt(32, 128);
 					curBlip.instrument = randInt(SquareWave.P8, SquareWave.COUNT);
 					curBlip.doRepeat = Math.random() > 0.75;
+					break;
+				case BlipGenerator.RANDPITCH:
+					var oct = randInt(Octave[2], Octave.COUNT)
+					curBlip.pitchA = { beats: 1, note : randInt(Note.C, Note.COUNT), octave : oct, };
+					curBlip.pitchB = { beats: 1, note : Note.C, octave : Octave[6], };
+					curBlip.pitchC = { beats: 1, note : Note.C, octave : Octave[8], };
+					curBlip.envelope.attack = randInt(20, 64);
+					curBlip.envelope.decay = randInt(20, 64);
+					curBlip.envelope.sustain = randInt(2, 10);
+					curBlip.envelope.length = randInt(32, 64);
+					curBlip.envelope.release = randInt(10, 64);
+					curBlip.beat.time = randInt(32, 64);
+					curBlip.beat.delay = randInt(32, 128);
+					curBlip.instrument = randInt(SquareWave.P2, SquareWave.COUNT);
+					curBlip.doRepeat = false;
 					break;
 				case BlipGenerator.RANDOM:
 					curBlip.pitchA = { beats: 1, note : randInt(Note.C, Note.COUNT), octave : randInt(Octave[2], Octave.COUNT), };

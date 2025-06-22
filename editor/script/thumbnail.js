@@ -1,3 +1,5 @@
+import {bitsyLog, tilesize, scale} from "./system/system.js"
+
 // renders a tile to canvas (kind of hackily recreates some of the TileRenderer logic - oh well)
 function renderTileToCanvas(drawing, frameIndex) {
 	var selectedRoomId = state.room;
@@ -48,7 +50,7 @@ function renderTileToCanvas(drawing, frameIndex) {
 }
 
 // todo : deprecate this old version of the thumbnail renderer
-function ThumbnailRenderer() {
+export function ThumbnailRenderer() {
 	bitsyLog("NEW THUMB RENDERER", "editor");
 
 	var drawingThumbnailCanvas, drawingThumbnailCtx;

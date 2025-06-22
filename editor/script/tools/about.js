@@ -3,7 +3,7 @@ var aboutFlags = {
 	isLocalhost: false, // flag for local debugging with a server running
 };
 
-function getDocsRoot() {
+window.getDocsRoot = function getDocsRoot() {
 	if (aboutFlags.isLocalhost) {
 		return "http://localhost:3000/docs/";
 	}
@@ -22,23 +22,23 @@ function getDocsRoot() {
 	return root;
 }
 
-function setAboutPage(pagePath) {
+window.setAboutPage = function setAboutPage(pagePath) {
 	var docsFrame = document.getElementById('docsFrame');
 	var url = new URL(pagePath.includes('.html') ? pagePath : `${pagePath}/index.html`, getDocsRoot());
 	var src = url.href;
 	docsFrame.src = src;
 }
 
-function initAbout() {
+window.initAbout = function initAbout() {
 	setAboutPage(".");
 }
 
-function showAbout(pagePath, insertNextToId) {
+window.showAbout = function showAbout(pagePath, insertNextToId) {
 	setAboutPage(pagePath);
 	showPanel("aboutPanel", insertNextToId);
 }
 
-function aboutOpenTab() {
+window.aboutOpenTab = function aboutOpenTab() {
 	var docsFrame = document.getElementById('docsFrame');
 
 	// use the `src` attribute of the docs frame as the fallback value for the page url

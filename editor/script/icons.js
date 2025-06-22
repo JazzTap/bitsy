@@ -1,4 +1,6 @@
-function IconUtils() {
+import {Resources} from "./generated/resources.js"
+
+export function IconUtils() {
 	function GetIconSource(name, frame) {
 		var fileName = "icon_" + name + (frame ? ("_f" + frame) : "") + ".svg";
 		return Resources[fileName];

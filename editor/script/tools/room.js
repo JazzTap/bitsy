@@ -1,3 +1,6 @@
+import {makeToolCard} from "/editor/script/card.js"
+import {getPanelSetting} from "./panel.js"
+
 function makeRoomTool() {
 	return makeToolCard("room", function(tool) {
 		tool.id = "room";

@@ -1,4 +1,4 @@
-function Exporter() {
+export function Exporter() {
 
 /* exporting */
 function escapeSpecialCharacters(str) {

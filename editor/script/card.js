@@ -1,5 +1,7 @@
+import {grabCard} from "/editor/script/editor.js"
+
 /* TOOL CARDS */
-function makeToolCard(processName, initFunction) {
+export function makeToolCard(processName, initFunction) {
 	var card = addProcess(processName);
 
 	initFunction(card);

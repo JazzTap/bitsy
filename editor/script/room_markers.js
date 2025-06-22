@@ -1,4 +1,6 @@
-function RoomMarkerTool(markerCanvas1, markerCanvas2) {
+import {iconUtils} from "./editor_state.js" // VERIFY
+
+export function RoomMarkerTool(markerCanvas1, markerCanvas2) {
 	var selectedRoom = null;
 
 	var markerList = [];
@@ -996,13 +998,13 @@ var PlacementMode = {
 };
 
 // TODO if this proves useful.. move into a shared file
-function InitMarkerObj(obj, parent) {
+export function InitMarkerObj(obj, parent) {
 	Object.assign(obj, parent);
 	obj.self = obj;
 	obj.base = parent;
 }
 
-function RoomMarkerBase(parentRoom) {
+export function RoomMarkerBase(parentRoom) {
 	this.parentRoom = parentRoom;
 
 	this.IsAtLocation = function(roomId,x,y) {
@@ -1041,7 +1043,7 @@ var LinkState = {
 	OneWaySwapped : 2, // one way exit - swapped direction from how it was "gathered"
 };
 
-function ExitMarker(parentRoom, exit, hasReturn, returnExit, linkState) {
+export function ExitMarker(parentRoom, exit, hasReturn, returnExit, linkState) {
 	InitMarkerObj( this, new RoomMarkerBase(parentRoom) );
 
 	this.type = MarkerType.Exit;
@@ -1284,7 +1286,7 @@ function ExitMarker(parentRoom, exit, hasReturn, returnExit, linkState) {
 	// this.OnSelect = function() {} // TODO
 } // ExitMarker()
 
-function EndingMarker(parentRoom, ending) {
+export function EndingMarker(parentRoom, ending) {
 	InitMarkerObj( this, new RoomMarkerBase(parentRoom) );
 
 	this.type = MarkerType.Ending;

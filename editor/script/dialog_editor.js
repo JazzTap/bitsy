@@ -1,5 +1,8 @@
+import {ThumbnailRenderer} from "./thumbnail.js"
+import {iconUtils} from "./editor_state.js" // VERIFY
+
 // TODO : name?
-function DialogTool() {
+export function DialogTool() {
 	this.CreateEditor = function(dialogId) {
 		return new DialogScriptEditor(dialogId);
 	}
@@ -311,7 +314,7 @@ function DialogTool() {
 		this.OnDestroy = function() {
 			if (scriptEditor) {
 				scriptEditor.OnDestroy();
-				delete scriptEditor;
+				// delete scriptEditor;
 			}
 			listener.UnlistenAll();
 		}

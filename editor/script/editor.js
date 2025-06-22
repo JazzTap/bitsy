@@ -1,3 +1,21 @@
+import {attachServer} from "./system/multiplayer.js" // causes LinkError
+
+import {EventManager} from "./event_manager.js"
+import {FontManager} from "./engine/font.js"
+
+import {gif} from "./gif.js"
+import {Exporter} from "./exporter.js"
+import { ThumbnailRenderer } from "./thumbnail.js"
+import {Localization} from "./localization.js"
+import {Store} from "./store.js"
+
+import {DialogTool} from "./dialog_editor.js"
+import {PaintTool, updatePaintGridCheck} from "./paint.js"
+import {RoomMarkerTool} from "./room_markers.js"
+
+import {initSystem, bitsyLog} from "./system/system.js"
+import {iconUtils} from "./editor_state.js" // VERIFY - we mutate this import in functions, but never as a run-once (to avoid racing)
+
 /* MODES */
 var EditMode = {
 	Edit : 0,
@@ -11,7 +29,7 @@ var EditorInputMode = {
 var curEditorInputMode = EditorInputMode.Mouse;
 
 /* EVENTS */
-var events = new EventManager();
+export let events = new EventManager();
 
 // TODO: what the heck is this helper function for?
 function defParam(param,value) {
@@ -29,23 +47,23 @@ function nextTileId() {
 	return nextObjectId( sortedTileIdList() );
 }
 
-function nextSpriteId() {
+export function nextSpriteId() {
 	return nextObjectId( sortedSpriteIdList() );
 }
 
-function nextItemId() {
+export function nextItemId() {
 	return nextObjectId( sortedItemIdList() );
 }
 
-function nextRoomId() {
+export function nextRoomId() {
 	return nextObjectId( sortedRoomIdList() );
 }
 
-function nextPaletteId() {
+export function nextPaletteId() {
 	return nextObjectId( sortedPaletteIdList() );
 }
 
-function nextObjectId(idList) {
+export function nextObjectId(idList) {
 	if (idList.length <= 0) {
 		return "0";
 	}
@@ -56,23 +74,23 @@ function nextObjectId(idList) {
 	return idInt.toString(36);
 }
 
-function sortedTileIdList() {
+export function sortedTileIdList() {
 	return sortedBase36IdList( tile );
 }
 
-function sortedSpriteIdList() {
+export function sortedSpriteIdList() {
 	return sortedBase36IdList( sprite );
 }
 
-function sortedItemIdList() {
+export function sortedItemIdList() {
 	return sortedBase36IdList( item );
 }
 
-function sortedRoomIdList() {
+export function sortedRoomIdList() {
 	return sortedBase36IdList( room );
 }
 
-function sortedDialogIdList() {
+export function sortedDialogIdList() {
 	var keyList = Object.keys(dialog);
 	keyList.splice(keyList.indexOf("title"), 1);
 	var keyObj = {};
@@ -83,7 +101,7 @@ function sortedDialogIdList() {
 	return sortedBase36IdList(keyObj);
 }
 
-function sortedPaletteIdList() {
+export function sortedPaletteIdList() {
 	var keyList = Object.keys(palette);
 	keyList.splice(keyList.indexOf("default"), 1);
 	var keyObj = {};
@@ -94,15 +112,15 @@ function sortedPaletteIdList() {
 	return sortedBase36IdList(keyObj);
 }
 
-function sortedBase36IdList( objHolder ) {
+export function sortedBase36IdList( objHolder ) {
 	return Object.keys( objHolder ).sort( function(a,b) { return parseInt(a,36) - parseInt(b,36); } );
 }
 
-function nextAvailableDialogId(prefix) {
+export function nextAvailableDialogId(prefix) {
 	return nextObjectId(sortedDialogIdList());
 }
 
-function nextObjectHexId(idList) {
+export function nextObjectHexId(idList) {
 	if (idList.length <= 0) {
 		return "0";
 	}
@@ -113,7 +131,7 @@ function nextObjectHexId(idList) {
 	return idInt.toString(16);
 }
 
-function sortedHexIdList(objHolder) {
+export function sortedHexIdList(objHolder) {
 	var objectKeys = Object.keys(objHolder);
 
 	var hexSortFunc = function(key1,key2) {
@@ -124,7 +142,7 @@ function sortedHexIdList(objHolder) {
 	return hexSortedIds;
 }
 
-function safeParseHex(str) {
+export function safeParseHex(str) {
 	var hexInt = parseInt(str,16);
 	if (hexInt == undefined || hexInt == null || isNaN(hexInt)) {
 		return -1;
@@ -144,7 +162,7 @@ function getContrastingColor(palId) {
 	}
 }
 
-function isColorDark(palId) {
+export function isColorDark(palId) {
 	if (!palId) {
 		palId = curDefaultPal();
 	}
@@ -155,7 +173,7 @@ function isColorDark(palId) {
 	return lightness <= 0.5;
 }
 
-function findAndReplaceTileInAllRooms( findTile, replaceTile ) {
+export function findAndReplaceTileInAllRooms( findTile, replaceTile ) {
 	for (roomId in room) {
 		for (y in room[roomId].tilemap) {
 			for (x in room[roomId].tilemap[y]) {
@@ -172,15 +190,15 @@ function makeTile(id, imageData) {
 	tile[id] = makeDrawing("TIL", id, imageData);
 }
 
-function makeSprite(id, imageData) {
+export function makeSprite(id, imageData) {
 	sprite[id] = makeDrawing("SPR", id, imageData);
 }
 
-function makeItem(id, imageData) {
+export function makeItem(id, imageData) {
 	item[id] = makeDrawing("ITM", id, imageData);
 }
 
-function makeDrawing(type, id, imageData) {
+export function makeDrawing(type, id, imageData) {
 	// initialize drawing data
 	var drawingData = createDrawingData(type, id);
 	drawingData.animation.frameCount = (!imageData) ? 1 : (imageData.length);
@@ -209,7 +227,7 @@ function makeDrawing(type, id, imageData) {
 }
 
 /* EVENTS */
-function on_change_title(e) {
+export function on_change_title(e) {
 	setTitle(e.target.value);
 	refreshGameData();
 
@@ -264,7 +282,7 @@ function tileTypeToString(type) {
 	}
 }
 
-function tileTypeToIdPrefix(type) {
+export function tileTypeToIdPrefix(type) {
 	if (type == TileType.Tile) {
 		return "TIL_";
 	}
@@ -296,12 +314,12 @@ function openDialogTool(dialogId, insertNextToId, showIfHidden) { // todo : rena
 	// clean up any existing editors -- is there a more "automagical" way to do this???
 	if (curDialogEditor) {
 		curDialogEditor.OnDestroy();
-		delete curDialogEditor;
+		curDialogEditor = null;
 	}
 
 	if (curPlaintextDialogEditor) {
 		curPlaintextDialogEditor.OnDestroy();
-		delete curPlaintextDialogEditor;
+		curPlaintextDialogEditor = null;
 	}
 	
 
@@ -356,7 +374,7 @@ function onDialogNameChange(event) {
 	refreshGameData();
 }
 
-function nextDialog() {
+export function nextDialog() {
 	var id = titleDialogId; // the title is safe as a default choice
 
 	if (curDialogEditorId != null) {
@@ -383,7 +401,7 @@ function nextDialog() {
 	alwaysShowDrawingDialog = document.getElementById("dialogAlwaysShowDrawingCheck").checked = false;
 }
 
-function prevDialog() {
+export function prevDialog() {
 	var id = titleDialogId; // the title is safe as a default choice
 
 	if (curDialogEditorId != null) {
@@ -414,7 +432,7 @@ function prevDialog() {
 	alwaysShowDrawingDialog = document.getElementById("dialogAlwaysShowDrawingCheck").checked = false;
 }
 
-function addNewDialog() {
+export function addNewDialog() {
 	var id = nextAvailableDialogId();
 
 	dialog[id] = { src:" ", name:null };
@@ -427,7 +445,7 @@ function addNewDialog() {
 	alwaysShowDrawingDialog = document.getElementById("dialogAlwaysShowDrawingCheck").checked = false;
 }
 
-function duplicateDialog() {
+export function duplicateDialog() {
 	if (curDialogEditorId != null) {
 		var id = nextAvailableDialogId();
 		dialog[id] = { src: dialog[curDialogEditorId].src.slice(), name: null, id: id, };
@@ -439,7 +457,7 @@ function duplicateDialog() {
 	}
 }
 
-function deleteDialog() {
+export function deleteDialog() {
 	var shouldDelete = confirm("Are you sure you want to delete this dialog?");
 
 	if (shouldDelete && curDialogEditorId != null && curDialogEditorId != titleDialogId) {
@@ -497,7 +515,7 @@ function reloadDialogUI() {
 	// clean up previous widget
 	if (paintDialogWidget) {
 		paintDialogWidget.OnDestroy();
-		delete paintDialogWidget;
+		paintDialogWidget = null;
 	}
 
 	paintDialogWidget = dialogTool.CreateWidget(
@@ -527,11 +545,11 @@ function reloadDialogUI() {
 }
 
 // hacky - assumes global paintTool object
-function getCurDialogId() {
+export function getCurDialogId() {
 	return getDrawingDialogId(drawing);
 }
 
-function setDefaultGameState() {
+export function setDefaultGameState() {
 	// initialize game with default data
 	var defaultData = Resources["defaultGameData.bitsy"];
 	Store.set("game_data", defaultData);
@@ -547,7 +565,7 @@ function setDefaultGameState() {
 	renderer.ClearCache();
 }
 
-function refreshGameData() {
+export function refreshGameData() {
 	if (isPlayMode) {
 		return; //never store game data while in playmode (TODO: wouldn't be necessary if the game data was decoupled form editor data)
 	}
@@ -620,7 +638,7 @@ var defaultFonts = [
 		"unicode_asian.bitsyfont",
 		"arabic.bitsyfont",
 	];
-fontManager = new FontManager(defaultFonts); // replaces font manager in the engine with one containing all fonts loaded in the editor
+let fontManager = new FontManager(defaultFonts); // FIXME: engine has its own fontManager, which we intend to clobber
 
 function detectBrowserFeatures() {
 	bitsyLog("BROWSER FEATURES", "editor");
@@ -665,53 +683,6 @@ function detectBrowserFeatures() {
 	}
 }
 
-// This is the panel arrangement you get if you are new or your editor settings are out-of-date
-var defaultPanelPrefs = {
-	workspace : [
-		{ id:"aboutPanel", 			visible:true, 	position:0  },
-		{ id:"roomPanel", 			visible:true, 	position:1  },
-		{ id:"paintPanel", 			visible:true, 	position:2  },
-		{ id:"colorsPanel", 		visible:true, 	position:3  },
-		{ id:"gamePanel", 			visible:true, 	position:4  },
-		{ id:"gifPanel", 			visible:false, 	position:5  },
-		{ id:"exitsPanel", 			visible:false, 	position:6  },
-		{ id:"dialogPanel",			visible:false,	position:7 },
-		{ id:"findPanel",			visible:false,	position:8  },
-		{ id:"inventoryPanel",		visible:false,	position:9 },
-		{ id:"tunePanel",			visible:false,	position:10 },
-		{ id:"blipPanel",			visible:false,	position:11 },
-	]
-};
-// bitsyLog(defaultPanelPrefs, "editor");
-
-function getPanelPrefs() {
-	// (TODO: weird that engine version and editor version are the same??)
-	var storedEngineVersion = Store.get('engine_version');
-	var useDefaultPrefs = (!storedEngineVersion) ||
-	                      (storedEngineVersion.major < 8) ||
-	                      (storedEngineVersion.minor < 11);
-	var prefs = useDefaultPrefs ? defaultPanelPrefs : Store.get('panel_prefs', defaultPanelPrefs);
-
-	// add missing panel prefs (if any)
-	// bitsyLog(defaultPanelPrefs, "editor");
-	for( var i = 0; i < defaultPanelPrefs.workspace.length; i++ ) {
-		var isMissing = true;
-		var panelPref = defaultPanelPrefs.workspace[i];
-		for( var j = 0; j < prefs.workspace.length; j++ )
-		{
-			if( prefs.workspace[j].id === panelPref.id ) {
-				isMissing = false;
-			}
-		}
-
-		if( isMissing ) {
-			prefs.workspace.push( panelPref );
-		}
-	}
-
-	return prefs;
-}
-
 var urlParameters = {};
 function readUrlParameters() {
 	bitsyLog(" --- reading url parameters --- ", "editor");
@@ -736,7 +707,7 @@ function readUrlParameters() {
 	}
 }
 
-function isPortraitOrientation() {
+export function isPortraitOrientation() {
 	var isPortrait = false;
 
 	if (window.screen.orientation != undefined) {
@@ -751,7 +722,9 @@ function isPortraitOrientation() {
 	return isPortrait;
 }
 
-function start() {
+// window.addEventListener('load', start)
+
+export function start() {
 	initSystem();
 
 	// TODO : I need to get rid of this event system... it's too hard to debug
@@ -761,37 +734,37 @@ function start() {
 		openDialogTool(titleDialogId, /*insertNextToId*/ null, /*showIfHidden*/ false);
 	});
 
-	isPlayerEmbeddedInEditor = true; // flag for game player to make changes specific to editor
+	let isPlayerEmbeddedInEditor = true; // FIXME: flag for game player to make changes specific to editor
 
 	detectBrowserFeatures();
 
+	// enable multiplayer editing
+	// - TODO: pass bitsy source to DocHandle
+	// - TODO: pass DocHandle.change to bitsy source
+	// https://github.com/automerge/automerge-repo/blob/main/packages/automerge-repo/README.md?plain=1
+
+	const server = attachServer(true)
+	console.log(server)
+
 	readUrlParameters();
 
-	// load icons and replace placeholder elements
-	var elements = document.getElementsByClassName("bitsy_icon");
-	for(var i = 0; i < elements.length; i++) {
-		iconUtils.LoadIcon(elements[i]);
-	}
-
-	var elements = document.getElementsByClassName("bitsy_icon_anim");
-	for(var i = 0; i < elements.length; i++) {
-		iconUtils.LoadIconAnimated(elements[i]);
-	}
-
 	// localization
-	localization = new Localization(urlParameters["lang"]);
+	let localization = new Localization(urlParameters["lang"]); // FIXME: pass to dialog editor
 	Store.init(function () {
 		// TODO: localize
 		window.alert('A storage error occurred: The editor will continue to work, but data may not be saved/loaded. Make sure to export a local copy after making changes, or your gamedata may be lost!');
 	});
 
 	paintTool = new PaintTool(document.getElementById("paint"), document.getElementById("newPaintMenu"));
+	bitsyLog("PAINT TOOL " + paintTool, "editor")
 	paintTool.onReloadTile = function(){ reloadTile() };
 	paintTool.onReloadSprite = function(){ reloadSprite() };
 	paintTool.onReloadItem = function(){ reloadItem() };
+	window.paintTool = paintTool
 
 	markerTool = new RoomMarkerTool(document.getElementById("markerCanvas1"), document.getElementById("markerCanvas2") );
 	bitsyLog("MARKER TOOL " + markerTool, "editor");
+	window.markerTool = markerTool
 
 	//
 	drawingThumbnailCanvas = document.createElement("canvas");
@@ -960,11 +933,11 @@ function start() {
 	initAbout();
 }
 
-function newDrawing() {
+export function newDrawing() {
 	paintTool.newDrawing();
 }
 
-function nextTile() {
+export function nextTile() {
 	var ids = sortedTileIdList();
 	tileIndex = (tileIndex + 1) % ids.length;
 
@@ -975,7 +948,7 @@ function nextTile() {
 	paintTool.reloadDrawing();
 }
 
-function prevTile() {
+export function prevTile() {
 	var ids = sortedTileIdList();
 
 	tileIndex = (tileIndex - 1) % ids.length;
@@ -990,7 +963,7 @@ function prevTile() {
 	paintTool.reloadDrawing();
 }
 
-function on_drawing_name_change() {
+export function on_drawing_name_change() {
 	var str = document.getElementById("drawingName").value;
 	var obj = paintTool.getCurObject();
 	var oldName = obj.name;
@@ -1063,15 +1036,15 @@ function on_drawing_name_change() {
 	bitsyLog(names, "editor");
 }
 
-function on_palette_name_change(event) {
+export function on_palette_name_change(event) {
 	paletteTool.ChangeSelectedPaletteName(event.target.value);
 }
 
-function selectRoom(roomId) {
+export function selectRoom(roomId) {
 	roomTool.select(roomId);
 }
 
-function copyExitData(exit) {
+export function copyExitData(exit) {
 	return createExitData(
 		exit.x,
 		exit.y,
@@ -1082,11 +1055,11 @@ function copyExitData(exit) {
 		exit.dlg);
 }
 
-function copyEndingData(ending) {
+export function copyEndingData(ending) {
 	return createEndingData(ending.id, ending.x, ending.y);
 }
 
-function nextItem() {
+export function nextItem() {
 	var ids = sortedItemIdList();
 	itemIndex = (itemIndex + 1) % ids.length;
 
@@ -1097,7 +1070,7 @@ function nextItem() {
 	paintTool.reloadDrawing();
 }
 
-function prevItem() {
+export function prevItem() {
 	var ids = sortedItemIdList();
 
 	itemIndex = (itemIndex - 1) % ids.length;
@@ -1112,7 +1085,7 @@ function prevItem() {
 	paintTool.reloadDrawing();
 }
 
-function nextSprite() {
+export function nextSprite() {
 	var ids = sortedSpriteIdList();
 
 	spriteIndex = (spriteIndex + 1) % ids.length;
@@ -1127,7 +1100,7 @@ function nextSprite() {
 	paintTool.reloadDrawing();
 }
 
-function prevSprite() {
+export function prevSprite() {
 	var ids = sortedSpriteIdList();
 
 	spriteIndex = (spriteIndex - 1) % ids.length;
@@ -1142,7 +1115,7 @@ function prevSprite() {
 	paintTool.reloadDrawing();
 }
 
-function next() {
+export function next() {
 	if (drawing.type == TileType.Tile) {
 		nextTile();
 	}
@@ -1156,7 +1129,7 @@ function next() {
 	events.Raise("select_drawing", { id: drawing.id, type: drawing.type });
 }
 
-function prev() {
+export function prev() {
 	if (drawing.type == TileType.Tile) {
 		prevTile();
 	}
@@ -1170,7 +1143,7 @@ function prev() {
 	events.Raise("select_drawing", { id: drawing.id, type: drawing.type });
 }
 
-function copyDrawingData(sourceDrawingData) {
+export function copyDrawingData(sourceDrawingData) {
     var copiedDrawingData = [];
 
     for (frame in sourceDrawingData) {
@@ -1186,11 +1159,11 @@ function copyDrawingData(sourceDrawingData) {
     return copiedDrawingData;
 }
 
-function duplicateDrawing() {
+export function duplicateDrawing() {
     paintTool.duplicateDrawing();
 }
 
-function removeAllItems( id ) {
+export function removeAllItems( id ) {
 	function getFirstItemIndex(roomId, itemId) {
 		for(var i = 0; i < room[roomId].items.length; i++) {
 			if(room[roomId].items[i].id === itemId)
@@ -1208,11 +1181,11 @@ function removeAllItems( id ) {
 	}
 }
 
-function updateAnimationUI() {
+export function updateAnimationUI() {
 	//todo
 }
 
-function reloadTile() {
+export function reloadTile() {
 	// animation UI
 	if ( tile[drawing.id] && tile[drawing.id].animation.isAnimated ) {
 		paintTool.isCurDrawingAnimated = true;
@@ -1248,7 +1221,7 @@ function reloadTile() {
 	paintTool.updateCanvas();
 }
 
-function updateWallCheckboxOnCurrentTile() {
+export function updateWallCheckboxOnCurrentTile() {
 	var isCurTileWall = false;
 
 	if( tile[ drawing.id ].isWall == undefined || tile[ drawing.id ].isWall == null ) {
@@ -1270,7 +1243,7 @@ function updateWallCheckboxOnCurrentTile() {
 	}
 }
 
-function reloadSprite() {
+export function reloadSprite() {
 	// animation UI
 	if ( sprite[drawing.id] && sprite[drawing.id].animation.isAnimated ) {
 		paintTool.isCurDrawingAnimated = true;
@@ -1347,12 +1320,12 @@ function reloadItem() {
 
 }
 
-function deleteDrawing() {
+export function deleteDrawing() {
 	paintTool.deleteDrawing();
 	events.Raise("select_drawing", { id: drawing.id, type: drawing.type });
 }
 
-function toggleToolBar(e) {
+export function toggleToolBar(e) {
 	if (e.target.checked) {
 		document.getElementById("toolsPanel").style.display = "flex";
 		document.getElementById("appRoot").classList.add("bitsy-toolbar-open");
@@ -1363,7 +1336,7 @@ function toggleToolBar(e) {
 	}
 }
 
-function toggleDownloadOptions(e) {
+export function toggleDownloadOptions(e) {
 	if( e.target.checked ) {
 		document.getElementById("downloadOptions").style.display = "block";
 		iconUtils.LoadIcon(document.getElementById("downloadOptionsCheckIcon"), "expand_more");
@@ -1374,7 +1347,7 @@ function toggleDownloadOptions(e) {
 	}
 }
 
-function togglePlayMode(e) {
+export function togglePlayMode(e) {
 	if (e.target.checked) {
 		on_play_mode();
 	}
@@ -1385,7 +1358,7 @@ function togglePlayMode(e) {
 	updatePlayModeButton();
 }
 
-function on_play_mode() {
+export function on_play_mode() {
 	isPlayMode = true;
 
 	if (document.getElementById("roomPanel").style.display === "none") {
@@ -1409,7 +1382,7 @@ function on_play_mode() {
 	loadGame(roomTool.canvasElement, serializeWorld(), fontManager.GetData(defaultFontName));
 }
 
-function on_edit_mode() {
+export function on_edit_mode() {
 	isPlayMode = false;
 
 	document.getElementById("appRoot").classList.remove("bitsy-playmode");
@@ -1461,7 +1434,7 @@ function on_edit_mode() {
 	events.Raise("on_edit_mode");
 }
 
-function updatePlayModeButton() {
+export function updatePlayModeButton() {
 	document.getElementById("playModeCheck").checked = isPlayMode;
 	iconUtils.LoadIcon(document.getElementById("playModeIcon"), isPlayMode ? "stop" : "play");
 
@@ -1470,20 +1443,15 @@ function updatePlayModeButton() {
 	document.getElementById("playModeText").innerHTML = isPlayMode ? stopText : playText;
 }
 
-function updatePreviewDialogButton() {
+export function updatePreviewDialogButton() {
 	// todo : remove?
 }
 
-function togglePaintGrid(e) {
+export function togglePaintGrid(e) {
 	paintTool.drawPaintGrid = e.target.checked;
 	updatePaintGridCheck(paintTool.drawPaintGrid);
 	paintTool.updateCanvas();
 	setPanelSetting("paintPanel", "grid", paintTool.drawPaintGrid);
-}
-
-function updatePaintGridCheck(checked) {
-	document.getElementById("paintGridCheck").checked = checked;
-	iconUtils.LoadIcon(document.getElementById("paintGridIcon"), checked ? "visibility" : "visibility_off");
 }
 
 /* PALETTE STUFF */
@@ -1494,27 +1462,27 @@ function changeColorPickerIndex(index) {
 	paletteTool.changeColorPickerIndex(index);
 }
 
-function prevPalette() {
+export function prevPalette() {
 	paletteTool.SelectPrev();
 }
 
-function nextPalette() {
+export function nextPalette() {
 	paletteTool.SelectNext();
 }
 
-function newPalette() {
+export function newPalette() {
 	paletteTool.AddNew();
 }
 
-function duplicatePalette() {
+export function duplicatePalette() {
 	paletteTool.AddDuplicate();
 }
 
-function deletePalette() {
+export function deletePalette() {
 	paletteTool.DeleteSelected();
 }
 
-function roomPaletteChange(event) {
+export function roomPaletteChange(event) {
 	var palId = event.target.value;
 	room[state.room].pal = palId;
 
@@ -1526,7 +1494,7 @@ function roomPaletteChange(event) {
 	paintTool.updateCanvas();
 }
 
-function updateDrawingNameUI() {
+export function updateDrawingNameUI() {
 	var obj = paintTool.getCurObject();
 
 	if (drawing.type == TileType.Avatar) { // hacky
@@ -1544,7 +1512,7 @@ function updateDrawingNameUI() {
 	document.getElementById("drawingName").readOnly = (drawing.type == TileType.Avatar);
 }
 
-function on_paint_avatar() {
+export function on_paint_avatar() {
 	spriteIndex = 0;
 	drawing = sprite["A"];
 
@@ -1554,7 +1522,7 @@ function on_paint_avatar() {
 	events.Raise("select_drawing", { id: drawing.id, type: drawing.type });
 }
 
-function on_paint_avatar_ui_update() {
+export function on_paint_avatar_ui_update() {
 	document.getElementById("dialog").setAttribute("style","display:none;");
 	document.getElementById("wall").setAttribute("style","display:none;");
 	// TODO : make navigation commands un-clickable
@@ -1569,7 +1537,7 @@ function on_paint_avatar_ui_update() {
 	}
 }
 
-function on_paint_tile() {
+export function on_paint_tile() {
 	tileIndex = 0;
 	var tileId = sortedTileIdList()[tileIndex];
 	drawing = tile[tileId];
@@ -1580,7 +1548,7 @@ function on_paint_tile() {
 	events.Raise("select_drawing", { id: drawing.id, type: drawing.type });
 }
 
-function on_paint_tile_ui_update() {
+export function on_paint_tile_ui_update() {
 	document.getElementById("dialog").setAttribute("style","display:none;");
 	document.getElementById("wall").setAttribute("style","display:block;");
 	document.getElementById("animationOuter").setAttribute("style","display:block;");
@@ -1595,7 +1563,7 @@ function on_paint_tile_ui_update() {
 	}
 }
 
-function on_paint_sprite() {
+export function on_paint_sprite() {
 	if (sortedSpriteIdList().length > 1)
 	{
 		spriteIndex = 1;
@@ -1614,7 +1582,7 @@ function on_paint_sprite() {
 	events.Raise("select_drawing", { id: drawing.id, type: drawing.type });
 }
 
-function on_paint_sprite_ui_update() {
+export function on_paint_sprite_ui_update() {
 	document.getElementById("dialog").setAttribute("style","display:block;");
 	document.getElementById("wall").setAttribute("style","display:none;");
 	document.getElementById("animationOuter").setAttribute("style","display:block;");
@@ -1629,7 +1597,7 @@ function on_paint_sprite_ui_update() {
 	}
 }
 
-function on_paint_item() {
+export function on_paint_item() {
 	itemIndex = 0;
 	var itemId = sortedItemIdList()[itemIndex];
 	drawing = item[itemId];
@@ -1641,7 +1609,7 @@ function on_paint_item() {
 	events.Raise("select_drawing", { id: drawing.id, type: drawing.type });
 }
 
-function on_paint_item_ui_update() {
+export function on_paint_item_ui_update() {
 	document.getElementById("dialog").setAttribute("style","display:block;");
 	document.getElementById("wall").setAttribute("style","display:none;");
 	document.getElementById("animationOuter").setAttribute("style","display:block;");
@@ -1696,17 +1664,17 @@ function renderAnimationThumbnail(imgId, drawing, frameIndex) {
 	animationThumbnailRenderer.Render(imgId, drawing, frameIndex);
 }
 
-function renderAnimationPreview(drawing) {
+export function renderAnimationPreview(drawing) {
 	renderAnimationThumbnail("animationThumbnailPreview", drawing);
 	renderAnimationThumbnail("animationThumbnailFrame1", drawing, 0);
 	renderAnimationThumbnail("animationThumbnailFrame2", drawing, 1);
 }
 
-function renderPaintThumbnail(drawing) {
+export function renderPaintThumbnail(drawing) {
 	renderAnimationThumbnail("animationThumbnailPreview", drawing);
 }
 
-function getCurPaintModeStr() {
+export function getCurPaintModeStr() {
 	if(drawing.type == TileType.Sprite || drawing.type == TileType.Avatar) {
 		return localization.GetStringOrFallback("sprite_label", "sprite");
 	}
@@ -1718,11 +1686,11 @@ function getCurPaintModeStr() {
 	}
 }
 
-function on_change_adv_dialog() {
+export function on_change_adv_dialog() {
 	on_change_dialog();
 }
 
-function on_game_data_change() {
+export function on_game_data_change() {
 	on_game_data_change_core();
 	refreshGameData();
 
@@ -1732,7 +1700,7 @@ function on_game_data_change() {
 	});
 }
 
-function on_game_data_change_core() {
+export function on_game_data_change_core() {
 	var gamedataStorage = Store.get("game_data");
 	bitsyLog(gamedataStorage, "editor");
 
@@ -1820,7 +1788,7 @@ function on_game_data_change_core() {
 	events.Raise("game_data_change");
 }
 
-function updateFontDescriptionUI() {
+export function updateFontDescriptionUI() {
 	for (var i in fontSelect.options) {
 		var fontOption = fontSelect.options[i];
 		var fontDescriptionId = fontOption.value + "_description";
@@ -1832,19 +1800,19 @@ function updateFontDescriptionUI() {
 	}
 }
 
-function on_toggle_wall(e) {
+export function on_toggle_wall(e) {
 	paintTool.toggleWall( e.target.checked );
 }
 
-function toggleWallUI(checked) {
+export function toggleWallUI(checked) {
 	iconUtils.LoadIcon(document.getElementById("wallCheckboxIcon"), checked ? "wall_on" : "wall_off");
 }
 
-function hideAbout() {
+export function hideAbout() {
 	document.getElementById("aboutPanel").setAttribute("style","display:none;");
 }
 
-function toggleInstructions(e) {
+export function toggleInstructions(e) {
 	var div = document.getElementById("instructions");
 	if (e.target.checked) {
 		div.style.display = "block";
@@ -1874,67 +1842,67 @@ function startAddMarker() {
 	markerTool.StartAdd();
 }
 
-function cancelAddMarker() {
+export function cancelAddMarker() {
 	markerTool.CancelAdd();
 }
 
-function newExit() {
+export function newExit() {
 	markerTool.AddExit(false);
 }
 
-function newExitOneWay() {
+export function newExitOneWay() {
 	markerTool.AddExit(true);
 }
 
-function newEnding() {
+export function newEnding() {
 	markerTool.AddEnding();
 }
 
-function duplicateMarker() {
+export function duplicateMarker() {
 	markerTool.DuplicateSelected();
 }
 
-function deleteMarker() {
+export function deleteMarker() {
 	markerTool.RemoveMarker();
 }
 
-function prevMarker() {
+export function prevMarker() {
 	markerTool.NextMarker();
 }
 
-function nextMarker() {
+export function nextMarker() {
 	markerTool.PrevMarker();
 }
 
-function toggleMoveMarker1(e) {
+window.toggleMoveMarker1 = function toggleMoveMarker1(e) {
 	markerTool.TogglePlacingFirstMarker(e.target.checked);
 }
 
-function selectMarkerRoom1() {
+window.selectMarkerRoom1 = function selectMarkerRoom1() {
 	markerTool.SelectMarkerRoom1();
 }
 
-function toggleMoveMarker2(e) {
+window.toggleMoveMarker2 = function toggleMoveMarker2(e) {
 	markerTool.TogglePlacingSecondMarker(e.target.checked);
 }
 
-function selectMarkerRoom2() {
+window.selectMarkerRoom2 = function selectMarkerRoom2() {
 	markerTool.SelectMarkerRoom2();
 }
 
-function changeExitDirection() {
+export function changeExitDirection() {
 	markerTool.ChangeExitLink();
 }
 
-function onEffectTextChange(event) {
+export function onEffectTextChange(event) {
 	markerTool.ChangeEffectText(event.target.value);
 }
 
-function onChangeExitTransitionEffect(effectId, exitIndex) {
+export function onChangeExitTransitionEffect(effectId, exitIndex) {
 	markerTool.ChangeExitTransitionEffect(effectId, exitIndex);
 }
 
-function toggleExitOptions(exitIndex, visibility) {
+export function toggleExitOptions(exitIndex, visibility) {
 	if (exitIndex == 0) {
 		// hacky way to keep these in syncs!!!
 		document.getElementById("exitOptionsToggleCheck1").checked = visibility;
@@ -1955,7 +1923,7 @@ function setElementClass(elementId, classId, addClass) {
 	bitsyLog(el.classList, "editor");
 }
 
-function togglePanelAnimated(e) {
+export function togglePanelAnimated(e) {
 	var panel = document.getElementById(e.target.value);
 	if (e.target.checked) {
 		togglePanel(e);
@@ -1974,15 +1942,15 @@ function togglePanelAnimated(e) {
 	}
 }
 
-function togglePanel(e) {
+export function togglePanel(e) {
 	togglePanelCore( e.target.value, e.target.checked );
 }
 
-function showPanel(id, insertNextToId) {
+export function showPanel(id, insertNextToId) {
 	togglePanelCore(id, true /*visible*/, true /*doUpdatePrefs*/, insertNextToId);
 }
 
-function hidePanel(id) {
+export function hidePanel(id) {
 	// animate panel and tools button
 	document.getElementById(id).classList.add("close");
 	document.getElementById("toolsCheckLabel").classList.add("flash");
@@ -2000,7 +1968,7 @@ function hidePanel(id) {
 	);
 }
 
-function togglePanelCore(id, visible, doUpdatePrefs, insertNextToId) {
+export function togglePanelCore(id, visible, doUpdatePrefs, insertNextToId) {
 	if (doUpdatePrefs === undefined || doUpdatePrefs === null) {
 		doUpdatePrefs = true;
 	}
@@ -2015,7 +1983,7 @@ function togglePanelCore(id, visible, doUpdatePrefs, insertNextToId) {
 	}
 }
 
-function togglePanelUI(id, visible, insertNextToId) {
+export function togglePanelUI(id, visible, insertNextToId) {
 	if (visible) {
 		var editorContent = document.getElementById("editorContent");
 		var cardElement = document.getElementById(id);
@@ -2045,7 +2013,7 @@ function togglePanelUI(id, visible, insertNextToId) {
 	}
 }
 
-function updatePanelPrefs() {
+export function updatePanelPrefs() {
 	// bitsyLog("UPDATE PREFS", "editor");
 
 	var prefs = getPanelPrefs();
@@ -2073,37 +2041,6 @@ function updatePanelPrefs() {
 	// bitsyLog(Store.get('panel_prefs'), "editor");
 }
 
-function getPanelSetting(panelId, settingId) {
-	var settingValue = null;
-
-	var prefs = getPanelPrefs();
-
-	for (var i = 0; i < prefs.workspace.length; i++ ) {
-		if (prefs.workspace[i].id === panelId) {
-			if (prefs.workspace[i].setting != undefined && prefs.workspace[i].setting != null) {
-				settingValue = prefs.workspace[i].setting[settingId];
-			}
-		}
-	}
-
-	return settingValue;
-}
-
-function setPanelSetting(panelId, settingId, settingValue) {
-	var prefs = getPanelPrefs();
-
-	for (var i = 0; i < prefs.workspace.length; i++ ) {
-		if (prefs.workspace[i].id === panelId) {
-			if (prefs.workspace[i].setting === undefined || prefs.workspace[i].setting === null) {
-				prefs.workspace[i].setting = {};
-			}
-
-			prefs.workspace[i].setting[settingId] = settingValue;
-		}
-	}
-
-	Store.set('panel_prefs', prefs);
-}
 
 var gifRecordingInterval = null;
 function startRecordingGif() {
@@ -2205,7 +2142,7 @@ function takeSnapshotGif(e) {
 	}, animationTime);
 }
 
-function stopRecordingGif() {
+export function stopRecordingGif() {
 	var gif = {
 		frames: gifFrameData,
 		width: 512,
@@ -2335,7 +2272,7 @@ function on_toggle_animated() {
 	}
 }
 
-function addSpriteAnimation() {
+export function addSpriteAnimation() {
 	//set editor mode
 	paintTool.isCurDrawingAnimated = true;
 	paintTool.curDrawingFrameIndex = 0;
@@ -2366,7 +2303,7 @@ function addSpriteAnimation() {
 	resetAllAnimations();
 }
 
-function removeSpriteAnimation() {
+export function removeSpriteAnimation() {
 	//set editor mode
 	paintTool.isCurDrawingAnimated = false;
 
@@ -2391,7 +2328,7 @@ function removeSpriteAnimation() {
 	resetAllAnimations();
 }
 
-function addTileAnimation() {
+export function addTileAnimation() {
 	//set editor mode
 	paintTool.isCurDrawingAnimated = true;
 	paintTool.curDrawingFrameIndex = 0;
@@ -2421,7 +2358,7 @@ function addTileAnimation() {
 	resetAllAnimations();
 }
 
-function removeTileAnimation() {
+export function removeTileAnimation() {
 	//set editor mode
 	paintTool.isCurDrawingAnimated = false;
 
@@ -2477,7 +2414,7 @@ function addItemAnimation() {
 	resetAllAnimations();
 }
 
-function removeItemAnimation() {
+export function removeItemAnimation() {
 	//set editor mode
 	paintTool.isCurDrawingAnimated = false;
 
@@ -2502,7 +2439,7 @@ function removeItemAnimation() {
 	resetAllAnimations();
 }
 
-function addDrawingAnimation(drwId, frameData) {
+export function addDrawingAnimation(drwId, frameData) {
 	var drawingSource = renderer.GetDrawingSource(drwId);
 
 	if (!frameData) {
@@ -2523,7 +2460,7 @@ function addDrawingAnimation(drwId, frameData) {
 	renderer.SetDrawingSource(drwId, drawingSource);
 }
 
-function removeDrawingAnimation(drwId) {
+export function removeDrawingAnimation(drwId) {
 	var drawingData = renderer.GetDrawingSource(drwId);
 	var oldDrawingData = drawingData.slice(0);
 	renderer.SetDrawingSource(drwId, [oldDrawingData[0]]);
@@ -2536,17 +2473,17 @@ function cacheDrawingAnimation(drawing, sourceId) {
 	drawing.cachedAnimation = [oldDrawingData[1]]; // ah the joys of javascript
 }
 
-function on_paint_frame1() {
+window.on_paint_frame1 = function on_paint_frame1() {
 	paintTool.curDrawingFrameIndex = 0;
 	paintTool.reloadDrawing();
 }
 
-function on_paint_frame2() {
+window.on_paint_frame2 = function on_paint_frame2() {
 	paintTool.curDrawingFrameIndex = 1;
 	paintTool.reloadDrawing();
 }
 
-function getComplimentingColor(palId) {
+export function getComplimentingColor(palId) {
 	if (!palId) palId = curDefaultPal();
 	var hsl = rgbToHsl( getPal(palId)[0][0], getPal(palId)[0][1], getPal(palId)[0][2] );
 	// bitsyLog(hsl, "editor");
@@ -2567,7 +2504,7 @@ var grabbedPanel = {
 	shadow: null
 };
 
-function grabCard(e) {
+export function grabCard(e) {
 	// can't grab cards in vertical mode right now
 	if (window.innerHeight > window.innerWidth) { // TODO : change to portrait orientation check??
 		return;
@@ -2615,7 +2552,7 @@ function grabCard(e) {
 	grabbedPanel.card.style.zIndex = 1000;
 }
 
-function panel_onMouseMove(e) {
+export function panel_onMouseMove(e) {
 	if (grabbedPanel.card == null) return;
 
 	bitsyLog("-- PANEL MOVE", "editor");
@@ -2660,7 +2597,7 @@ function panel_onMouseMove(e) {
 }
 document.addEventListener("mousemove",panel_onMouseMove);
 
-function panel_onMouseUp(e) {
+export function panel_onMouseUp(e) {
 	if (grabbedPanel.card == null) return;
 
 	var editorContent = document.getElementById("editorContent");
@@ -2683,7 +2620,7 @@ function panel_onMouseUp(e) {
 document.addEventListener("mouseup",panel_onMouseUp);
 
 // TODO consolidate these into one function?
-function getElementPosition(e) { /* gets absolute position on page */
+export function getElementPosition(e) { /* gets absolute position on page */
 	if (!e.getBoundingClientRect) {
 		bitsyLog("NOOO BOUNDING RECT!!!", "editor");
 		return {x:0,y:0};
@@ -2695,7 +2632,7 @@ function getElementPosition(e) { /* gets absolute position on page */
 	return pos;
 }
 
-function getElementSize(e) { /* gets visible size */
+export function getElementSize(e) { /* gets visible size */
 	return {
 		x: e.clientWidth,
 		y: e.clientHeight
@@ -2715,7 +2652,8 @@ function blockScrollBackpage(e) {
 }
 
 
-function toggleDialogCode(e) {
+export function toggleDialogCode(e) {
+	console.log('toggling dialogue code')
 	var showCode = e.target.checked;
 
 	// toggle button text
@@ -2745,12 +2683,12 @@ function toggleAlwaysShowDrawingDialog(e) {
 	}
 }
 
-function showInventoryItem() {
+export function showInventoryItem() {
 	document.getElementById("inventoryItem").style.display = "block";
 	document.getElementById("inventoryVariable").style.display = "none";
 }
 
-function showInventoryVariable() {
+export function showInventoryVariable() {
 	document.getElementById("inventoryItem").style.display = "none";
 	document.getElementById("inventoryVariable").style.display = "block";
 }
@@ -2784,12 +2722,12 @@ function togglePreviewDialog(event) {
 }
 
 var isFixedSize = false;
-function chooseExportSizeFull() {
+export function chooseExportSizeFull() {
 	isFixedSize = false;
 	document.getElementById("exportSizeFixedInputSpan").style.display = "none";
 }
 
-function chooseExportSizeFixed() {
+export function chooseExportSizeFixed() {
 	isFixedSize = true;
 	document.getElementById("exportSizeFixedInputSpan").style.display = "inline-block";
 }
@@ -2798,7 +2736,7 @@ function chooseExportSizeFixed() {
 var localization;
 
 // TODO : create a system for placeholder text like I have for innerText
-function hackUpdatePlaceholderText() {
+export function hackUpdatePlaceholderText() {
 	var titlePlaceholder = localization.GetStringOrFallback("title_placeholder", "Title");
 	var titleTextBoxes = document.getElementsByClassName("titleTextBox");
 	for (var i = 0; i < titleTextBoxes.length; i++) {
@@ -2806,7 +2744,7 @@ function hackUpdatePlaceholderText() {
 	}
 }
 
-function hackUpdateEditorToolMenusOnLanguageChange() {
+export function hackUpdateEditorToolMenusOnLanguageChange() {
 	// hack : manually update tool menus & titles
 	if (roomTool) {
 		roomTool.resetTitlebar();
@@ -2849,7 +2787,7 @@ function updateEditorLanguageStyle(newCode) {
 	document.body.classList.add("lang_" + curEditorLanguageCode);
 }
 
-function updateEditorTextDirection(newTextDirection) {
+export function updateEditorTextDirection(newTextDirection) {
 	var prevTextDirection = textDirection;
 
 	bitsyLog("TEXT BOX TEXT DIR " + newTextDirection, "editor");
@@ -2861,7 +2799,7 @@ function updateEditorTextDirection(newTextDirection) {
 }
 
 /* UTILS (todo : move into utils.js after merge) */
-function CreateDefaultName(defaultNamePrefix, objectStore, ignoreNumberIfFirstName) {
+export function CreateDefaultName(defaultNamePrefix, objectStore, ignoreNumberIfFirstName) {
 	if (ignoreNumberIfFirstName === undefined || ignoreNumberIfFirstName === null) {
 		ignoreNumberIfFirstName = false;
 	}
@@ -2892,7 +2830,7 @@ function CreateDefaultName(defaultNamePrefix, objectStore, ignoreNumberIfFirstNa
 }
 
 /* DOCS */
-function toggleDialogDocs(e) {
+export function toggleDialogDocs(e) {
 	bitsyLog("SHOW DOCS", "editor");
 	bitsyLog(e.target.checked, "editor");
 	if (e.target.checked) {
@@ -2907,13 +2845,10 @@ function toggleDialogDocs(e) {
 	}
 }
 
-/* ICONS */
-var iconUtils = new IconUtils(); // TODO : move?
-
 /* NEW FIND TOOL */
 var findTool = null;
 
-function openFindTool(categoryId, insertNextToId) {
+export function openFindTool(categoryId, insertNextToId) {
 	if (findTool) {
 		findTool.SelectCategory(categoryId);
 	}
@@ -2921,7 +2856,7 @@ function openFindTool(categoryId, insertNextToId) {
 	showPanel("findPanel", insertNextToId);
 }
 
-function openFindToolWithCurrentPaintCategory() {
+export function openFindToolWithCurrentPaintCategory() {
 	var categoryId = "AVA";
 
 	if (drawing) {

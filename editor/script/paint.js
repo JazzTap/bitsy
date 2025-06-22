@@ -1,7 +1,14 @@
+import {getPanelSetting, iconUtils} from "./editor_state.js" // VERIFY
+import {tilesize} from "./system/system.js"
 /*
 	PAINT
 */
-function drawGrid(canvas, gridDivisions, lineColor) {
+export function updatePaintGridCheck(checked) {
+	document.getElementById("paintGridCheck").checked = checked;
+	iconUtils.LoadIcon(document.getElementById("paintGridIcon"), checked ? "visibility" : "visibility_off");
+}
+
+window.drawGrid = function drawGrid(canvas, gridDivisions, lineColor) {
 	var ctx = canvas.getContext("2d");
 	ctx.fillStyle = lineColor;
 
@@ -19,7 +26,7 @@ function drawGrid(canvas, gridDivisions, lineColor) {
 	}
 }
 
-function PaintTool(canvas, menuElement) {
+export function PaintTool(canvas, menuElement) {
 	// TODO : variables
 	var self = this; // feels a bit hacky
 

@@ -1,4 +1,4 @@
-function InputSystem() {
+export function InputSystem() {
 	var self = this;
 
 	this.Key = {

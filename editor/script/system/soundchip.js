@@ -5,7 +5,7 @@ function enableGlobalAudioContext() {
 	audioContext.resume();
 }
 
-function SoundSystem() {
+export function SoundSystem() {
 	var self = this;
 
 	// volume

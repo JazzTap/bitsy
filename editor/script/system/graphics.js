@@ -1,4 +1,4 @@
-function GraphicsSystem() {
+export function GraphicsSystem() {
 	var self = this;
 
 	var canvas;

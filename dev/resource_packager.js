@@ -53,7 +53,7 @@ for (var i = 0; i < resourceFiles.length; i++) {
 	resourcePackage[fileName] = result;
 }
 
-var resourceJavascriptFile = "var Resources = " + JSON.stringify(resourcePackage, null, 2) + ";";
+var resourceJavascriptFile = "export let Resources = " + JSON.stringify(resourcePackage, null, 2) + ";";
 
 fs.writeFileSync(path.resolve(__dirname, "../editor/script/generated/resources.js"), resourceJavascriptFile);
 console.log("done!");

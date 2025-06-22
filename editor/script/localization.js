@@ -1,3 +1,6 @@
+import {Resources} from "./generated/resources.js"
+import {Store} from "./store.js"
+
 /*
 TODO
 X where to store localization id? id, class, innerText?
@@ -15,7 +18,7 @@ X find instances of dynamic text
 - dynamic text like "I'm a cat" "tea" and "Write your game's title here"
 */
 
-function Localization(initialLanguage) {
+export function Localization(initialLanguage) {
 
 var self = this;
 

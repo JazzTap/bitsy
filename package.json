@@ -1,9 +1,18 @@
 {
-	"name": "bitsy",
+	"name": "bitsy-together",
 	"version": "8.12.0",
 	"description": "make tiny games, worlds, and stories",
-	"author": "Adam Le Doux",
+	"author": "Jasmine Otto + Adam Le Doux",
+	"type": "module",
 	"devDependencies": {
+		"@automerge/automerge-repo-sync-server": "^0.2.8",
+		"concurrently": "^9.1.2",
+		"http-server": "^14.1.1",
 		"ssh2": "^1.11.0"
+	},
+	"scripts": {
+		"client": "npx http-server ./",
+		"server": "npx @automerge/automerge-repo-sync-server",
+		"dev": "concurrently \"npm run client\" \"npm run server\" "
 	}
 }

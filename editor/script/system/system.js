@@ -1,3 +1,7 @@
+import {InputSystem} from "./input.js"
+import {SoundSystem} from "./soundchip.js"
+import {GraphicsSystem} from "./graphics.js"
+
 /* LOGGING */
 var DebugLogCategory = {
 	// system
@@ -20,7 +24,7 @@ var DebugLogCategory = {
 
 var isLoggingVerbose = false;
 
-function bitsyLog(message, category) {
+export function bitsyLog(message, category) {
 	if (!category) {
 		category = "bitsy";
 	}
@@ -46,24 +50,24 @@ function bitsyLog(message, category) {
 }
 
 /* GLOBALS */
-var tilesize = 8;
-var mapsize = 16;
-var width = mapsize * tilesize;
-var height = mapsize * tilesize;
-var scale = 4;
-var textScale = 2;
+export let tilesize = 8;
+export let mapsize = 16;
+export let width = mapsize * tilesize;
+export let height = mapsize * tilesize;
+export let scale = 4;
+export let textScale = 2;
 
 /* SYSTEM */
 var updateInterval = null;
 var prevTime = 0;
 var deltaTime = 0;
 
-function initSystem() {
+export function initSystem() {
 	prevTime = Date.now();
 	updateInterval = setInterval(updateSystem, 16);
 }
 
-function updateSystem() {
+export function updateSystem() {
 	var curTime = Date.now();
 	deltaTime = curTime - prevTime;
 
@@ -86,7 +90,7 @@ function updateSystem() {
 	prevTime = curTime;
 }
 
-function loadGame(canvas, gameData, defaultFontData) {
+export function loadGame(canvas, gameData, defaultFontData) {
 	bitsyLog("load!", "system");
 	// initialize bitsy system
 	bitsy._attachCanvas(canvas);
@@ -95,7 +99,7 @@ function loadGame(canvas, gameData, defaultFontData) {
 	bitsy._start();
 }
 
-function quitGame() {
+export function quitGame() {
 	// hack to press the menu button to force game over state
 	bitsy._injectPreLoop = function() { bitsy._poke(bitsy._buttonBlock, bitsy.BTN_MENU, 1); };
 
@@ -750,5 +754,5 @@ function BitsySystem(name) {
 	var onLoopFunction = null;
 }
 
-var mainProcess = addProcess();
-var bitsy = mainProcess.system;
+let mainProcess = addProcess();
+export let bitsy = mainProcess.system;

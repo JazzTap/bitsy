@@ -1,3 +1,5 @@
+import {makeToolCard} from "/editor/script/card.js"
+
 function makeTuneTool() {
 	return makeToolCard("tune", function(tool) {
 		tool.id = "tune";

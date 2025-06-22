@@ -13,7 +13,7 @@
 		<!-- APP -->
 		<link rel="icon" type="image/png" href="image/cat5.png">
 		<link rel="apple-touch-icon" href="image/apple-touch-icon.png">
-
+		
 		<!-- STYLES -->
 		<link rel="stylesheet" type="text/css" href="style/bitsyEditorStyle.css">
 		<link rel="stylesheet" type="text/css" href="style/colorsToolStyle.css">
@@ -24,58 +24,13 @@
 		<link rel="stylesheet" type="text/css" href="style/paintToolStyle.css">
 		<link rel="stylesheet" type="text/css" href="style/settingsToolStyle.css">
 
-		<!-- GENERATED -->
-		<script src="script/generated/resources.js"></script>
-
-		<!-- SYSTEM -->
-		<script src="script/system/input.js"></script>
-		<script src="script/system/soundchip.js"></script>
-		<script src="script/system/graphics.js"></script>
-		<script src="script/system/system.js"></script>
-
-		<!-- ENGINE -->
-		<script src="script/engine/world.js"></script>
-		<script src="script/engine/sound.js"></script>
-		<script src="script/engine/font.js"></script>
-		<script src="script/engine/transition.js"></script>
-		<script src="script/engine/script.js"></script>
-		<script src="script/engine/dialog.js"></script>
-		<script src="script/engine/renderer.js"></script>
-		<script src="script/engine/bitsy.js"></script>
-
-		<!-- EDITOR SCRIPTS -->
-		<script src="script/tools/about.js"></script>
-		<script src="script/store.js"></script>
-		<script src="script/util.js"></script>
-		<script src="script/icons.js"></script>
-		<script src="script/thumbnail.js"></script>
-		<script src="script/mouse.js"></script>
-		<script src="script/menu.js"></script>
-		<script src="script/card.js"></script>
-		<script src="script/paint.js"></script>
-		<script src="script/room_markers.js"></script>
-		<script src="script/find.js"></script>
-		<script src="script/localization.js"></script>
-		<script src="script/event_manager.js"></script>
-		<script src="script/palette.js"></script>
-		<script src="script/color_picker.js"></script>
-		<script src="script/gif.js"></script>
-		<script src="script/exporter.js"></script>
-		<script src="script/dialog_editor.js"></script>
-		<script src="script/editor.js"></script>
-		<script src="script/inventory.js"></script>
-
-		<!-- TOOLS -->
-		<script src="script/tools/room.js"></script>
-		<script src="script/tools/tune.js"></script>
-		<script src="script/tools/blip.js"></script>
-		<script src="script/tools/game.js"></script>
-
 		<!-- FONTS -->
 		<link href="style/googleNunito.css" rel="stylesheet">
 	</head>
  
-	<body onload="start()">
+	<script type="module" src="index.js"></script>
+
+	<body>
 
 		<div id="appRoot">
 
@@ -87,7 +42,7 @@
 
 					<div id="logoFlexItem">
 						<span title="Bitsy ~ make little worlds ~" id="bitsyLogoTitle">
-							<img id="bitsyLogo" src="image/cat.svg" onclick="window.open('https://www.bitsy.org');" style="cursor: pointer;" />
+							<img id="bitsyLogo" src="image/cat.svg" style="cursor: pointer;" />
 							<span id="bitsyTitle" class="localize bitsy_title">Bitsy</span>
 						</span>
 					</div>
@@ -97,14 +52,14 @@
 					</div>
 
 					<!-- show tools -->
-					<input type="checkbox" value="toolsPanel" id="toolsCheck" onclick="toggleToolBar(event);" autocomplete="off" />
+					<input type="checkbox" value="toolsPanel" id="toolsCheck" autocomplete="off" />
 					<label title="show / hide toolbar" for="toolsCheck" id="toolsCheckLabel" class="bitsy-menu-label">
 						<span class="bitsy_icon">tool</span>
 						<span id="toolsCheckLabelText" class="localize tools_label">tools</span>
 					</label>
 
 					<!-- play -->
-					<input type="checkbox" id="playModeCheck" onclick="togglePlayMode(event);" autocomplete="off" />
+					<input type="checkbox" id="playModeCheck" autocomplete="off" />
 					<label title="play / pause game" for="playModeCheck" class="bitsy-menu-label">
 						<span id="playModeIcon" class="bitsy_icon">play</span>
 						<span id="playModeText" class="localize play_game">play</span> <!-- TODO LOCALIZE: also stop_game -->
@@ -116,49 +71,49 @@
 
 			<div id="toolsPanel">
 
-				<input type="checkbox" value="aboutPanel" id="aboutCheck" onclick="togglePanelAnimated(event);" autocomplete="off" checked/>
+				<input type="checkbox" value="aboutPanel" id="aboutCheck" autocomplete="off" checked/>
 				<label title="show / hide about window" for="aboutCheck">
 					<span class="bitsy_icon icon_space_right">about</span>
 					<span class="localize about_tool_name">about</span>
 				</label>
 
-				<input type="checkbox" value="exitsPanel" id="exitsCheck" onclick="togglePanelAnimated(event);" autocomplete="off" />
+				<input type="checkbox" value="exitsPanel" id="exitsCheck" autocomplete="off" />
 				<label title="show / hide exits & endings window" for="exitsCheck">
 					<span class="bitsy_icon icon_space_right">exits_endings</span>
 					<span class="localize marker_tool_name">exits & endings</span>
 				</label>
 
-				<input type="checkbox" value="paintPanel" id="paintCheck" onclick="togglePanelAnimated(event);" autocomplete="off" checked/>
+				<input type="checkbox" value="paintPanel" id="paintCheck" autocomplete="off" checked/>
 				<label title="show / hide paint window" for="paintCheck">
 					<span class="bitsy_icon icon_space_right">paint</span>
 					<span class="localize paint_tool_name">paint</span>
 				</label>
 
-				<input type="checkbox" value="colorsPanel" id="colorsCheck" onclick="togglePanelAnimated(event);" autocomplete="off" checked/>
+				<input type="checkbox" value="colorsPanel" id="colorsCheck" autocomplete="off" checked/>
 				<label title="show / hide color palette window" for="colorsCheck">
 					<span class="bitsy_icon icon_space_right">colors</span>
 					<span class="localize palette_tool_name">colors</span>
 				</label>
 
-				<input type="checkbox" value="dialogPanel" id="dialogCheck" onclick="togglePanelAnimated(event);" autocomplete="off" checked/>
+				<input type="checkbox" value="dialogPanel" id="dialogCheck" autocomplete="off" checked/>
 				<label title="show / hide dialog window" for="dialogCheck">
 					<span class="bitsy_icon icon_space_right">dialog</span>
 					<span class="localize dialog_tool_name">dialog</span>
 				</label>
 
-				<input type="checkbox" value="findPanel" id="findCheck" onclick="togglePanelAnimated(event);" autocomplete="off" />
+				<input type="checkbox" value="findPanel" id="findCheck" autocomplete="off" />
 				<label title="show / hide find window" for="findCheck">
 					<span class="bitsy_icon icon_space_right">search</span>
 					<span class="localize find_tool">find</span>
 				</label>
 
-				<input type="checkbox" value="inventoryPanel" id="inventoryCheck" onclick="togglePanelAnimated(event);" autocomplete="off" checked/>
+				<input type="checkbox" value="inventoryPanel" id="inventoryCheck" autocomplete="off" checked/>
 				<label title="show / hide inventory window" for="inventoryCheck">
 					<span class="bitsy_icon icon_space_right">item</span>
 					<span class="localize inventory_tool_name">inventory</span>
 				</label>
 				
-				<input type="checkbox" value="gifPanel" id="gifCheck" onclick="togglePanelAnimated(event);" autocomplete="off" />
+				<input type="checkbox" value="gifPanel" id="gifCheck" autocomplete="off" />
 				<label title="show / hide gif recording window" for="gifCheck">
 					<span class="bitsy_icon icon_space_right">record</span>
 					<span class="localize gif_tool_name">record gif</span>
@@ -166,23 +121,23 @@
 			</div>
 		</div>
 
-		<div id="editorWindow" onmousewheel="blockScrollBackpage(event);">
+		<div id="editorWindow" > <!-- FIXME: onmousewheel="blockScrollBackpage(event);" -->
 			<div id="editorContent">
 
 				<div id="aboutPanel" class="bitsy-card bitsy-card-m bitsy-workbench-item">
 					<div class="bitsy-card-titlebar">
 						<span class="bitsy_icon">about</span>
 
-						<span class="bitsy-card-title" title="about window" onmousedown="grabCard(event);">
+						<span class="bitsy-card-title" title="about window">
 							<span class="localize about_tool_name">about</span>
 						</span>
 
 
-						<button title="open page in new tab" onclick="aboutOpenTab();">
+						<button id="aboutOpenNewTab" title="open page in new tab">
 							<span class="bitsy_icon">open_tool</span>
 						</button>
 
-						<button title="minimize about window" class="bitsy-card-close-button" onclick="hidePanel('aboutPanel');">
+						<button title="minimize about window" class="bitsy-card-close-button" id="hideAbout">
 							<span class="bitsy_icon">close</span>
 						</button>
 					</div>
@@ -196,15 +151,15 @@
 					<div class="bitsy-card-titlebar">
 						<span class="bitsy_icon">exits_endings</span>
 
-						<span class="bitsy-card-title" title="exits & endings window" onmousedown="grabCard(event);">
+						<span class="bitsy-card-title" title="exits & endings window">
 							<span class="localize marker_tool_name">exits & endings</span>
 						</span>
 
-						<button title="show about page for exits & endings" onclick="showAbout('./tools/exitsandendings', 'exitsPanel');">
+						<button title="show about page for exits & endings" id="showAboutExits">
 							<span class="bitsy_icon">help</span>
 						</button>
 
-						<button title="minimize exits & endings window" class="bitsy-card-close-button" onclick="hidePanel('exitsPanel');">
+						<button title="minimize exits & endings window" class="bitsy-card-close-button" id="hideExits">
 							<span class="bitsy_icon">close</span>
 						</button>
 					</div>
@@ -215,42 +170,42 @@
 							<input type="text" id="markerName" size="5" readonly></input>
 
 							<!-- prev / next -->
-							<button title="previous" class="color0" onclick="prevMarker();">
+							<button id="exitsPrevMarker" title="previous" class="color0">
 								<span class="bitsy_icon">previous</span>
 							</button>
-							<button title="next" class="color0" onclick="nextMarker();">
+							<button id="exitNextMarker" title="next" class="color0">
 								<span class="bitsy_icon">next</span>
 							</button>
 
 							<!-- add / copy / dlete -->
-							<button title="add exit or ending" class="color0" onclick="startAddMarker();">
+							<button id="exitAddMarker" title="add exit or ending" class="color0">
 								<span class="bitsy_icon">add</span>
 							</button>
 
-							<button title="duplicate exit or ending" class="color0" onclick="duplicateMarker();">
+							<button id="exitDuplicateMarker" title="duplicate exit or ending" class="color0">
 								<span class="bitsy_icon">copy</span>
 							</button>
 
-							<button title="delete" class="color0" onclick="deleteMarker();">
+							<button id="exitDeleteMarker" title="delete" class="color0">
 								<span class="bitsy_icon">delete</span>
 							</button>
 						</div>
 						<!-- todo : move style elsewhere -->
 						<div id="addMarkerOptions" class="controlBox" style="display: flex; flex-direction: column; min-width: 300px">
-							<button title="add two-way exit" class="bitsy-menu-label" onclick="newExit();">
+							<button id="exitNewExit" title="add two-way exit" class="bitsy-menu-label">
 								<span class="bitsy_icon">add</span>
 								<span id="addExitText" class="localize exit_label">exit</span>
 							</button>
-							<button title="add one-way exit" class="bitsy-menu-label" onclick="newExitOneWay();">
+							<button id="exitNewOneWay" title="add one-way exit" class="bitsy-menu-label">
 								<span class="bitsy_icon">add</span>
 								<span id="addExitText" class="localize exit_one_way_label">one-way exit</span>
 							</button>
-							<button title="add ending" class="bitsy-menu-label" onclick="newEnding();">
+							<button id="exitNewEnding" title="add ending" class="bitsy-menu-label">
 								<span class="bitsy_icon">add</span>
 								<span class="localize ending_label">ending</span>
 							</button>
 							<!-- TODO : need a general cancel button style -->
-							<button title="cancel" class="cancelButton bitsy-menu-label" onclick="cancelAddMarker();">
+							<button id="exitCancel" title="cancel" class="cancelButton bitsy-menu-label">
 								<span class="bitsy_icon">cancel</span>
 								<span class="localize action_cancel">cancel</span>
 							</button>
@@ -270,7 +225,7 @@
 									<span id="markerName1">marker 1</span>
 								</span>
 
-								<canvas id="markerCanvas1" title="location of marker (click to go to room)" onclick="selectMarkerRoom1();" style="margin-top: 5px; image-rendering: pixelated;"></canvas>
+								<canvas id="markerCanvas1" title="location of marker (click to go to room)" style="margin-top: 5px; image-rendering: pixelated;"></canvas>
 
 								<div class="markerPosControl">
 									<div class="markerCoordinatesHolder" title="marker coordinates">
@@ -280,7 +235,7 @@
 										</span>
 									</div>
 									<div title="marker controls">
-										<input type="checkbox" id="toggleMoveMarker1" onclick="toggleMoveMarker1(event);" autocomplete="off" />
+										<input type="checkbox" id="toggleMoveMarker1" autocomplete="off" />
 										<label for="toggleMoveMarker1" title="click to place marker in current room">
 											<span id="toggleMoveMarkerIcon1" class="bitsy_icon">set_exit_location</span>
 											<span class="localize marker_move">move</span>
@@ -292,7 +247,7 @@
 										</label>
 
 										<span id="exitOptionsToggle1">
-											<input type="checkbox" id="exitOptionsToggleCheck1" onclick="toggleExitOptions(0, event.target.checked);" autocomplete="off" />
+											<input type="checkbox" id="exitOptionsToggleCheck1" autocomplete="off" />
 											<label title="show / hide exit options" for="exitOptionsToggleCheck1">
 												<span class="bitsy_icon">settings</span>
 											</label>
@@ -315,7 +270,7 @@
 								</div>
 							</div>
 							<div id="markerLinkControl">
-								<button title="change exit direction" onclick="changeExitDirection();">
+								<button id="exitChangeDirection" title="change exit direction">
 									<span id="exitDirectionIcon" class="bitsy_icon">exit_one_way</span>
 								</button>
 							</div>
@@ -325,7 +280,7 @@
 									<span id="markerName2">marker 2</span>
 								</span>
 
-								<canvas id="markerCanvas2" title="location of marker (click to go to room)" onclick="selectMarkerRoom2();" style="margin-top: 5px; image-rendering: pixelated;"></canvas>
+								<canvas id="markerCanvas2" title="location of marker (click to go to room)" style="margin-top: 5px; image-rendering: pixelated;"></canvas>
 
 								<div class="markerPosControl">
 									<div class="markerCoordinatesHolder" title="marker coordinates">
@@ -335,7 +290,7 @@
 										</span>
 									</div>
 									<div title="marker controls">
-										<input type="checkbox" id="toggleMoveMarker2" onclick="toggleMoveMarker2(event);" autocomplete="off" />
+										<input type="checkbox" id="toggleMoveMarker2" autocomplete="off" />
 										<label for="toggleMoveMarker2" title="click to move marker">
 											<span id="toggleMoveMarkerIcon2" class="bitsy_icon">set_exit_location</span>
 											<span class="localize marker_move">move</span>
@@ -347,14 +302,14 @@
 										</label>
 
 										<span id="exitOptionsToggle2">
-											<input type="checkbox" id="exitOptionsToggleCheck2" onclick="toggleExitOptions(1, event.target.checked);" autocomplete="off" />
+											<input type="checkbox" id="exitOptionsToggleCheck2" autocomplete="off" />
 											<label title="show / hide exit options" for="exitOptionsToggleCheck2">
 												<span class="bitsy_icon">settings</span>
 											</label>
 										</span>
 
 										<span id="exitOptionsToggle1_alt">
-											<input type="checkbox" id="exitOptionsToggleCheck1_alt" onclick="toggleExitOptions(0, event.target.checked);" autocomplete="off" />
+											<input type="checkbox" id="exitOptionsToggleCheck1_alt" autocomplete="off" />
 											<label title="show / hide exit options" for="exitOptionsToggleCheck1_alt">
 												<span class="bitsy_icon">settings</span>
 											</label>
@@ -391,7 +346,7 @@
 								<div title="select transition effect" class="controlBox">
 									<span class="bitsy_icon">transition_effect</span>
 									<span class="localize exit_transition_label">transition effect</span>: 
-									<select id="exitTransitionEffectSelect" onchange="onChangeExitTransitionEffect(event.target.value, 0);">
+									<select id="exitTransitionEffectSelect">
 										<option value="none">none</option>
 										<option value="fade_w">fade (white)</option>
 										<option value="fade_b">fade (black)</option>
@@ -416,7 +371,7 @@
 								<div title="select transition effect" class="controlBox">
 									<span class="bitsy_icon">transition_effect</span>
 									<span class="localize exit_transition_label">transition effect</span>: 
-									<select id="returnExitTransitionEffectSelect" onchange="onChangeExitTransitionEffect(event.target.value, 1);">
+									<select id="returnExitTransitionEffectSelect">
 										<option value="none">none</option>
 										<option value="fade_w">fade (white)</option>
 										<option value="fade_b">fade (black)</option>
@@ -440,40 +395,40 @@
 					<div class="bitsy-card-titlebar">
 						<span class="bitsy_icon">paint</span>
 
-						<span class="bitsy-card-title" title="paint window" onmousedown="grabCard(event);">
+						<span class="bitsy-card-title" title="paint window">
 							<span class="localize paint_tool_name">paint</span>
 						</span>
 
-						<button title="show about page for paint" onclick="showAbout('./tools/paint', 'paintPanel');">
+						<button title="show about page for paint" id="showAboutPaint">
 							<span class="bitsy_icon">help</span>
 						</button>
 
-						<button title="minimize paint window" class="bitsy-card-close-button" onclick="hidePanel('paintPanel');">
+						<button title="minimize paint window" class="bitsy-card-close-button" id="hidePaint">
 							<span class="bitsy_icon">close</span>
 						</button>
 					</div>
 
 					<div class="bitsy-card-main">
 						<form id="paintModeRadio" class="bitsy-menu-group">
-							<input type="radio" name="paint mode" value="avatar" onclick="on_paint_avatar();" id="paintOptionAvatar" checked>
+							<input type="radio" name="paint mode" value="avatar" id="paintOptionAvatar" checked>
 							<label title="edit the avatar: the player's character" for="paintOptionAvatar" class="left">
 								<span class="bitsy_icon icon_space_right">avatar</span>
 								<span class="localize avatar_label">avatar</span>
 							</label>
 
-							<input type="radio" name="paint mode" value="tile" onclick="on_paint_tile();" id="paintOptionTile">
+							<input type="radio" name="paint mode" value="tile" id="paintOptionTile">
 							<label title="edit tiles: pieces of scenery" for="paintOptionTile" class="middle">
 								<span class="bitsy_icon icon_space_right">tile</span>
 								<span class="localize tile_label">tile</span>
 							</label>
 
-							<input type="radio" name="paint mode" value="sprite" onclick="on_paint_sprite();" id="paintOptionSprite">
+							<input type="radio" name="paint mode" value="sprite" id="paintOptionSprite">
 							<label title="edit sprites: non-player characters and interactive objects" for="paintOptionSprite" class="middle">
 								<span class="bitsy_icon icon_space_right">sprite</span>
 								<span class="localize sprite_label">sprite</span>
 							</label>
 
-							<input type="radio" name="paint mode" value="item" onclick="on_paint_item();" id="paintOptionItem">
+							<input type="radio" name="paint mode" value="item" id="paintOptionItem">
 							<label title="edit items: things the player can pick up" for="paintOptionItem" class="right">
 								<span class="bitsy_icon icon_space_right">item</span>
 								<span class="localize item_label">item</span>
@@ -483,32 +438,32 @@
 
 						<div id="paintNavigationControls" class="navControl">
 							<!-- name -->
-							<input title="a name to refer to this drawing" type="text" id="drawingName" class="textInputField" onchange="on_drawing_name_change();"></input>
+							<input title="a name to refer to this drawing" type="text" id="drawingName" class="textInputField"></input>
 
 							<!-- prev / next -->
-							<button title="previous drawing" class="color0 disableForAvatar" onclick="prev();">
+							<button title="previous drawing" class="color0 disableForAvatar" id="drawingPrev">
 								<span class="bitsy_icon">previous</span>
 							</button>
 
-							<button title="next drawing" class="color0 disableForAvatar" onclick="next();">
+							<button title="next drawing" class="color0 disableForAvatar" id="drawingNext">
 								<span class="bitsy_icon">next</span>
 							</button>
 
 							<!-- add / copy / delete -->
-							<button title="add drawing" class="color0 disableForAvatar" onclick="newDrawing();">
+							<button title="add drawing" class="color0 disableForAvatar" id="drawingNew">
 								<span class="bitsy_icon">add</span>
 							</button>
 
-							<button title="duplicate drawing" class="color0 disableForAvatar" onclick="duplicateDrawing();">
+							<button title="duplicate drawing" class="color0 disableForAvatar" id="drawingDuplicate">
 								<span class="bitsy_icon">copy</span>
 							</button>
 
-							<button title="delete drawing" class="color0 disableForAvatar" onclick="deleteDrawing();">
+							<button title="delete drawing" class="color0 disableForAvatar" id="drawingDelete">
 								<span class="bitsy_icon">delete</span>
 							</button>
 
 							<!-- find -->
-							<button title="open find tool: drawings" onclick="openFindToolWithCurrentPaintCategory();">
+							<button title="open find tool: drawings" id="drawingFind">
 								<span class="bitsy_icon">search</span>
 							</button>
 						</div>
@@ -517,12 +472,12 @@
 
 						<div id="paintEditMain">
 							<div class="buttonGroup">
-								<input type="checkbox" id="paintGridCheck" onclick="togglePaintGrid(event);" autocomplete="off" checked/>
+								<input type="checkbox" id="paintGridCheck" autocomplete="off" checked/>
 								<label title="show / hide grid" for="paintGridCheck" class="bitsy-menu-label">
 									<span id="paintGridIcon" class="bitsy_icon">visibility</span>
 									<span class="localize grid_toggle_visible">grid</span>
 								</label>
-								<button id="showInventoryButton" title="show inventory" class="bitsy-menu-label" onclick="showPanel('inventoryPanel', 'paintPanel');">
+								<button id="showInventoryButton" title="show inventory" class="bitsy-menu-label" >
 									<span class="bitsy_icon">item</span>
 									<span class="localize inventory_tool_name">inventory</span>
 								</button>
@@ -530,7 +485,7 @@
 						</div>
 
 						<div id="wall" class="controlBox" style="display:none;">
-							<input type="checkbox" id="wallCheckbox" onchange="on_toggle_wall(event);" autocomplete="off" >
+							<input type="checkbox" id="wallCheckbox" autocomplete="off" >
 							<label title="make tile an impassible wall" for="wallCheckbox" class="bitsy-menu-label">
 								<span id="wallCheckboxIcon" class="bitsy_icon">wall_off</span>
 								<span class="localize wall_toggle">wall</span>
@@ -542,7 +497,7 @@
 
 						<div id="animationOuter" class="controlBox">
 							<div id="isAnimated">
-								<input type="checkbox" id="animatedCheckbox" onchange="on_toggle_animated();" autocomplete="off" >
+								<input type="checkbox" id="animatedCheckbox" autocomplete="off" >
 								<label title="add animation to drawing" for="animatedCheckbox">
 									<span class="localize animation_title">animation</span>
 									<span id="animatedCheckboxIcon" class="bitsy_icon" style="margin-left: var(--bitsy-space-s);">expand_less</span>
@@ -558,7 +513,7 @@
 											<span class="localize animation_preview">preview</span>
 										</label>
 									</div>
-									<div id="animationKeyframe1" class="bitsy-thumbnail" onclick="on_paint_frame1();">
+									<div id="animationKeyframe1" class="bitsy-thumbnail">
 										<div class="bitsy-thumbnail-image-container">
 											<img id="animationThumbnailFrame1" />
 										</div>
@@ -566,7 +521,7 @@
 											<span class="localize animation_frame1">frame 1</span>
 										</label>
 									</div>
-									<div id="animationKeyframe2" class="bitsy-thumbnail" onclick="on_paint_frame2();">
+									<div id="animationKeyframe2" class="bitsy-thumbnail">
 										<div class="bitsy-thumbnail-image-container">
 											<img id="animationThumbnailFrame2" />
 										</div>
@@ -586,15 +541,15 @@
 					<div class="bitsy-card-titlebar">
 						<span class="bitsy_icon">search</span>
 
-						<span class="bitsy-card-title" title="find window" onmousedown="grabCard(event);">
+						<span class="bitsy-card-title" title="find window">
 							<span class="localize find_tool">find</span>
 						</span>
 
-						<button title="show about page for find" onclick="showAbout('./tools/find', 'findPanel');">
+						<button title="show about page for find" id="showAboutFind">
 							<span class="bitsy_icon">help</span>
 						</button>
 
-						<button title="minimize find window" class="bitsy-card-close-button" onclick="hidePanel('findPanel');">
+						<button title="minimize find window" class="bitsy-card-close-button" id="hideFind">
 							<span class="bitsy_icon">close</span>
 						</button>
 					</div>
@@ -607,15 +562,15 @@
 					<div class="bitsy-card-titlebar">
 						<span class="bitsy_icon">colors</span>
 
-						<span class="bitsy-card-title" title="color palette window" onmousedown="grabCard(event);">
+						<span class="bitsy-card-title" title="color palette window">
 							<span class="localize palette_tool_name">colors</span>
 						</span>
 
-						<button title="show about page for colors" onclick="showAbout('./tools/color', 'colorsPanel');">
+						<button title="show about page for colors" id="showAboutColors">
 							<span class="bitsy_icon">help</span>
 						</button>
 
-						<button title="minimize color palette window" class="bitsy-card-close-button" onclick="hidePanel('colorsPanel');">
+						<button title="minimize color palette window" class="bitsy-card-close-button" id="hideColors">
 							<span class="bitsy_icon">close</span>
 						</button>
 					</div>
@@ -623,47 +578,47 @@
 					<div class="bitsy-card-main">
 						<div class="navControl">
 							<!-- name -->
-							<input type="text" id="paletteName" title="a name to refer to this color palette" class="textInputField" onchange="on_palette_name_change(event);" size="10"></input>
+							<input type="text" id="paletteName" title="a name to refer to this color palette" class="textInputField" size="10"></input>
 
 							<!-- prev / next -->
-							<button title="previous color palette" class="color0" onclick="prevPalette();">
+							<button title="previous color palette" class="color0" id="palettePrev">
 								<span class="bitsy_icon">previous</span>
 							</button>
-							<button title="next color palette" class="color0" onclick="nextPalette();">
+							<button title="next color palette" class="color0" id="paletteNext">
 								<span class="bitsy_icon">next</span>
 							</button>
 
 							<!-- add / copy / delete -->
-							<button title="add new color palette" class="color0" onclick="newPalette();">
+							<button title="add new color palette" class="color0" id="paletteNew">
 								<span class="bitsy_icon">add</span>
 							</button>
-							<button title="duplicate palette" class="color0" onclick="duplicatePalette();">
+							<button title="duplicate palette" class="color0" id="paletteDuplicate">
 								<span class="bitsy_icon">copy</span>
 							</button>
-							<button title="delete palette" class="color0" onclick="deletePalette();">
+							<button title="delete palette" class="color0" id="paletteDelete">
 								<span class="bitsy_icon">delete</span>
 							</button>
 
 							<!-- find -->
-							<button title="open find tool: colors" onclick="openFindTool('PAL', 'colorsPanel');">
+							<button title="open find tool: colors" id="showFindColors">
 								<span class="bitsy_icon">search</span>
 							</button>
 						</div>
 
 						<form id="colorPaletteForm">
-							<input type="radio" name="colorPalette" value="background" id="colorPaletteOptionBackground" onclick="changeColorPickerIndex(0);" checked>
+							<input type="radio" name="colorPalette" value="background" id="colorPaletteOptionBackground" checked>
 							<label id="colorPaletteLabelBackground" for="colorPaletteOptionBackground" title="pick background color">
 								<span class="bitsy_icon icon_space_right">room</span>
 								<span class="localize palette_background">background color</span>
 							</label>
 
-							<input type="radio" name="colorPalette" value="background" id="colorPaletteOptionTile" onclick="changeColorPickerIndex(1);">
+							<input type="radio" name="colorPalette" value="background" id="colorPaletteOptionTile">
 							<label id="colorPaletteLabelTile" for="colorPaletteOptionTile" title="pick tile color">
 								<span class="bitsy_icon icon_space_right">tile</span>
 								<span class="localize palette_tile">tile color</span>
 							</label>
 
-							<input type="radio" name="colorPalette" value="background" id="colorPaletteOptionSprite" onclick="changeColorPickerIndex(2);">
+							<input type="radio" name="colorPalette" value="background" id="colorPaletteOptionSprite">
 							<label id="colorPaletteLabelSprite" for="colorPaletteOptionSprite" title="pick sprite / avatar / item color">
 								<span class="bitsy_icon icon_space_right">sprite</span>
 								<span class="localize palette_sprite">sprite color</span>
@@ -685,15 +640,15 @@
 					<div class="bitsy-card-titlebar">
 						<span class="bitsy_icon">dialog</span>
 
-						<span class="bitsy-card-title" title="dialog window" onmousedown="grabCard(event);">
+						<span class="bitsy-card-title" title="dialog window">
 							<span class="localize dialog_tool_name">dialog</span>
 						</span>
 
-						<button title="show about page for dialog" onclick="showAbout('./tools/dialog', 'dialogPanel');">
+						<button title="show about page for dialog" id="showAboutDialog">
 							<span class="bitsy_icon">help</span>
 						</button>
 
-						<button title="minimize dialog window" class="bitsy-card-close-button" onclick="hidePanel('dialogPanel');">
+						<button title="minimize dialog window" class="bitsy-card-close-button" id="hideDialog">
 							<span class="bitsy_icon">close</span>
 						</button>
 					</div>
@@ -710,29 +665,29 @@
 								</label> --> <!-- TODO LOCALIZE : other state? dialog_stop_preview -->
 
 								<!-- name -->
-								<input type="text" id="dialogName" title="a name to refer to this dialog" class="textInputField" onchange="onDialogNameChange(event);" size="10"></input>
+								<input type="text" id="dialogName" title="a name to refer to this dialog" class="textInputField" size="10"></input>
 
 								<!-- prev / next -->
-								<button title="previous dialog" class="color0" onclick="prevDialog();">
+								<button title="previous dialog" class="color0" id="dialogPrev">
 									<span class="bitsy_icon">previous</span>
 								</button>
-								<button title="next dialog" class="color0" onclick="nextDialog();">
+								<button title="next dialog" class="color0" id="dialogNext">
 									<span class="bitsy_icon">next</span>
 								</button>
 
 								<!-- add / copy / delete -->
-								<button title="add new dialog" class="color0" onclick="addNewDialog();">
+								<button title="add new dialog" class="color0" id="dialogNew">
 									<span class="bitsy_icon">add</span>
 								</button>
-								<button title="duplicate dialog" class="color0" onclick="duplicateDialog();">
+								<button title="duplicate dialog" class="color0" id="dialogDuplicate">
 									<span class="bitsy_icon">copy</span>
 								</button>
-								<button id="deleteDialogButton" title="delete dialog" class="color0" onclick="deleteDialog();">
+								<button id="deleteDialogButton" title="delete dialog" class="color0" id="dialogDelete">
 									<span class="bitsy_icon">delete</span>
 								</button>
 
 								<!-- find -->
-								<button title="open find tool: dialog" onclick="openFindTool('DLG', 'dialogPanel');">
+								<button title="open find tool: dialog" id="dialogFind">
 									<span class="bitsy_icon">search</span>
 								</button>
 							</div>
@@ -741,14 +696,14 @@
 							</div>
 
 							<div id="dialogOptions">
-								<input type="checkbox" id="dialogShowCodeCheck" onclick="toggleDialogCode(event);" autocomplete="off">
+								<input type="checkbox" id="dialogShowCodeCheck" autocomplete="off">
 								<label title="show / hide the code for this dialog" for="dialogShowCodeCheck">
 									<span class="bitsy_icon">code_edit</span>
 									<span id="dialogToggleCodeShowText" class="localize dialog_show_code">show code</span> 
 									<span id="dialogToggleCodeHideText" class="localize dialog_hide_code" style="display:none;">hide code</span>
 								</label>
 
-								<input type="checkbox" id="dialogAlwaysShowDrawingCheck" onclick="toggleAlwaysShowDrawingDialog(event);" autocomplete="off" checked>
+								<input type="checkbox" id="dialogAlwaysShowDrawingCheck" autocomplete="off" checked>
 								<label title="always show dialog of selected drawing" for="dialogAlwaysShowDrawingCheck">
 									<!-- TODO : bitsy_icon --- need a special icon for this case -->
 									<span class="bitsy_icon">paint</span>
@@ -768,15 +723,15 @@
 					<div class="bitsy-card-titlebar">
 						<span class="bitsy_icon">item</span>
 
-						<span class="bitsy-card-title" title="inventory window" onmousedown="grabCard(event);">
+						<span class="bitsy-card-title" title="inventory window">
 							<span class="localize inventory_tool_name">inventory</span>
 						</span>
 
-						<button title="show about page for inventory" onclick="showAbout('./tools/inventory', 'inventoryPanel');">
+						<button title="show about page for inventory" id="showAboutInventory">
 							<span class="bitsy_icon">help</span>
 						</button>
 
-						<button title="minimize inventory window" class="bitsy-card-close-button" onclick="hidePanel('inventoryPanel');">
+						<button title="minimize inventory window" class="bitsy-card-close-button" id="hideInventory">
 							<span class="bitsy_icon">close</span>
 						</button>
 					</div>
@@ -785,12 +740,12 @@
 						<!-- TODO -->
 						<div class="bitsy-menu-group">
 							<form>
-								<input type="radio" name="inventory mode" value="item" onclick="showInventoryItem();" id="inventoryOptionItem" checked>
+								<input type="radio" name="inventory mode" value="item" id="inventoryOptionItem" checked>
 								<label title="items: set count of items the player starts with" for="inventoryOptionItem" class="left">
 									<span class="bitsy_icon">item</span>
 									<span class="localize items_label">items</span>
 								</label>
-								<input type="radio" name="inventory mode" value="variable" onclick="showInventoryVariable()" id="inventoryOptionVariable">
+								<input type="radio" name="inventory mode" value="variable" id="inventoryOptionVariable">
 								<label title="variables: set initial values of variables" for="inventoryOptionVariable" class="right">
 									<!-- TODO : bitsy_icon -- does this need its own special icon? -->
 									<span class="bitsy_icon">code_edit</span>
@@ -811,27 +766,27 @@
 					<div class="bitsy-card-titlebar">
 						<span class="bitsy_icon">record</span>
 
-						<span class="bitsy-card-title" title="gif recording window" onmousedown="grabCard(event);">
+						<span class="bitsy-card-title" title="gif recording window">
 							<span class="localize gif_tool_name">record gif</span>
 						</span>
 
-						<button title="show about page for record gif" onclick="showAbout('./tools/recordgif', 'gifPanel');">
+						<button title="show about page for record gif" id="showAboutGif">
 							<span class="bitsy_icon">help</span>
 						</button>
 
-						<button title="minimize gif recording window" class="bitsy-card-close-button" onclick="hidePanel('gifPanel');">
+						<button title="minimize gif recording window" class="bitsy-card-close-button" id="hideGif">
 							<span class="bitsy_icon">close</span>
 						</button>
 					</div>
 
 					<div class="bitsy-card-main">
 						<div class="bitsy-menu-group">
-							<button title="start recording a gif of your game" class="color0" id="gifStartButton" onclick="startRecordingGif();">
+							<button title="start recording a gif of your game" class="color0" id="gifStartButton">
 								<span class="bitsy_icon">record</span>
 								<span class="localize gif_start">start recording</span>
 							</button>
 
-							<button title="stop recording a gif of your game" class="color0" id="gifStopButton" onclick="stopRecordingGif();" style="display:none;">
+							<button title="stop recording a gif of your game" class="color0" id="gifStopButton" style="display:none;">
 								<span class="bitsy_icon">record_stop</span>
 								<span class="localize gif_stop">stop recording</span>
 							</button>
@@ -846,12 +801,12 @@
 								<span class="localize gif_encoding">encoding...</span> <span id="gifEncodingProgress">0</span>%
 							</span>
 
-							<button title="make screenshot of current room" class="color0" id="gifSnapshotButton" onclick="takeSnapshotGif(event);">
+							<button title="make screenshot of current room" class="color0" id="gifSnapshotButton">
 								<span class="bitsy_icon">record_snapshot</span>
 								<span class="localize gif_snapshot">snapshot</span>
 							</button>
 
-							<button title="snapshot mode: square" id="gifSnapshotModeButton" onclick="toggleSnapshotMode();">
+							<button title="snapshot mode: square" id="gifSnapshotModeButton">
 								<span id="gifSnapshotModeIcon" class="bitsy_icon">pagesize_full</span>
 							</button>
 						</div>

@@ -1,9 +1,10 @@
+import {Resources} from "../generated/resources.js"
 /*
 TODO:
 - can I simplify this more now that I've removed the external resources stuff?
 */
 
-function FontManager(packagedFontNames) {
+export function FontManager(packagedFontNames) {
 
 var self = this;
 

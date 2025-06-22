@@ -1,4 +1,6 @@
-function TileRenderer(debugName) {
+import {bitsy} from "../system/system.js"
+
+export function TileRenderer(debugName) {
 bitsy.log("!!!!! NEW TILE RENDERER: " + debugName);
 
 var drawingCache = {

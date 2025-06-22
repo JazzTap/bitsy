@@ -1,4 +1,6 @@
-function gif() {
+import {bitsyLog} from "./system/system.js"
+
+export function gif() {
 
 // sources:
 // http://www.matthewflickinger.com/lab/whatsinagif/bits_and_bytes.asp

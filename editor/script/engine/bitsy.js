@@ -1,3 +1,6 @@
+import { TileRenderer } from "./renderer.js";
+import { bitsy } from "../system/system.js";
+
 /* WORLD DATA */
 var room = {};
 var tile = {};

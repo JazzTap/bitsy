@@ -1,4 +1,4 @@
-function EventManager() {
+export function EventManager() {
 	var callbacks = {};
 
 	var eventStack = [];

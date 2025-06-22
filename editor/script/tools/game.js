@@ -1,4 +1,7 @@
-function makeGameTool() {
+import {updateEditorTextDirection} from "/editor/script/editor.js"
+import {makeToolCard} from "/editor/script/card.js"
+
+window.makeGameTool = function makeGameTool() {
 	return makeToolCard("game", function(tool) {
 		tool.id = "game";
 		tool.icon = "save";
@@ -90,7 +93,7 @@ function makeGameTool() {
 			}
 		};
 
-		function updateFileMenu() {
+		window.updateFileMenu = function updateFileMenu() {
 			tool.menu.push({
 				control: "group",
 				text: ".html", // todo : localize
@@ -148,13 +151,13 @@ function makeGameTool() {
 			});
 		}
 
-		function updateSettingsMenu() {
+		window.updateSettingsMenu = function updateSettingsMenu() {
 			updateToolSettings();
 			updateGameSettings();
 			updateExportSettings();
 		}
 
-		function updateDataMenu() {
+		window.updateDataMenu = function updateDataMenu() {
 			// todo : not updating after all changes...
 			tool.menu.push({
 				control: "textarea",
@@ -171,7 +174,7 @@ function makeGameTool() {
 			});
 		}
 
-		function exportGame() {
+		window.exportGame = function exportGame() {
 			// make sure game data is up to date
 			refreshGameData();
 			var gameData = serializeWorld();
@@ -186,7 +189,7 @@ function makeGameTool() {
 				exportSettings.fixedSize);
 		}
 
-		function importGameFromFile(fileText) {
+		window.importGameFromFile = function importGameFromFile(fileText) {
 			resetGameData();
 
 			var gamedataImported = exporter.importGame(fileText);
@@ -196,13 +199,13 @@ function makeGameTool() {
 			on_game_data_change();
 		}
 
-		function exportGameData() {
+		window.exportGameData = function exportGameData() {
 			refreshGameData();
 			var gamedataExported = serializeWorld();
 			ExporterUtils.DownloadFile(filenameFromGameTitle() + ".bitsy", gamedataExported);
 		}
 
-		function importGameDataFromFile(fileText) {
+		window.importGameDataFromFile = function importGameDataFromFile(fileText) {
 			resetGameData();
 
 			var gamedataImported = fileText;
@@ -211,7 +214,7 @@ function makeGameTool() {
 			on_game_data_change();
 		}
 
-		function newGameDialog() {
+		window.newGameDialog = function newGameDialog() {
 			var resetMessage = localization.GetStringOrFallback("reset_game_message", "Starting a new game will erase your old data. Consider exporting your work first! Are you sure you want to start over?");
 			// todo : move the confirm dialog into tool.menu code?
 			if (confirm(resetMessage)) {
@@ -220,7 +223,7 @@ function makeGameTool() {
 			}
 		}
 
-		function resetGameData() {
+		window.resetGameData = function resetGameData() {
 			// todo : can this be moved into file.js?
 			setDefaultGameState();
 
@@ -230,14 +233,14 @@ function makeGameTool() {
 			on_game_data_change();
 		}
 
-		function filenameFromGameTitle() {
+		window.filenameFromGameTitle = function filenameFromGameTitle() {
 			var filename = getTitle().replace(/[^a-zA-Z]/g, "_"); // replace non alphabet characters
 			filename = filename.toLowerCase();
 			filename = filename.substring(0, 32); // keep it from getting too long
 			return filename;
 		}
 
-		function updateToolSettings() {
+		window.updateToolSettings = function updateToolSettings() {
 			var languageOptions = [];
 			for (var i = 0; i < languageList.length; i++) {
 				languageOptions.push({
@@ -296,7 +299,7 @@ function makeGameTool() {
 			tool.menu.pop({ control: "group" });
 		}
 
-		function updateGameSettings() {
+		window.updateGameSettings = function updateGameSettings() {
 			tool.menu.push({
 				control: "group",
 				text: { id: "game_settings", text: "game settings" },
@@ -449,7 +452,7 @@ function makeGameTool() {
 			tool.menu.pop({ control: "group" });
 		}
 
-		function updateExportSettings() {
+		window.updateExportSettings = function updateExportSettings() {
 			tool.menu.push({
 				control: "group",
 				text: "export settings", // TODO : localize
@@ -518,12 +521,12 @@ function makeGameTool() {
 			tool.menu.pop({ control: "group" });
 		}
 
-		function onChangeLanguage(e) {
+		window.onChangeLanguage = function onChangeLanguage(e) {
 			var language = e.target.value;
 			updateLanguage(language);
 		}
 
-		function updateLanguage(language) {
+		window.updateLanguage = function updateLanguage(language) {
 			pickDefaultFontForLanguage(language);
 
 			localization.ChangeLanguage(language);
@@ -561,7 +564,7 @@ function makeGameTool() {
 			refreshGameData();
 		}
 
-		function pickDefaultFontForLanguage(lang) {
+		window.pickDefaultFontForLanguage = function pickDefaultFontForLanguage(lang) {
 			if (lang === "en") {
 				switchFont("ascii_small", true /*doPickTextDirection*/);
 			}
@@ -576,7 +579,7 @@ function makeGameTool() {
 			}
 		}
 
-		function switchFont(newFontName, doPickTextDirection) {
+		window.switchFont = function switchFont(newFontName, doPickTextDirection) {
 			if (doPickTextDirection === undefined || doPickTextDirection === null) {
 				doPickTextDirection = false;
 			}
@@ -591,7 +594,7 @@ function makeGameTool() {
 			refreshGameData();
 		}
 
-		function pickDefaultTextDirectionForFont(newFontName) {
+		window.pickDefaultTextDirectionForFont = function pickDefaultTextDirectionForFont(newFontName) {
 			var newTextDirection = TextDirection.LeftToRight;
 			if (newFontName === "arabic") {
 				newTextDirection = TextDirection.RightToLeft;
@@ -600,7 +603,7 @@ function makeGameTool() {
 			textDirection = newTextDirection;
 		}
 
-		function onChangeFont(e) {
+		window.onChangeFont = function onChangeFont(e) {
 			if (e.target.value != "custom") {
 				switchFont(e.target.value, true /*doPickTextDirection*/);
 			}
@@ -610,12 +613,12 @@ function makeGameTool() {
 			}
 		}
 
-		function exportFont() {
+		window.exportFont = function exportFont() {
 			var fontData = fontManager.GetData(fontName);
 			ExporterUtils.DownloadFile(fontName + ".bitsyfont", fontData);
 		}
 
-		function importFontFromFile(fileText) {
+		window.importFontFromFile = function importFontFromFile(fileText) {
 			bitsyLog(fileText, "editor");
 
 			var customFontName = (fontManager.Create(fileText)).getName();

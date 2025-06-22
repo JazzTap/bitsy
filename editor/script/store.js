@@ -11,7 +11,7 @@
  * Store.set('key', 'new value');
  * ```
  */
-var Store = {
+export let Store = {
 	/** storage driver (must implement `getItem`, `setItem`, `removeItem`) */
 	getDriver: function () {
 		return localStorage;

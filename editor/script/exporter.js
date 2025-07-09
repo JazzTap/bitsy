@@ -1,3 +1,5 @@
+import {Resources} from "./generated/resources.js"
+
 export function Exporter() {
 
 /* exporting */

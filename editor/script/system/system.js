@@ -3,7 +3,7 @@ import {SoundSystem} from "./soundchip.js"
 import {GraphicsSystem} from "./graphics.js"
 
 /* LOGGING */
-var DebugLogCategory = {
+export var DebugLogCategory = {
 	// system
 	input: false,
 	sound: false,
@@ -22,7 +22,7 @@ var DebugLogCategory = {
 	blip: false,
 };
 
-var isLoggingVerbose = false;
+export var isLoggingVerbose = false;
 
 export function bitsyLog(message, category) {
 	if (!category) {
@@ -90,6 +90,10 @@ export function updateSystem() {
 	prevTime = curTime;
 }
 
+export function setBitsy(override) {
+	bitsy = override // VERIFY
+}
+
 export function loadGame(canvas, gameData, defaultFontData) {
 	bitsyLog("load!", "system");
 	// initialize bitsy system
@@ -115,7 +119,7 @@ export function quitGame() {
 var canvas; // can I get rid of these?
 var ctx;
 
-function attachCanvas(c) {
+export function attachCanvas(c) {
 	// hack : tes tnew system
 	bitsy._attachCanvas(c);
 	// extra hacky
@@ -126,7 +130,7 @@ function attachCanvas(c) {
 /* PROCESSES */
 var processes = [];
 
-function addProcess(name) {
+export function addProcess(name) {
 	var proc = {};
 	proc.system = new BitsySystem(name);
 
@@ -136,7 +140,7 @@ function addProcess(name) {
 }
 
 /* == SYSTEM v0.2 === */
-function BitsySystem(name) {
+export function BitsySystem(name) {
 	var self = this;
 
 	if (!name) {
@@ -240,7 +244,7 @@ function BitsySystem(name) {
 
 			var volume = self._peek(self.SOUND1, soundVolumeIndex);
 			volume = Math.max(0, Math.min(volume, maxVolume));
-			volumeNorm = (volume / maxVolume);
+			var volumeNorm = (volume / maxVolume);
 			sound.setVolume(0, volumeNorm);
 		}
 
@@ -253,7 +257,7 @@ function BitsySystem(name) {
 
 			var volume = self._peek(self.SOUND2, soundVolumeIndex);
 			volume = Math.max(0, Math.min(volume, maxVolume));
-			volumeNorm = (volume / maxVolume);
+			var volumeNorm = (volume / maxVolume);
 			sound.setVolume(1, volumeNorm);
 		}
 	}

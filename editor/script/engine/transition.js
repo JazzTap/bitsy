@@ -1,4 +1,6 @@
-var TransitionManager = function() {
+import {tileColorStartIndex} from "./world.js"
+
+export var TransitionManager = function() {
 	var transitionStart = null;
 	var transitionEnd = null;
 

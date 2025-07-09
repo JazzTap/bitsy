@@ -1,4 +1,6 @@
-function Dialog() {
+import { tileColorStartIndex } from "./world.js"
+
+export function Dialog() {
 
 this.CreateRenderer = function() {
 	return new DialogRenderer();

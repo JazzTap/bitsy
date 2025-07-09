@@ -1,7 +1,14 @@
-import {makeToolCard} from "/editor/script/card.js"
+import { bitsy, tilesize } from "../system/system.js";
+import { tileColorStartIndex, Note, Solfa, maxTuneLength, ArpeggioPattern, barLength, Octave } from "../engine/world.js"
+import { SoundPlayer } from "../engine/sound.js";
+import { tune, updatePaletteWithTileColors, setTile, serializeNote } from "../engine/bitsy.js";
 
-function makeTuneTool() {
-	return makeToolCard("tune", function(tool) {
+import { makeToolCard } from "../card.js"
+import { isPlayMode, localization } from "../editor_state.js";
+import { grabCard, findTool, togglePanelAnimated, refreshGameData } from "../editor.js"
+
+export function makeTuneTool() {
+	return makeToolCard("tune", grabCard, findTool, localization, togglePanelAnimated, function(tool) {
 		tool.id = "tune";
 
 		// todo : how do I feel about these being functions? should I rename the property?

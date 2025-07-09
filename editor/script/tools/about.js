@@ -3,7 +3,14 @@ var aboutFlags = {
 	isLocalhost: false, // flag for local debugging with a server running
 };
 
-window.getDocsRoot = function getDocsRoot() {
+export function setAboutPage(pagePath) {
+	var docsFrame = document.getElementById('docsFrame');
+	var url = new URL(pagePath.includes('.html') ? pagePath : `${pagePath}/index.html`, getDocsRoot());
+	var src = url.href;
+	docsFrame.src = src;
+}
+
+export function getDocsRoot() {
 	if (aboutFlags.isLocalhost) {
 		return "http://localhost:3000/docs/";
 	}
@@ -22,23 +29,11 @@ window.getDocsRoot = function getDocsRoot() {
 	return root;
 }
 
-window.setAboutPage = function setAboutPage(pagePath) {
-	var docsFrame = document.getElementById('docsFrame');
-	var url = new URL(pagePath.includes('.html') ? pagePath : `${pagePath}/index.html`, getDocsRoot());
-	var src = url.href;
-	docsFrame.src = src;
+export function initAbout() {
+	setAboutPage("../docs"); // avoid recursively instantiating the editor
 }
 
-window.initAbout = function initAbout() {
-	setAboutPage(".");
-}
-
-window.showAbout = function showAbout(pagePath, insertNextToId) {
-	setAboutPage(pagePath);
-	showPanel("aboutPanel", insertNextToId);
-}
-
-window.aboutOpenTab = function aboutOpenTab() {
+export function aboutOpenTab() {
 	var docsFrame = document.getElementById('docsFrame');
 
 	// use the `src` attribute of the docs frame as the fallback value for the page url

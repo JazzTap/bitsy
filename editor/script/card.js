@@ -1,7 +1,18 @@
-import {grabCard} from "/editor/script/editor.js"
+import { labelElementFactory } from "./util.js";
+import { addProcess, setBitsy, tilesize, mapsize, scale } from "./system/system.js"
+import { parseWorld } from "./engine/world.js";
+import { TileRenderer } from "./engine/renderer.js";
+import { getOffset } from "./engine/bitsy.js";
+import {Resources} from "./generated/resources.js"
+import { enableGlobalAudioContext } from "./system/soundchip.js";
+
+import {MouseInterface} from "./mouse.js"
+import {MenuInterface, buttonElementFactory, toggleElementFactory, createTextInputElement} from "./menu.js"
+import {events, showPanel, hidePanel, iconUtils} from "./editor_state.js"
+import {mobileOffsetCorrection, refreshGameData} from "./editor.js"
 
 /* TOOL CARDS */
-export function makeToolCard(processName, initFunction) {
+export function makeToolCard(processName, grabCard, findTool, localization, togglePanelAnimated, initFunction) {
 	var card = addProcess(processName);
 
 	initFunction(card);
@@ -11,7 +22,7 @@ export function makeToolCard(processName, initFunction) {
 		return card.loop(dt);
 	});
 
-	card.menu = new MenuInterface(card);
+	card.menu = new MenuInterface(card, findTool, iconUtils, localization);
 
 	var cardDiv = document.createElement("div");
 	cardDiv.id = card.id + "Panel";
@@ -24,7 +35,7 @@ export function makeToolCard(processName, initFunction) {
 	cardDiv.appendChild(titlebarDiv);
 
 	var titleIconSpan = document.createElement("span");
-	titleIconSpan.appendChild(createIconElement(card.icon));
+	titleIconSpan.appendChild(iconUtils.CreateIcon(card.icon));
 	titlebarDiv.appendChild(titleIconSpan);
 
 	var titleSpan = document.createElement("span");
@@ -34,6 +45,8 @@ export function makeToolCard(processName, initFunction) {
 		grabCard(event);
 	};
 	titlebarDiv.appendChild(titleSpan);
+
+	let createButtonElement = buttonElementFactory(iconUtils, localization)
 
 	titlebarDiv.appendChild(createButtonElement({
 		icon: "help",
@@ -53,13 +66,13 @@ export function makeToolCard(processName, initFunction) {
 
 	card.setTitlebar = function(icon, text) {
 		titleIconSpan.innerHTML = "";
-		titleIconSpan.appendChild(createIconElement(icon));
+		titleIconSpan.appendChild(iconUtils.CreateIcon(icon));
 		titleSpan.innerText = text;
 	};
 
 	card.resetTitlebar = function() {
 		titleIconSpan.innerHTML = "";
-		titleIconSpan.appendChild(createIconElement(card.icon));
+		titleIconSpan.appendChild(iconUtils.CreateIcon(card.icon));
 		titleSpan.innerText = card.name();
 	};
 
@@ -70,14 +83,14 @@ export function makeToolCard(processName, initFunction) {
 	var navControls;
 
 	if (card.data != undefined) {
-		navControls = createNavControls({
+		navControls = createNavControls(findTool, localization, {
 			system: card.system, // todo : should I just pass the whole card?
 			parentElement: mainDiv,
 			cardDivId: cardDiv.id,
 			data: card.data,
 			onSelect: function(id) {
 				if (card.system) {
-					bitsy = card.system; // hack to force correct system
+					setBitsy(card.system); // hack to force correct system
 				}
 
 				card.onSelect(id);
@@ -90,7 +103,7 @@ export function makeToolCard(processName, initFunction) {
 
 		mainDiv.appendChild(navControls.element);
 
-		var nothingHereLabel = createLabelElement({
+		var nothingHereLabel = labelElementFactory(iconUtils)({
 			icon: "sprite",
 			style: "bitsy-label-style-button",
 			text: "there's nothing here yet!",
@@ -125,7 +138,7 @@ export function makeToolCard(processName, initFunction) {
 
 	document.getElementById("toolsPanel")
 		.insertBefore(
-			createToggleElement({
+			toggleElementFactory(iconUtils)({
 				icon: card.icon,
 				text: card.name(),
 				id: card.id + "Check",
@@ -265,7 +278,7 @@ export function makeToolCard(processName, initFunction) {
 	return card;
 }
 
-function createNavControls(options) {
+function createNavControls(findTool, localization, options) {
 	// note : is the split between responsibilities of the tool and the category good?
 	var category = findTool.getCategory(options.data);
 	var selectedId = category.getIdList()[0];
@@ -341,6 +354,8 @@ function createNavControls(options) {
 			findTool.updateSelection();
 		}
 	}
+	
+	let createButtonElement = buttonElementFactory(iconUtils, localization)
 
 	var prevButton = createButtonElement({
 		icon : "previous",
@@ -364,7 +379,7 @@ function createNavControls(options) {
 		icon : "add",
 		description : "add " + category.getCategoryName(),
 		onclick : function() {
-			bitsy = options.system; // hack to use correct system
+			setBitsy(options.system); // hack to use correct system
 			options.add();
 			refreshGameData();
 			selectAtIndex(-1);

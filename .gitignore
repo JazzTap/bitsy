@@ -15,3 +15,4 @@ dist/*
 build/*
 cache/*
 experiments/node_modules/*
+.amrg/*

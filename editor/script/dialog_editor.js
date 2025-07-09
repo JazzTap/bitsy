@@ -1,8 +1,14 @@
-import {ThumbnailRenderer} from "./thumbnail.js"
-import {iconUtils} from "./editor_state.js" // VERIFY
+import { rgbToHex } from "./util.js"
+import { scriptInterpreter, titleDialogId } from "./engine/world.js"
+import { getTitle } from "./engine/bitsy.js"
+
+import { ThumbnailRenderer } from "./thumbnail.js"
+import { iconUtils, events } from "./editor_state.js" 
+import { refreshGameData } from "./editor.js"
+import { EventListener } from "./event_manager.js"
 
 // TODO : name?
-export function DialogTool() {
+export function DialogTool(localization, sortedDialogIdList) {
 	this.CreateEditor = function(dialogId) {
 		return new DialogScriptEditor(dialogId);
 	}
@@ -244,7 +250,7 @@ export function DialogTool() {
 			}
 			for (var i = 0; i < dialogIdList.length; i++) {
 				var dialogIdOption = document.createElement("option");
-				if (dialog[dialogIdList[i]].name != null) {
+				if (dialog[dialogIdList[i]]?.name != null) {
 					dialogIdOption.innerText = dialog[dialogIdList[i]].name;
 				}
 				else {

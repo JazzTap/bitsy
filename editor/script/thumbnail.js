@@ -1,7 +1,12 @@
+import {TileType, labelElementFactory, rgbToHex} from "./util.js"
+import {gif} from "./gif.js"
+
 import {bitsyLog, tilesize, scale} from "./system/system.js"
+import { state, room, getPal, animationTime } from "./engine/bitsy.js";
+import { roomTool, getDrawingImageSource } from "./editor.js";
 
 // renders a tile to canvas (kind of hackily recreates some of the TileRenderer logic - oh well)
-function renderTileToCanvas(drawing, frameIndex) {
+export function renderTileToCanvas(drawing, frameIndex) {
 	var selectedRoomId = state.room;
 	if (roomTool) {
 		selectedRoomId = roomTool.getSelected();
@@ -49,8 +54,15 @@ function renderTileToCanvas(drawing, frameIndex) {
 	return tileThumbCanvas;
 }
 
+/*
+export let drawingThumbnailCanvas = document.createElement("canvas");
+drawingThumbnailCanvas.width = tilesize * scale;
+drawingThumbnailCanvas.height = tilesize * scale;
+drawingThumbnailCtx = drawingThumbnailCanvas.getContext("2d");
+*/
+
 // todo : deprecate this old version of the thumbnail renderer
-export function ThumbnailRenderer() {
+export function ThumbnailRenderer(sprite) {
 	bitsyLog("NEW THUMB RENDERER", "editor");
 
 	var drawingThumbnailCanvas, drawingThumbnailCtx;
@@ -161,7 +173,7 @@ export function ThumbnailRenderer() {
 	}
 }
 
-function ThumbnailRendererBase(getRenderable, getHexPalette, onRender) {
+export function ThumbnailRendererBase(getRenderable, getHexPalette, onRender) {
 	var renderCanvas = document.createElement("canvas");
 	renderCanvas.width = tilesize * scale; // TODO: scale constants need to be contained somewhere
 	renderCanvas.height = tilesize * scale;
@@ -242,235 +254,7 @@ function ThumbnailRendererBase(getRenderable, getHexPalette, onRender) {
 	this.InvalidateCache = invalidateCache;
 }
 
-function createDrawingThumbnailRenderer(source) {
-	var getRenderable = function(id) {
-		return source[id];
-	}
-
-	var getHexPalette = function(drawing) {
-		var palId = roomTool ? getRoomPal(roomTool.getSelected()) : getRoomPal(state.room);
-
-		var hexPalette = [];
-		var roomColors = getPal(palId);
-		for (i in roomColors) {
-			var hexStr = rgbToHex(roomColors[i][0], roomColors[i][1], roomColors[i][2]).slice(1);
-			hexPalette.push(hexStr);
-		}
-
-		return hexPalette;
-	}
-
-	var onRender = function(drawing, ctx, options) {
-		var palId = getRoomPal(state.room);
-		var renderFrames = [];
-
-		if (drawing && drawing.id in source) {
-			for (var i = 0; i < drawing.animation.frameCount; i++) {
-				if (options.isAnimated || options.frameIndex === i) {
-					var renderedImg = renderTileToCanvas(drawing, i);
-					if (renderedImg) {
-						ctx.drawImage(renderedImg, 0, 0, tilesize * scale, tilesize * scale);
-						renderFrames.push(ctx.getImageData(0, 0, tilesize * scale, tilesize * scale).data);
-					}
-					else {
-						bitsyLog("oh no! image render for thumbnail failed", "editor");
-					}
-				}
-			}
-		}
-
-		return renderFrames;
-	}
-
-	return new ThumbnailRendererBase(getRenderable, getHexPalette, onRender);
-}
-
-function createSpriteThumbnailRenderer() {
-	return createDrawingThumbnailRenderer(sprite);
-}
-
-function createTileThumbnailRenderer() {
-	return createDrawingThumbnailRenderer(tile);
-}
-
-function createItemThumbnailRenderer() {
-	return createDrawingThumbnailRenderer(item);
-}
-
-function createPaletteThumbnailRenderer() {
-	var getRenderable = function(id) {
-		return palette[id];
-	}
-
-	var getHexPaletteBase = function(pal) {
-		var hexPalette = [];
-
-		if (pal.id in palette) {
-			var palId = pal.id;
-			var colors = getPal(palId);
-
-			for (i in colors) {
-				var hexStr = rgbToHex(colors[i][0], colors[i][1], colors[i][2]).slice(1);
-				hexPalette.push(hexStr);
-			}
-		}
-
-		return hexPalette;
-	}
-
-	// always include black for border, but not in palette itself
-	var getHexPalette = function(pal) {
-		return getHexPaletteBase(pal).concat('000000');
-	}
-
-	var onRender = function(pal, ctx, options) {
-		var padding = 0.125;
-		var fillSize = 1 - padding*2;
-		if (pal.id in palette) {
-			var hexPalette = getHexPaletteBase(pal);
-			var bar = (1 / hexPalette.length) * fillSize;
-
-			ctx.fillStyle = "black";
-			ctx.fillRect(0, 0, tilesize * scale, tilesize * scale);
-
-			for (i in hexPalette) {
-				ctx.fillStyle = "#" + hexPalette[i];
-				ctx.fillRect(tilesize * scale * padding, tilesize * scale * (padding + i * bar), tilesize * scale * fillSize, tilesize * scale * bar);
-			}
-		}
-
-		return [ctx.getImageData(0, 0, tilesize * scale, tilesize * scale).data];
-	}
-
-	return new ThumbnailRendererBase(getRenderable, getHexPalette, onRender);
-}
-
-function createRoomThumbnailRenderer() {
-	var getRenderable = function(id) {
-		return room[id];
-	}
-
-	var getHexPalette = function(r) {
-		var hexPalette = [];
-
-		if (r.id in room) {
-			var palId = getRoomPal(r.id);
-			var colors = getPal(palId);
-
-			for (i in colors) {
-				var hexStr = rgbToHex(colors[i][0], colors[i][1], colors[i][2]).slice(1);
-				hexPalette.push(hexStr);
-			}
-
-			return hexPalette;
-		}
-	}
-
-	function onRender(r, ctx, options) {
-		var roomRenderSize = tilesize * scale;
-		var tileRenderSize = roomRenderSize / mapsize;
-
-		if (r.id in room) {
-			var roomId = r.id;
-			var hexPalette = getHexPalette(r);
-
-			bitsyLog(hexPalette, "editor");
-
-			ctx.fillStyle = "#" + hexPalette[0];
-			ctx.fillRect(0, 0, roomRenderSize, roomRenderSize);
-
-			// tiles
-			for (var ry = 0; ry < mapsize; ry++) {
-				for (var rx = 0; rx < mapsize; rx++) {
-					var tileId = r.tilemap[ry][rx];
-
-					if (tileId != "0" && (tileId in tile)) {
-						ctx.fillStyle = "#" + hexPalette[parseInt(tile[tileId].col)];
-						ctx.fillRect(rx * tileRenderSize, ry * tileRenderSize, tileRenderSize, tileRenderSize);
-					}
-				}
-			}
-
-			// items
-			for (var i = 0; i < r.items.length; i++) {
-				var itm = r.items[i];
-
-				if (itm.id in item) {
-					var rx = itm.x;
-					var ry = itm.y;
-					ctx.fillStyle = "#" + hexPalette[parseInt(item[itm.id].col)];
-					ctx.fillRect(rx * tileRenderSize, ry * tileRenderSize, tileRenderSize, tileRenderSize);
-				}
-			}
-
-			// sprites
-			for (id in sprite) {
-				var spr = sprite[id];
-				if (spr.room === r.id) {
-					var rx = spr.x;
-					var ry = spr.y;
-					ctx.fillStyle = "#" + hexPalette[parseInt(spr.col)];
-					ctx.fillRect(rx * tileRenderSize, ry * tileRenderSize, tileRenderSize, tileRenderSize);
-				}
-			}
-		}
-
-		return [ctx.getImageData(0, 0, roomRenderSize, roomRenderSize).data];
-	}
-
-	var renderer = new ThumbnailRendererBase(getRenderable, getHexPalette, onRender);
-	renderer.renderToCtx = onRender;
-
-	return renderer;
-}
-
-// todo : make better blip thumbnail renderer
-function createBlipThumbnailRenderer() {
-	var getRenderable = function(id) {
-		return blip[id];
-	}
-
-	var getHexPalette = function(blipObj) {
-		var hexPalette = [];
-
-		if (roomTool) {
-			var colors = roomTool.world.palette["0"].colors;
-			for (i in colors) {
-				var hexStr = rgbToHex(colors[i][0], colors[i][1], colors[i][2]).slice(1);
-				hexPalette.push(hexStr);
-			}
-		}
-
-		return hexPalette;
-	}
-
-	var onRender = function(blipObj, ctx, options) {
-		var hexPalette = getHexPalette(blipObj);
-
-		ctx.fillStyle = "#" + hexPalette[2];
-		ctx.fillRect(0, 0, tilesize * scale, tilesize * scale);
-
-		if (soundPlayer) {
-			ctx.fillStyle = "#" + hexPalette[0];
-
-			// draw waveform (copied from makeBlipTile())
-			var blipSamples = soundPlayer.sampleBlip(blipObj, 8);
-			for (var i = 0; i < blipSamples.frequencies.length; i++) {
-				var freq = 1 + Math.floor(blipSamples.frequencies[i] * 4);
-				for (var j = 0; j < freq; j++) {
-					ctx.fillRect(i * scale, (3 - j) * scale, scale, scale);
-					ctx.fillRect(i * scale, (4 + j) * scale, scale, scale);
-				}
-			}
-		}
-
-		return [ctx.getImageData(0, 0, tilesize * scale, tilesize * scale).data];
-	}
-
-	return new ThumbnailRendererBase(getRenderable, getHexPalette, onRender);
-}
-
-function ThumbnailControl(options) {
+export function ThumbnailControl(iconUtils, options) {
 	var id = options.id;
 	var renderer = options.renderer;
 
@@ -489,9 +273,10 @@ function ThumbnailControl(options) {
 
 	var thumbnailContainer = document.createElement("div");
 	thumbnailContainer.classList.add("bitsy-thumbnail-image-container");
-	thumbnailContainer.appendChild(createIconElement(options.icon));
+	thumbnailContainer.appendChild(iconUtils.CreateIcon(id));
 	div.appendChild(thumbnailContainer);
 
+	let createLabelElement = labelElementFactory(iconUtils)
 	div.appendChild(createLabelElement({
 		icon: options.icon,
 		text: options.text,

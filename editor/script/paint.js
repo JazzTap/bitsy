@@ -1,5 +1,11 @@
-import {getPanelSetting, iconUtils} from "./editor_state.js" // VERIFY
-import {tilesize} from "./system/system.js"
+import {TileType} from "./util.js"
+
+import { state, room, getPal, getOffset } from "./engine/bitsy.js"
+import {tilesize, bitsyLog, bitsy} from "./system/system.js"
+import {MenuInterface} from "./menu.js"
+
+import {getPanelSetting, iconUtils, events, isPlayMode, localization} from "./editor_state.js"
+import {findTool, getDrawingImageSource, getContrastingColor, getDrawingFrameData, mobileOffsetCorrection, refreshGameData } from "./editor.js"
 /*
 	PAINT
 */
@@ -8,7 +14,7 @@ export function updatePaintGridCheck(checked) {
 	iconUtils.LoadIcon(document.getElementById("paintGridIcon"), checked ? "visibility" : "visibility_off");
 }
 
-window.drawGrid = function drawGrid(canvas, gridDivisions, lineColor) {
+export function drawGrid(canvas, gridDivisions, lineColor) {
 	var ctx = canvas.getContext("2d");
 	ctx.fillStyle = lineColor;
 
@@ -26,9 +32,12 @@ window.drawGrid = function drawGrid(canvas, gridDivisions, lineColor) {
 	}
 }
 
-export function PaintTool(canvas, menuElement) {
+export function PaintTool(drawing, roomTool, canvas, menuElement) {
 	// TODO : variables
 	var self = this; // feels a bit hacky
+
+	this.drawing = drawing;
+	this.roomTool = roomTool;
 
 	var paint_scale = 32;
 	var curPaintBrush = 0;
@@ -71,13 +80,13 @@ export function PaintTool(canvas, menuElement) {
 		// var x = Math.floor(off.x / paint_scale);
 		// var y = Math.floor(off.y / paint_scale);
 
-		if (curDrawingData()[y][x] == 0) {
+		if (this.curDrawingData()[y][x] == 0) {
 			curPaintBrush = 1;
 		}
 		else {
 			curPaintBrush = 0;
 		}
-		curDrawingData()[y][x] = curPaintBrush;
+		this.curDrawingData()[y][x] = curPaintBrush;
 		self.updateCanvas();
 		isPainting = true;
 	}
@@ -90,7 +99,7 @@ export function PaintTool(canvas, menuElement) {
 
 			var x = Math.floor(off.x);// / paint_scale);
 			var y = Math.floor(off.y);// / paint_scale);
-			curDrawingData()[y][x] = curPaintBrush;
+			this.curDrawingData()[y][x] = curPaintBrush;
 			self.updateCanvas();
 		}
 	}
@@ -106,7 +115,7 @@ export function PaintTool(canvas, menuElement) {
 			self.updateCanvas();
 
 			if (self.isCurDrawingAnimated) {
-				renderAnimationPreview(drawing);
+				renderAnimationPreview(this.drawing);
 			}
 
 			events.Raise("paint_edit");
@@ -137,8 +146,8 @@ export function PaintTool(canvas, menuElement) {
 	this.updateCanvas = function() {
 		// get palette of selected room
 		var selectedRoomId = state.room;
-		if (roomTool) {
-			selectedRoomId = roomTool.getSelected();
+		if (this.roomTool) {
+			selectedRoomId = this.roomTool.getSelected();
 		}
 		if (room[selectedRoomId] === undefined) {
 			selectedRoomId = "0";
@@ -152,10 +161,10 @@ export function PaintTool(canvas, menuElement) {
 		ctx.fillRect(0, 0, canvas.width, canvas.height);
 
 		//pixel color
-		if (drawing.type === TileType.Tile) {
+		if (this.drawing.type === TileType.Tile) {
 			ctx.fillStyle = "rgb(" + palColors[1][0] + "," + palColors[1][1] + "," + palColors[1][2] + ")";
 		}
-		else if (drawing.type === TileType.Sprite || drawing.type === TileType.Avatar || drawing.type === TileType.Item) {
+		else if (this.drawing.type === TileType.Sprite || this.drawing.type === TileType.Avatar || this.drawing.type === TileType.Item) {
 			ctx.fillStyle = "rgb(" + palColors[2][0] + "," + palColors[2][1] + "," + palColors[2][2] + ")";
 		}
 
@@ -169,7 +178,7 @@ export function PaintTool(canvas, menuElement) {
 					ctx.globalAlpha = 1;
 				}
 				// draw current frame
-				if (curDrawingData()[y][x] === 1) {
+				if (this.curDrawingData()[y][x] === 1) {
 					ctx.fillRect(x*paint_scale,y*paint_scale,1*paint_scale,1*paint_scale);
 				}
 			}
@@ -181,21 +190,21 @@ export function PaintTool(canvas, menuElement) {
 		}
 	}
 
-	function curDrawingData() {
+	this.curDrawingData = function() {
 		var frameIndex = (self.isCurDrawingAnimated ? self.curDrawingFrameIndex : 0);
-		return getDrawingFrameData(drawing, frameIndex);
+		return getDrawingFrameData(this.drawing, frameIndex);
 	}
 
 	// todo: assumes 2 frames
-	function curDrawingAltFrameData() {
+	this.curDrawingAltFrameData = function() {
 		var frameIndex = (self.curDrawingFrameIndex === 0 ? 1 : 0);
-		return getDrawingFrameData(drawing, frameIndex);
+		return getDrawingFrameData(this.drawing, frameIndex);
 	}
 
 	// TODO : rename?
-	function updateDrawingData() {
+	this.updateDrawingData = function() {
 		// this forces a renderer cache refresh but it's kind of wonky
-		renderer.SetDrawingSource(drawing.drw, getDrawingImageSource(drawing));
+		renderer.SetDrawingSource(this.drawing.drw, getDrawingImageSource(this.drawing));
 	}
 
 	// todo: this is a *mess* - I really need to refactor it (someday)
@@ -204,17 +213,17 @@ export function PaintTool(canvas, menuElement) {
 	this.onReloadSprite = null;
 	this.onReloadItem = null;
 	this.reloadDrawing = function() {
-		if (drawing.type === TileType.Tile) {
+		if (this.drawing.type === TileType.Tile) {
 			if (self.onReloadTile) {
 				self.onReloadTile();
 			}
 		}
-		else if (drawing.type === TileType.Avatar || drawing.type === TileType.Sprite) {
+		else if (this.drawing.type === TileType.Avatar || this.drawing.type === TileType.Sprite) {
 			if (self.onReloadSprite) {
 				self.onReloadSprite();
 			}
 		}
-		else if (drawing.type === TileType.Item) {
+		else if (this.drawing.type === TileType.Item) {
 			if (self.onReloadItem) {
 				self.onReloadItem();
 			}
@@ -224,22 +233,22 @@ export function PaintTool(canvas, menuElement) {
 		self.menu.update();
 	}
 
-	this.selectDrawing = function(drawingData) {
+	/* this.selectDrawing = function(drawingData) {
 		drawing = drawingData; // ok this global variable is weird imo
 		self.reloadDrawing();
 		self.updateCanvas();
-	}
+	} */
 
 	this.toggleWall = function(checked) {
-		if (drawing.type != TileType.Tile) {
+		if (this.drawing.type != TileType.Tile) {
 			return;
 		}
 
-		if (drawing.isWall == undefined || drawing.isWall == null) {
+		if (this.drawing.isWall == undefined || this.drawing.isWall == null) {
 			// clear out any existing wall settings for this tile in any rooms
 			// (this is back compat for old-style wall settings)
 			for (roomId in room) {
-				var i = room[roomId].walls.indexOf(drawing.id);
+				var i = room[roomId].walls.indexOf(this.drawing.id);
 
 				if (i > -1) {
 					room[roomId].walls.splice(i, 1);
@@ -247,7 +256,7 @@ export function PaintTool(canvas, menuElement) {
 			}
 		}
 
-		drawing.isWall = checked;
+		this.drawing.isWall = checked;
 
 		refreshGameData();
 
@@ -257,36 +266,36 @@ export function PaintTool(canvas, menuElement) {
 	}
 
 	this.getCurObject = function() {
-		return drawing;
+		return this.drawing;
 	}
 
 	this.newDrawing = function(imageData) {
-		if (drawing.type === TileType.Tile) {
+		if (this.drawing.type === TileType.Tile) {
 			newTile(imageData);
 		}
-		else if (drawing.type === TileType.Avatar || drawing.type === TileType.Sprite) {
+		else if (this.drawing.type === TileType.Avatar || this.drawing.type === TileType.Sprite) {
 			newSprite(imageData);
 		}
-		else if (drawing.type === TileType.Item) {
+		else if (this.drawing.type === TileType.Item) {
 			newItem(imageData);
 		}
 	}
 	
 	this.duplicateDrawing = function() {
-		var sourceImageData = getDrawingImageSource(drawing);
+		var sourceImageData = getDrawingImageSource(this.drawing);
 		var copiedImageData = copyDrawingData(sourceImageData);
 
 		// tiles have extra data to copy
 		var tileIsWall = false;
-		if (drawing.type === TileType.Tile) {
-			tileIsWall = drawing.isWall;
+		if (this.drawing.type === TileType.Tile) {
+			tileIsWall = this.drawing.isWall;
 		}
 
 		this.newDrawing(copiedImageData);
 
 		// tiles have extra data to copy
-		if (drawing.type === TileType.Tile) {
-			drawing.isWall = tileIsWall;
+		if (this.drawing.type === TileType.Tile) {
+			this.drawing.isWall = tileIsWall;
 			// make sure the wall toggle gets updated
 			self.reloadDrawing();
 		}
@@ -297,7 +306,7 @@ export function PaintTool(canvas, menuElement) {
 		var id = nextTileId();
 		makeTile(id, imageData);
 
-		drawing = tile[id];
+		this.drawing = tile[id];
 		self.reloadDrawing(); //hack for ui consistency (hack x 2: order matters for animated tiles)
 
 		self.updateCanvas();
@@ -310,7 +319,7 @@ export function PaintTool(canvas, menuElement) {
 		var id = nextSpriteId();
 		makeSprite(id, imageData);
 
-		drawing = sprite[id];
+		this.drawing = sprite[id];
 		self.reloadDrawing(); //hack (order matters for animated tiles)
 
 		self.updateCanvas();
@@ -323,7 +332,7 @@ export function PaintTool(canvas, menuElement) {
 		var id = nextItemId();
 		makeItem(id, imageData);
 
-		drawing = item[id];
+		this.drawing = item[id];
 		self.reloadDrawing(); //hack (order matters for animated tiles)
 
 		self.updateCanvas();
@@ -339,47 +348,47 @@ export function PaintTool(canvas, menuElement) {
 		shouldDelete = confirm("Are you sure you want to delete this drawing?");
 
 		if (shouldDelete) {
-			if (drawing.type === TileType.Tile) {
+			if (this.drawing.type === TileType.Tile) {
 				if (Object.keys( tile ).length <= 1) {
 					alert("You can't delete your last tile!"); // todo : localize
 					return;
 				}
 
-				delete tile[drawing.id];
+				delete tile[this.drawing.id];
 
-				findAndReplaceTileInAllRooms(drawing.id, "0");
+				findAndReplaceTileInAllRooms(this.drawing.id, "0");
 				refreshGameData();
 
 				nextTile();
 			}
-			else if (drawing.type === TileType.Avatar || drawing.type === TileType.Sprite) {
+			else if (this.drawing.type === TileType.Avatar || this.drawing.type === TileType.Sprite) {
 				if (Object.keys(sprite).length <= 2) {
 					alert("You can't delete your last sprite!"); // todo : localize
 					return;
 				}
 
 				// todo: share with items
-				var dlgId = (drawing.dlg === null) ? drawing.id : drawing.dlg;
+				var dlgId = (this.drawing.dlg === null) ? this.drawing.id : this.drawing.dlg;
 
-				delete sprite[drawing.id];
+				delete sprite[this.drawing.id];
 
 				deleteUnreferencedDialog(dlgId);
 				refreshGameData();
 
 				nextSprite();
 			}
-			else if (drawing.type === TileType.Item) {
+			else if (this.drawing.type === TileType.Item) {
 				if (Object.keys(item).length <= 1) {
 					alert("You can't delete your last item!"); // todo : localize
 					return;
 				}
 
-				var dlgId = drawing.dlg;
+				var dlgId = this.drawing.dlg;
 
-				delete item[drawing.id];
+				delete item[this.drawing.id];
 
 				deleteUnreferencedDialog(dlgId);
-				removeAllItems(drawing.id);
+				removeAllItems(this.drawing.id);
 				refreshGameData();
 
 				nextItem();
@@ -393,7 +402,7 @@ export function PaintTool(canvas, menuElement) {
 
 		if (self.isCurDrawingAnimated) {
 			// TODO -- this animation stuff needs to be moved in here I think?
-			renderAnimationPreview(drawing);
+			renderAnimationPreview(this.drawing);
 		}
 	});
 
@@ -401,20 +410,20 @@ export function PaintTool(canvas, menuElement) {
 	this.menuElement = menuElement;
 
 	this.menuUpdate = function() {
-		if (drawing.type != TileType.Tile && drawing.type != TileType.Avatar) {
+		if (this.drawing.type != TileType.Tile && this.drawing.type != TileType.Avatar) {
 			self.menu.push({ control: "group" });
 			self.menu.push({ control: "label", icon: "blip", description: "blip (sound effect)" });
 			self.menu.push({
 				control: "select",
 				data: "BLIP",
 				noneOption: "none",
-				value: drawing.blip,
+				value: this.drawing.blip,
 				onchange: function(e) {
 					if (e.target.value === "null") { // always a string :(
-						drawing.blip = null;
+						this.drawing.blip = null;
 					}
 					else {
-						drawing.blip = e.target.value;
+						this.drawing.blip = e.target.value;
 					}
 					refreshGameData();
 				}
@@ -423,6 +432,6 @@ export function PaintTool(canvas, menuElement) {
 		}
 	};
 
-	this.menu = new MenuInterface(this);
+	this.menu = new MenuInterface(this, findTool, iconUtils, localization);
 }
 

@@ -1,4 +1,7 @@
-function Script() {
+import { initRoom } from "./bitsy.js";
+import { events } from "../editor_state.js"
+
+export function Script() {
 
 this.CreateInterpreter = function() {
 	return new Interpreter();
@@ -1749,7 +1752,7 @@ var Parser = function(env) {
 		this.rootNode = rootNode;
 		this.curNode = this.rootNode;
 
-		var sourceStr = str;
+		var sourceStr = str || ""; // VERIFY
 		var i = 0;
 		this.Index = function() { return i; };
 		this.Count = function() { return sourceStr.length; };

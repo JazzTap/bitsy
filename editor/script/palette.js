@@ -1,9 +1,15 @@
+import { RGBtoHSV } from "./util.js";
+import {events} from "./editor_state.js"
+import { palette, getPal } from "./engine/bitsy.js";
+import { sortedPaletteIdList, roomTool } from "./editor.js"; // seems cyclic but it's fine?
+import { localization } from "./editor_state.js";
+
 /* PALETTE TOOL STUFF
 TODO:
 - is PaletteTool the best name?
 - should it create its own color picker?
 */
-function PaletteTool(colorPicker,labelIds,nameFieldId) {
+export function PaletteTool(colorPicker,labelIds,nameFieldId) {
 	var self = this;
 
 	var colorPickerIndex = 0;

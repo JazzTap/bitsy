@@ -1,6 +1,37 @@
+import { bitsyLog } from "./system/system.js"
 import {Store} from "./store.js"
 import {IconUtils} from "./icons.js"
+import {EventManager} from "./event_manager.js"
+import {Localization} from "./localization.js"
 
+export let isPlayMode = false;
+
+let urlParameters = {};
+export function readUrlParameters() {
+	bitsyLog(" --- reading url parameters --- ", "editor");
+
+	var urlSplit = window.location.href.split("?");
+
+	if (urlSplit.length >= 2) {
+		var queryString = urlSplit[1];
+		var queryStringSplit = queryString.split("&");
+
+		for (var i = 0; i < queryStringSplit.length; i++) {
+			var parameterSplit = queryStringSplit[i].split("=");
+
+			if (parameterSplit.length >= 2) {
+				var parameterName = parameterSplit[0];
+				var parameterValue = parameterSplit[1];
+
+				bitsyLog("parameter " + parameterName + " = " + parameterValue, "editor");
+				urlParameters[parameterName] = parameterValue; // VERIFY
+			}
+		}
+	}
+}
+export let localization = new Localization(urlParameters["lang"]); // was in editor start()
+
+/* ICONS */
 export let iconUtils = new IconUtils()
 
 // load icons and replace placeholder elements
@@ -14,11 +45,13 @@ for(var i = 0; i < elements.length; i++) {
 	iconUtils.LoadIconAnimated(elements[i]);
 }
 
+/* EVENTS */
+export let events = new EventManager();
 
 // This is the panel arrangement you get if you are new or your editor settings are out-of-date
 let defaultPanelPrefs = {
     workspace : [
-        { id:"aboutPanel", 			visible:true, 	position:0  },
+        { id:"aboutPanel", 			visible:false, 	position:0  }, // VERIFY
         { id:"roomPanel", 			visible:true, 	position:1  },
         { id:"paintPanel", 			visible:true, 	position:2  },
         { id:"colorsPanel", 		visible:true, 	position:3  },
@@ -33,6 +66,106 @@ let defaultPanelPrefs = {
     ]
 };
 // bitsyLog(defaultPanelPrefs, "editor");
+
+/* PANEL MANAGEMENT */
+export function togglePanel(e) {
+	togglePanelCore( e.target.value, e.target.checked );
+}
+
+export function showPanel(id, insertNextToId) {
+	togglePanelCore(id, true /*visible*/, true /*doUpdatePrefs*/, insertNextToId);
+}
+
+export function hidePanel(id) {
+	// animate panel and tools button
+	document.getElementById(id).classList.add("close");
+	document.getElementById("toolsCheckLabel").classList.add("flash");
+
+	setTimeout(
+		function() {
+			// close panel after animations
+			togglePanelCore( id, false /*visible*/ );
+
+			// reset animations
+			document.getElementById(id).classList.remove("close");
+			document.getElementById("toolsCheckLabel").classList.remove("flash");
+		},
+		400
+	);
+}
+
+export function togglePanelCore(id, visible, doUpdatePrefs, insertNextToId) {
+	if (doUpdatePrefs === undefined || doUpdatePrefs === null) {
+		doUpdatePrefs = true;
+	}
+
+	//hide/show panel
+	togglePanelUI(id, visible, insertNextToId);
+
+	//save panel preferences
+	// savePanelPref( id, visible );
+	if (doUpdatePrefs) {
+		updatePanelPrefs();
+	}
+}
+
+export function togglePanelUI(id, visible, insertNextToId) {
+	if (visible) {
+		var editorContent = document.getElementById("editorContent");
+		var cardElement = document.getElementById(id);
+
+		if (insertNextToId === undefined || insertNextToId === null) {
+			editorContent.appendChild(cardElement);
+		}
+		else {
+			var insertNextToElement = document.getElementById(insertNextToId);
+			editorContent.insertBefore(cardElement, insertNextToElement.nextSibling);
+
+			// hack - activate animation if using insert next to?
+			cardElement.classList.add("drop");
+			setTimeout( function() { cardElement.classList.remove("drop"); }, 300 );
+		}
+	}
+
+	document.getElementById(id).style.display = visible ? "inline-flex" : "none";
+
+	if (visible) {
+		cardElement.scrollIntoView();
+	}
+
+	// update checkbox
+	if (id != "toolsPanel") {
+		document.getElementById(id.replace("Panel","Check")).checked = visible;
+	}
+}
+
+export function updatePanelPrefs() {
+	// bitsyLog("UPDATE PREFS", "editor");
+
+	var prefs = getPanelPrefs();
+	// bitsyLog(prefs, "editor");
+
+	var editorContent = document.getElementById("editorContent");
+	var cards = editorContent.getElementsByClassName("bitsy-workbench-item");
+
+	for(var i = 0; i < cards.length; i++) {
+		var card = cards[i];
+		var id = card.id;
+		var visible = card.style.display != "none";
+
+		for (var j = 0; j < prefs.workspace.length; j++ )
+		{
+			if (prefs.workspace[j].id === id) {
+				prefs.workspace[j].position = i;
+				prefs.workspace[j].visible = visible;
+			}
+		}
+	}
+
+	// bitsyLog(prefs, "editor");
+	Store.set('panel_prefs', prefs);
+	// bitsyLog(Store.get('panel_prefs'), "editor");
+}
 
 export function getPanelPrefs() {
 	// (TODO: weird that engine version and editor version are the same??)

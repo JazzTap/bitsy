@@ -1,7 +1,7 @@
 // init global audio context
 var audioContext = new AudioContext();
 
-function enableGlobalAudioContext() {
+export function enableGlobalAudioContext() {
 	audioContext.resume();
 }
 

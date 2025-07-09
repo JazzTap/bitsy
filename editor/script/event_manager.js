@@ -55,7 +55,7 @@ export function EventManager() {
 	}
 }
 
-function EventListener(eventManager) {
+export function EventListener(eventManager) {
 	var callbackReferences = {};
 
 	function Unlisten(eventName) {
@@ -73,7 +73,7 @@ function EventListener(eventManager) {
 	this.Unlisten = Unlisten;
 
 	this.UnlistenAll = function() {
-		for (eventName in callbackReferences) {
+		for (let eventName in callbackReferences) {
 			Unlisten(eventName);
 		}
 	}

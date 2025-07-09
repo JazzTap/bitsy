@@ -1,4 +1,5 @@
 import {bitsyLog} from "./system/system.js"
+import { hexToHsl } from "./util.js";
 
 export function gif() {
 
@@ -123,7 +124,7 @@ function returnAsDataUri(gifArr, callback) {
 	var reader = new window.FileReader();
 	reader.readAsDataURL(blob); 
 	reader.onloadend = function() {
-		base64data = reader.result;
+		let base64data = reader.result; // VERIFY
 		// base64data = base64data.replace("data:;", "data:image/gif;");
 		// base64data = base64data.replace("data:;", "data:attachment/file;"); // for safari
 		// bitsyLog("!!!!", "editor");
@@ -148,7 +149,7 @@ function arrayToBuffer(gifArr) {
 }
 
 function pushString(gifArr, str) {
-	for (i in str) {
+	for (let i in str) {
 		gifArr.push( str.charCodeAt(i) );
 	}
 	return gifArr;
@@ -199,7 +200,7 @@ function pushColorString(gifArr, colorStr) {
 
 function globalColorTable(gifArr, colors) {
 	// Add list of palette colors
-	for (i in colors) {
+	for (let i in colors) {
 		gifArr = pushColorString(gifArr, colors[i]);
 	}
 
@@ -322,7 +323,7 @@ var lzwState = {
 function lzwSetup(indexStream, colors, lzwMinimumCodeSize) {
 	//the code table stores patterns of color indices and pairs them with codes
 	var codeMap = new Map();
-	for (i in colors) { //assumes the colors array has a power of 2 length
+	for (let i in colors) { //assumes the colors array has a power of 2 length
 		codeMap.set(i + ",", codeMap.size);
 	}
 	codeMap.set(CLEAR_CODE, codeMap.size);
@@ -387,7 +388,7 @@ function lzw(indexStream, colors, lzwMinimumCodeSize) {
 
 	//the code table stores patterns of color indices and pairs them with codes
 	var codeMap = new Map();
-	for (i in colors) { //assumes the colors array has a power of 2 length
+	for (let i in colors) { //assumes the colors array has a power of 2 length
 		codeMap.set(i + ",", codeMap.size);
 	}
 	codeMap.set(CLEAR_CODE, codeMap.size);
@@ -450,7 +451,7 @@ function lzw(indexStream, colors, lzwMinimumCodeSize) {
 					codeSize = lzwMinimumCodeSize + 1;
 					//reset code table
 					codeMap.clear();
-					for (i in colors) { //assumes the colors array has a power of 2 length
+					for (let i in colors) { //assumes the colors array has a power of 2 length
 						codeMap.set(i + ",", codeMap.size);
 					}
 					codeMap.set(CLEAR_CODE, codeMap.size);

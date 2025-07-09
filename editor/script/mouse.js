@@ -1,4 +1,4 @@
-function MouseInterface(tool) {
+export function MouseInterface(tool) {
 	this.hover = function() {
 		return tool.mouseState.hover;
 	};

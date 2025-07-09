@@ -1,4 +1,5 @@
 import {bitsy} from "../system/system.js"
+import {tileColorStartIndex} from "./world.js"
 
 export function TileRenderer(debugName) {
 bitsy.log("!!!!! NEW TILE RENDERER: " + debugName);

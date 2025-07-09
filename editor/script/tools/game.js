@@ -1,8 +1,11 @@
-import {updateEditorTextDirection} from "/editor/script/editor.js"
-import {makeToolCard} from "/editor/script/card.js"
+import { fontName, serializeWorld, textDirection } from "../engine/bitsy.js";
+import { makeToolCard } from "../card.js"
+import { Store } from "../store.js";
 
-window.makeGameTool = function makeGameTool() {
-	return makeToolCard("game", function(tool) {
+import { updateEditorTextDirection, grabCard, findTool, togglePanelAnimated, refreshGameData } from "../editor.js"
+
+export function makeGameTool(localization) {
+	return makeToolCard("game", grabCard, findTool, localization, togglePanelAnimated, function(tool) {
 		tool.id = "game";
 		tool.icon = "save";
 		// todo : localize
@@ -13,6 +16,7 @@ window.makeGameTool = function makeGameTool() {
 		tool.size = "m";
 		tool.insertBefore = "roomCheckSpan"; // todo : need a better way of defining the order of the tool buttons
 		tool.aboutPage = "./tools/game";
+		tool.localization = localization
 
 		tool.loop = function(dt) {};
 
@@ -398,7 +402,7 @@ window.makeGameTool = function makeGameTool() {
 				text: { id: "text_direction_label", text: "text direction" },
 				description: "Option for languages that read right to left"
 			});
-			tool.menu.push({
+			/* tool.menu.push({ // TODO: add setter to engine
 				control: "select",
 				name: "textDirectionSelect",
 				value: textDirection, // NOTE: this is a global var from the engine!
@@ -417,7 +421,7 @@ window.makeGameTool = function makeGameTool() {
 					textDirection = e.target.value;
 					refreshGameData();
 				}
-			});
+			}); */
 			tool.menu.pop({ control: "group" });
 
 			tool.menu.push({ control: "group" });
@@ -556,7 +560,7 @@ window.makeGameTool = function makeGameTool() {
 
 			// hacky global editor stuff
 			updateEditorLanguageStyle(language);
-			updateInventoryUI();
+			updateInventoryUI(tool.localization);
 			reloadDialogUI();
 			hackUpdatePlaceholderText();
 			hackUpdateEditorToolMenusOnLanguageChange();
@@ -594,14 +598,14 @@ window.makeGameTool = function makeGameTool() {
 			refreshGameData();
 		}
 
-		window.pickDefaultTextDirectionForFont = function pickDefaultTextDirectionForFont(newFontName) {
+		/* window.pickDefaultTextDirectionForFont = function pickDefaultTextDirectionForFont(newFontName) {
 			var newTextDirection = TextDirection.LeftToRight;
 			if (newFontName === "arabic") {
 				newTextDirection = TextDirection.RightToLeft;
 			}
 			updateEditorTextDirection(newTextDirection);
 			textDirection = newTextDirection;
-		}
+		} */
 
 		window.onChangeFont = function onChangeFont(e) {
 			if (e.target.value != "custom") {

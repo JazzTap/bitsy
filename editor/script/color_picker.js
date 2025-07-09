@@ -1,4 +1,8 @@
-function ColorPicker( wheelId, selectId, sliderId, sliderBgId, hexTextId ) {
+import { rgbToHex, RGBtoHSV, HSVtoRGB } from "./util.js";
+import { bitsyLog } from "./system/system.js";
+import { events } from "./editor_state.js"
+
+export function ColorPicker( wheelId, selectId, sliderId, sliderBgId, hexTextId ) {
 	var curColor = {
 		h : 0,
 		s : 0.5,

@@ -1,34 +1,37 @@
+import {bitsy} from "../system/system.js"
+import {Script} from "./script.js"
+
 /* BITSY VERSION */
 // is this the right place for this to live?
-var version = {
+export var version = {
 	major: 8, // major changes
 	minor: 12, // smaller changes
 	devBuildPhase: "RELEASE",
 };
-function getEngineVersion() {
+export function getEngineVersion() {
 	return version.major + "." + version.minor;
 }
 
 /* TEXT CONSTANTS */
-var titleDialogId = "title";
+export var titleDialogId = "title";
 
 // todo : where should this be stored?
-var tileColorStartIndex = 16;
+export var tileColorStartIndex = 16;
 
-var TextDirection = {
+export var TextDirection = {
 	LeftToRight : "LTR",
 	RightToLeft : "RTL"
 };
 
-var defaultFontName = "ascii_small";
+export var defaultFontName = "ascii_small";
 
 /* TUNE CONSTANTS */
-var barLength = 16; // sixteenth notes
-var minTuneLength = 1;
-var maxTuneLength = 16;
+export var barLength = 16; // sixteenth notes
+export var minTuneLength = 1;
+export var maxTuneLength = 16;
 
 // chromatic notes
-var Note = {
+export var Note = {
 	NONE 		: -1,
 	C 			: 0,	// C
 	C_SHARP 	: 1,	// C sharp / D flat
@@ -46,7 +49,7 @@ var Note = {
 };
 
 // solfa notes
-var Solfa = {
+export var Solfa = {
 	NONE 	: -1,
 	D 		: 0,	// Do
 	R 		: 1,	// Re
@@ -58,7 +61,7 @@ var Solfa = {
 	COUNT 	: 7
 };
 
-var Octave = {
+export var Octave = {
 	NONE: -1,
 	2: 0,
 	3: 1,
@@ -67,21 +70,21 @@ var Octave = {
 	COUNT: 4
 };
 
-var Tempo = {
+export var Tempo = {
 	SLW: 0, // slow
 	MED: 1, // medium
 	FST: 2, // fast
 	XFST: 3 // extra fast (aka turbo)
 };
 
-var SquareWave = {
+export var SquareWave = {
 	P8: 0, // pulse 1 / 8
 	P4: 1, // pulse 1 / 4
 	P2: 2, // pulse 1 / 2
 	COUNT: 3
 };
 
-var ArpeggioPattern = {
+export var ArpeggioPattern = {
 	OFF: 0,
 	UP: 1, // ascending triad chord
 	DWN: 2, // descending triad chord
@@ -89,7 +92,7 @@ var ArpeggioPattern = {
 	INT8: 4 // 8 setp interval
 };
 
-function createWorldData() {
+export function createWorldData() {
 	return {
 		room : {},
 		tile : {},
@@ -117,7 +120,7 @@ function createWorldData() {
 }
 
 // creates a drawing data structure with default property values for the type
-function createDrawingData(type, id) {
+export function createDrawingData(type, id) {
 	// the avatar's drawing id still uses the sprite prefix (for back compat)
 	var drwId = (type === "AVA" ? "SPR" : type) + "_" + id;
 
@@ -157,7 +160,7 @@ function createDrawingData(type, id) {
 	return drawingData;
 }
 
-function createTuneData(id) {
+export function createTuneData(id) {
 	var tuneData = {
 		id : id,
 		name : null,
@@ -172,7 +175,7 @@ function createTuneData(id) {
 	return tuneData;
 }
 
-function createTuneBarData() {
+export function createTuneBarData() {
 	var bar = [];
 	for (var i = 0; i < barLength; i++) {
 		bar.push({ beats: 0, note: Note.C, octave: Octave[4] });
@@ -180,7 +183,7 @@ function createTuneBarData() {
 	return bar;
 }
 
-function createTuneKeyData() {
+export function createTuneKeyData() {
 	var key = {
 		notes: [], // mapping of the solfa scale degrees to chromatic notes
 		scale: []  // list of solfa notes that are enabled for this key
@@ -194,7 +197,7 @@ function createTuneKeyData() {
 	return key;
 }
 
-function createBlipData(id) {
+export function createBlipData(id) {
 	var blipData = {
 		id: id,
 		name: null,
@@ -221,7 +224,7 @@ function createBlipData(id) {
 	return blipData;
 }
 
-function createDefaultFlags() {
+export function createDefaultFlags() {
 	return {
 		// version
 		VER_MAJ: -1, // major version number (-1 = no version information found)
@@ -234,7 +237,17 @@ function createDefaultFlags() {
 	};
 }
 
-function createDialogData(id) {
+// feature flags for testing purposes
+export var engineFeatureFlags = {
+	isSoundEnabled : true,
+	isFontEnabled : true,
+	isTransitionEnabled : true,
+	isScriptEnabled : true,
+	isDialogEnabled : true,
+	isRendererEnabled : true,
+};
+
+export function createDialogData(id) {
 	return {
 		src : "",
 		name : null,
@@ -242,7 +255,7 @@ function createDialogData(id) {
 	};
 }
 
-function parseWorld(file) {
+export function parseWorld(file) {
 	bitsy.log("create world data");
 
 	var world = createWorldData();
@@ -353,7 +366,22 @@ function parseWorld(file) {
 	return world;
 }
 
-function parseTitle(parseState, world) {
+/* NEW SCRIPT STUFF */
+export var scriptModule = new Script();
+export var scriptInterpreter = scriptModule.CreateInterpreter();
+export var scriptUtils = scriptModule.CreateUtils();
+// scriptInterpreter.SetDialogBuffer( dialogBuffer );
+/* if (engineFeatureFlags.isScriptEnabled) {
+	bitsy.log("init script module");
+	scriptModule = new Script();
+	bitsy.log("init interpreter");
+	scriptInterpreter = scriptModule.CreateInterpreter();
+	bitsy.log("init utils");
+	scriptUtils = scriptModule.CreateUtils(); // VERIFY
+	bitsy.log("init script module end");
+} */
+
+export function parseTitle(parseState, world) {
 	var i = parseState.index;
 	var lines = parseState.lines;
 
@@ -374,7 +402,7 @@ function parseTitle(parseState, world) {
 	return i;
 }
 
-function parsePalette(parseState, world) {
+export function parsePalette(parseState, world) {
 	var i = parseState.index;
 	var lines = parseState.lines;
 
@@ -404,7 +432,7 @@ function parsePalette(parseState, world) {
 	return i;
 }
 
-function createRoomData(id) {
+export function createRoomData(id) {
 	return {
 		id: id,
 		name: null,
@@ -419,7 +447,7 @@ function createRoomData(id) {
 	};
 }
 
-function createExitData(x, y, destRoom, destX, destY, transition, dlg) {
+export function createExitData(x, y, destRoom, destX, destY, transition, dlg) {
 	return {
 		x: x,
 		y: y,
@@ -433,7 +461,7 @@ function createExitData(x, y, destRoom, destX, destY, transition, dlg) {
 	};
 }
 
-function createEndingData(id, x, y) {
+export function createEndingData(id, x, y) {
 	return {
 		id: id,
 		x: x,
@@ -441,7 +469,7 @@ function createEndingData(id, x, y) {
 	};
 }
 
-function parseRoom(parseState, world) {
+export function parseRoom(parseState, world) {
 	var i = parseState.index;
 	var lines = parseState.lines;
 	var id = getId(lines[i]);
@@ -470,7 +498,7 @@ function parseRoom(parseState, world) {
 		for (; i < end; i++) {
 			roomData.tilemap.push([]);
 			var lineSep = lines[i].split(",");
-			for (x = 0; x < bitsy.MAP_SIZE; x++) {
+			for (let x = 0; x < bitsy.MAP_SIZE; x++) {
 				roomData.tilemap[y].push(lineSep[x]);
 			}
 			y++;
@@ -594,7 +622,7 @@ function parseRoom(parseState, world) {
 	return i;
 }
 
-function parseTile(parseState, world) {
+export function parseTile(parseState, world) {
 	var i = parseState.index;
 	var lines = parseState.lines;
 
@@ -648,7 +676,7 @@ function parseTile(parseState, world) {
 	return i;
 }
 
-function parseSprite(parseState, world) {
+export function parseSprite(parseState, world) {
 	var i = parseState.index;
 	var lines = parseState.lines;
 
@@ -722,7 +750,7 @@ function parseSprite(parseState, world) {
 	return i;
 }
 
-function parseItem(parseState, world) {
+export function parseItem(parseState, world) {
 	var i = parseState.index;
 	var lines = parseState.lines;
 
@@ -776,7 +804,7 @@ function parseItem(parseState, world) {
 	return i;
 }
 
-function parseDrawingCore(lines, i, drwId, world) {
+export function parseDrawingCore(lines, i, drwId, world) {
 	var frameList = []; //init list of frames
 	frameList.push( [] ); //init first frame
 	var frameIndex = 0;
@@ -785,7 +813,7 @@ function parseDrawingCore(lines, i, drwId, world) {
 		var line = lines[i + y];
 		var row = [];
 
-		for (x = 0; x < bitsy.TILE_SIZE; x++) {
+		for (let x = 0; x < bitsy.TILE_SIZE; x++) {
 			row.push(parseInt(line.charAt(x)));
 		}
 
@@ -811,7 +839,7 @@ function parseDrawingCore(lines, i, drwId, world) {
 	return i;
 }
 
-function parseDialog(parseState, world) {
+export function parseDialog(parseState, world) {
 	var i = parseState.index;
 	var lines = parseState.lines;
 
@@ -829,14 +857,14 @@ function parseDialog(parseState, world) {
 }
 
 // keeping this around to parse old files where endings were separate from dialogs
-function parseEnding(parseState, world) {
+export function parseEnding(parseState, world) {
 	var i = parseState.index;
 	var lines = parseState.lines;
 
 	return parseScript(lines, i, world.end);
 }
 
-function parseScript(lines, i, data) {
+export function parseScript(lines, i, data) {
 	var id = getId(lines[i]);
 	i++;
 
@@ -856,7 +884,7 @@ function parseScript(lines, i, data) {
 	return i;
 }
 
-function parseVariable(parseState, world) {
+export function parseVariable(parseState, world) {
 	var i = parseState.index;
 	var lines = parseState.lines;
 	var id = getId(lines[i]);
@@ -867,7 +895,7 @@ function parseVariable(parseState, world) {
 	return i;
 }
 
-function parseFontName(parseState, world) {
+export function parseFontName(parseState, world) {
 	var i = parseState.index;
 	var lines = parseState.lines;
 	world.fontName = getArg(lines[i], 1);
@@ -875,7 +903,7 @@ function parseFontName(parseState, world) {
 	return i;
 }
 
-function parseTextDirection(parseState, world) {
+export function parseTextDirection(parseState, world) {
 	var i = parseState.index;
 	var lines = parseState.lines;
 	world.textDirection = getArg(lines[i], 1);
@@ -883,7 +911,7 @@ function parseTextDirection(parseState, world) {
 	return i;
 }
 
-function parseFontData(parseState, world) {
+export function parseFontData(parseState, world) {
 	var i = parseState.index;
 	var lines = parseState.lines;
 
@@ -906,7 +934,7 @@ function parseFontData(parseState, world) {
 	return i;
 }
 
-function parseTune(parseState, world) {
+export function parseTune(parseState, world) {
 	var i = parseState.index;
 	var lines = parseState.lines;
 
@@ -1040,7 +1068,7 @@ function parseTune(parseState, world) {
 	return i;
 }
 
-function parseBlip(parseState, world) {
+export function parseBlip(parseState, world) {
 	var i = parseState.index;
 	var lines = parseState.lines;
 
@@ -1110,7 +1138,7 @@ function parseBlip(parseState, world) {
 	return i;
 }
 
-function parsePitch(pitchStr) {
+export function parsePitch(pitchStr) {
 	var pitch = { beats: 1, note: Note.C, octave: Octave[4], };
 	var i;
 
@@ -1164,7 +1192,7 @@ function parsePitch(pitchStr) {
 	return pitch;
 }
 
-function parseFlag(parseState, world) {
+export function parseFlag(parseState, world) {
 	var i = parseState.index;
 	var lines = parseState.lines;
 	var id = getId(lines[i]);
@@ -1174,29 +1202,29 @@ function parseFlag(parseState, world) {
 	return i;
 }
 
-function getDrawingFrameCount(world, drwId) {
+export function getDrawingFrameCount(world, drwId) {
 	return world.drawings[drwId].length;
 }
 
-function storeDrawingData(world, drwId, drawingData) {
+export function storeDrawingData(world, drwId, drawingData) {
 	world.drawings[drwId] = drawingData;
 }
 
-function placeSprites(parseState, world) {
-	for (id in parseState.spriteStartLocations) {
+export function placeSprites(parseState, world) {
+	for (let id in parseState.spriteStartLocations) {
 		world.sprite[id].room = parseState.spriteStartLocations[id].room;
 		world.sprite[id].x = parseState.spriteStartLocations[id].x;
 		world.sprite[id].y = parseState.spriteStartLocations[id].y;
 	}
 }
 
-function createNameMapsForWorld(world) {
+export function createNameMapsForWorld(world) {
 	var nameMaps = {};
 
 	function createNameMap(objectStore) {
 		var map = {};
 
-		for (id in objectStore) {
+		for (let id in objectStore) {
 			if (objectStore[id].name != undefined && objectStore[id].name != null) {
 				map[objectStore[id].name] = id;
 			}
@@ -1217,23 +1245,23 @@ function createNameMapsForWorld(world) {
 	return nameMaps;
 }
 
-function getType(line) {
+export function getType(line) {
 	return getArg(line,0);
 }
 
-function getId(line) {
+export function getId(line) {
 	return getArg(line,1);
 }
 
-function getCoord(line,arg) {
+export function getCoord(line,arg) {
 	return getArg(line,arg).split(",");
 }
 
-function getArg(line,arg) {
+export function getArg(line,arg) {
 	return line.split(" ")[arg];
 }
 
-function getNameArg(line) {
+export function getNameArg(line) {
 	var name = line.split(/\s(.+)/)[1];
 	return name;
 }

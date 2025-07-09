@@ -1,3 +1,4 @@
+import {bitsyLog} from "./system/system.js"
 import {Resources} from "./generated/resources.js"
 import {Store} from "./store.js"
 

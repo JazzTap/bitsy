@@ -1,3 +1,5 @@
+import { enableGlobalAudioContext } from "./soundchip.js";
+
 export function InputSystem() {
 	var self = this;
 

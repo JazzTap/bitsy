@@ -1,9 +1,22 @@
-import {makeToolCard} from "/editor/script/card.js"
-import {getPanelSetting} from "./panel.js"
+import { TileType } from "../util.js"
 
-function makeRoomTool() {
-	return makeToolCard("room", function(tool) {
+import { bitsy } from "../system/system.js"
+import { tileColorStartIndex } from "../engine/world.js"
+import { initRoom, getSpriteAt, getItem,
+		room, tile, sprite, item,
+		updateAnimation, drawRoom } from "../engine/bitsy.js"
+
+import { makeToolCard } from "../card.js"
+import { drawGrid } from "../paint.js"
+import { grabCard, findTool, markerTool, paintTool,
+	togglePanelAnimated, getContrastingColor,
+	isSnapshotInProgress, refreshGameData } from "../editor.js"
+import { getPanelSetting, isPlayMode } from "../editor_state.js"
+
+export function makeRoomTool(localization, showPanelRef) {
+	return makeToolCard("room", grabCard, findTool, localization, togglePanelAnimated, function(tool) {
 		tool.id = "room";
+		tool.showPanel = showPanelRef
 
 		// todo : how do I feel about these being functions? should I rename the property?
 		tool.name = function() {
@@ -214,7 +227,7 @@ function makeRoomTool() {
 			}
 
 			paintTool.selectDrawing(drawing);
-			showPanel("paintPanel", "roomPanel");
+			tool.showPanel("paintPanel", "roomPanel");
 		}
 
 		function paintAt(drawing, x, y) {
@@ -596,7 +609,7 @@ function makeRoomTool() {
 						description: "open exits & endings tool",
 						onclick: function() {
 							// todo : hacky?
-							showPanel("exitsPanel", "roomPanel");
+							tool.showPanel("exitsPanel", "roomPanel");
 						}
 					});
 				}

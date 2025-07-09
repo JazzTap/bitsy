@@ -15,6 +15,7 @@
 - Samuel Fine - Contributor
 - Sean S. LeBlanc - Contributor
 - Zach Hixson - Contributor
+- Jasmine T. Otto - Multi-editor fork
 
 ## Documentation
 

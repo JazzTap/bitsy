@@ -1,3 +1,7 @@
+import {bitsyLog} from "./system/system.js"
+import {item, player, variable} from "./engine/bitsy.js"
+import {isPlayMode, iconUtils} from "./editor_state.js"
+import {refreshGameData} from "./editor.js"
 /* 
 INVENTORY UI 
 
@@ -6,14 +10,13 @@ TODO
 
 */
 
-
-function updateInventoryUI() {
+export function updateInventoryUI(localization) {
 	// bitsyLog("~~~ UPDATE INVENTORY ~~~", "editor");
-	updateInventoryItemUI();
-	updateInventoryVariableUI();
+	updateInventoryItemUI(localization);
+	updateInventoryVariableUI(localization);
 }
 
-function updateInventoryItemUI(){
+export function updateInventoryItemUI(localization){
 	var viewport = document.getElementById("inventoryItem");
 	viewport.innerHTML = "";
 
@@ -32,7 +35,7 @@ function updateInventoryItemUI(){
 
 	// bitsyLog("UPDATE!!!!", "editor");
 	var itemLabel = localization.GetStringOrFallback("item_label", "item");
-	for(id in item) {
+	for(let id in item) {
 		var itemName = item[id].name != null ? item[id].name : itemLabel + " " + id;
 		// bitsyLog( id , "editor");
 		// bitsyLog( player() , "editor");
@@ -66,7 +69,7 @@ TODO
 - delete variables
 - make sure variable names are valid
 */
-function updateInventoryVariableUI(){
+function updateInventoryVariableUI(localization){
 	var viewport = document.getElementById("inventoryVariable");
 	viewport.innerHTML = "";
 

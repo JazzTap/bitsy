@@ -1,5 +1,19 @@
-function FindTool(options) {
+import {TileType, labelElementFactory} from "./util.js"
+import { ThumbnailControl } from "./thumbnail.js"
+import { tile, sprite, item, room, palette, tune, blip } from "./engine/bitsy.js"
+import { titleDialogId } from "./engine/world.js"
+
+import {groupElementFactory, radioElementFactory, createTextInputElement} from "./menu.js"
+import {createSpriteThumbnailRenderer, createTileThumbnailRenderer, createItemThumbnailRenderer,
+	createPaletteThumbnailRenderer, createRoomThumbnailRenderer, drawing, roomTool, paletteTool, tuneTool, blipTool,
+	sortedDialogIdList, sortedTileIdList, sortedSpriteIdList, sortedItemIdList, sortedRoomIdList, sortedPaletteIdList, sortedBase36IdList,
+	curDialogEditorId} from "./editor.js"
+
+import {events, localization} from "./editor_state.js"
+
+export function FindTool(showPanelRef, iconUtils, options) {
 	options.mainElement.innerHTML = "";
+	this.showPanel = showPanelRef
 
 	var spriteThumbnailRenderer = createSpriteThumbnailRenderer();
 	var tileThumbnailRenderer = createTileThumbnailRenderer();
@@ -30,12 +44,12 @@ function FindTool(options) {
 				}
 			},
 			isItemSelected: function(id) {
-				return (drawing.type === TileType.Avatar) && (drawing.id === id);
+				return (drawing?.type === TileType.Avatar) && (drawing?.id === id);
 			},
 			openTool: function(id) {
 				paintTool.selectDrawing(sprite[id]);
 				on_paint_avatar_ui_update();
-				showPanel("paintPanel", "findPanel");
+				this.showPanel("paintPanel", "findPanel");
 			},
 			renderer: spriteThumbnailRenderer,
 		},
@@ -58,12 +72,12 @@ function FindTool(options) {
 				}
 			},
 			isItemSelected: function(id) {
-				return (drawing.type === TileType.Tile) && (drawing.id === id);
+				return (drawing?.type === TileType.Tile) && (drawing?.id === id);
 			},
 			openTool: function(id) {
 				paintTool.selectDrawing(tile[id]);
 				on_paint_tile_ui_update();
-				showPanel("paintPanel", "findPanel");
+				this.showPanel("paintPanel", "findPanel");
 			},
 			renderer: tileThumbnailRenderer,
 		},
@@ -90,12 +104,12 @@ function FindTool(options) {
 				}
 			},
 			isItemSelected: function(id) {
-				return (drawing.type === TileType.Sprite) && (drawing.id === id);
+				return (drawing?.type === TileType.Sprite) && (drawing?.id === id);
 			},
 			openTool: function(id) {
 				paintTool.selectDrawing(sprite[id]);
 				on_paint_sprite_ui_update();
-				showPanel("paintPanel", "findPanel");
+				this.showPanel("paintPanel", "findPanel");
 			},
 			renderer: spriteThumbnailRenderer,
 		},
@@ -118,12 +132,12 @@ function FindTool(options) {
 				}
 			},
 			isItemSelected: function(id) {
-				return (drawing.type === TileType.Item) && (drawing.id === id);
+				return (drawing?.type === TileType.Item) && (drawing?.id === id);
 			},
 			openTool: function(id) {
 				paintTool.selectDrawing(item[id]);
 				on_paint_item_ui_update();
-				showPanel("paintPanel", "findPanel");
+				this.showPanel("paintPanel", "findPanel");
 			},
 			renderer: itemThumbnailRenderer,
 		},
@@ -158,7 +172,7 @@ function FindTool(options) {
 			},
 			openTool: function(id) {
 				selectRoom(id);
-				showPanel("roomPanel", "findPanel");
+				this.showPanel("roomPanel", "findPanel");
 			},
 			renderer: roomThumbnailRenderer,
 		},
@@ -181,11 +195,11 @@ function FindTool(options) {
 				}
 			},
 			isItemSelected: function(id) {
-				return id === selectedColorPal();
+				return id === paletteTool?.GetSelectedId();
 			},
 			openTool: function(id) {
 				paletteTool.Select(id);
-				showPanel("colorsPanel", "findPanel");
+				this.showPanel("colorsPanel", "findPanel");
 			},
 			renderer: paletteThumbnailRenderer,
 		},
@@ -197,7 +211,7 @@ function FindTool(options) {
 				return localization.GetStringOrFallback("dialog_tool_name", "dialog");
 			},
 			getItemName: function(id) {
-				return dialog[id].name;
+				return dialog[id]?.name;
 			},
 			getItemDescription: function(id, short) {
 				if (short) {
@@ -212,7 +226,7 @@ function FindTool(options) {
 			},
 			openTool: function(id) {
 				openDialogTool(id);
-				showPanel("dialogPanel", "findPanel");
+				this.showPanel("dialogPanel", "findPanel");
 			},
 		},
 		{
@@ -280,9 +294,8 @@ function FindTool(options) {
 	var curFilter = "ALL";
 	var curSearchText = "";
 
-	var searchGroup = createGroupElement();
-
-	searchGroup.appendChild(createLabelElement({
+	var searchGroup = groupElementFactory(iconUtils)();
+	searchGroup.appendChild(labelElementFactory(iconUtils)({
 		icon: "search",
 		style: "badge",
 	}));
@@ -328,7 +341,7 @@ function FindTool(options) {
 		document.getElementById("findFilter-" + categoryId).checked = true;
 	}
 
-	var filterSelect = createRadioElement({
+	var filterSelect = radioElementFactory(iconUtils)({
 		name: "findFilter",
 		value: curFilter,
 		options: filterTabList,
@@ -386,7 +399,7 @@ function FindTool(options) {
 						curSearchText.length <= 0 || displayName.indexOf(curSearchText) != -1);
 
 					if (isSearchTextInName) {
-						var thumbnailControl = new ThumbnailControl({
+						var thumbnailControl = new ThumbnailControl(iconUtils, {
 								id: id,
 								renderer: category.renderer,
 								icon: category.icon,

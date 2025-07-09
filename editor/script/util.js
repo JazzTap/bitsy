@@ -3,11 +3,72 @@ miscellaneous utility functions for the editor
 TODO: encapsulate in an object maybe? or is that overkill?
 */
 
-function clamp(val, min, max) {
+export function tryGetMenuString(menuText, localization) {
+	var menuString;
+
+	if (menuText && menuText.id && localization) {
+		menuString = localization.GetStringOrFallback(menuText.id, menuText.text);
+	}
+	else if (menuText && menuText.text) {
+		// no localization available
+		menuString = menuText.text;
+	}
+	else if (menuText) {
+		// fallback to raw string
+		menuString = menuText;
+	}
+
+	return menuString;
+}
+
+export function labelElementFactory(iconUtils, localization) {
+	return function (options) {
+		var elementType = (options && options.elementType) ? options.elementType : "label";
+		var label = document.createElement(elementType);
+		label.classList.add("bitsy-menu-label");
+
+		if (options.style) {
+			label.classList.add(options.style);
+		}
+
+		if (options.icon) {
+			label.appendChild(iconUtils.CreateIcon(options.icon));
+		}
+
+		var labelText = tryGetMenuString(options.text, localization);
+		if (labelText) {
+			var textSpan = document.createElement("span");
+			textSpan.innerText = labelText;
+
+			if (options.id) {
+				textSpan.id = options.id + "Text";
+			}
+
+			label.appendChild(textSpan);
+		}
+
+		var labelTooltip = tryGetMenuString(options.description, localization);
+		if (labelTooltip) {
+			label.title = labelTooltip;
+		}
+
+		if (options.for) {
+			label.setAttribute("for", options.for);
+		}
+
+		if (options.id) {
+			label.id = options.id;
+		}
+
+		return label;
+	}
+}
+
+export function clamp(val, min, max) {
 	return Math.max(Math.min(val, max), min);
 }
 
-function dialogReferenceCount(dlgId) {
+export function dialogReferenceCount(dlgId) {
 	var count = 0;
 
 	for (var sprId in sprite) {
@@ -41,7 +102,7 @@ function dialogReferenceCount(dlgId) {
 	return count;
 }
 
-function deleteUnreferencedDialog(dlgId) {
+export function deleteUnreferencedDialog(dlgId) {
 	if (dialogReferenceCount(dlgId) <= 0) {
 		delete dialog[dlgId];
 	}
@@ -50,25 +111,15 @@ function deleteUnreferencedDialog(dlgId) {
 }
 
 // DRAWING UTILS
-var TileType = {
+export var TileType = {
 	Tile : "TIL",
 	Sprite : "SPR",
 	Avatar : "AVA",
 	Item : "ITM",
 };
 
-// todo : rename function
-function getDrawingImageSource(drawing) {
-	return renderer.GetDrawingSource(drawing.drw);
-}
-
-function getDrawingFrameData(drawing, frameIndex) {
-	var imageSource = getDrawingImageSource(drawing);
-	return imageSource[frameIndex];
-}
-
 // todo : localize
-function tileTypeToString(type) {
+export function tileTypeToString(type) {
 	if (type == TileType.Tile) {
 		return "tile";
 	}
@@ -83,7 +134,7 @@ function tileTypeToString(type) {
 	}
 }
 
-function tileTypeToIdPrefix(type) {
+export function tileTypeToIdPrefix(type) {
 	if (type == TileType.Tile) {
 		return "TIL_";
 	}
@@ -95,16 +146,16 @@ function tileTypeToIdPrefix(type) {
 	}
 }
 
-function getDrawingDescription(d) {
+export function getDrawingDescription(d) {
 	return tileTypeToString(d.type) + " " + d.id;
 }
 
-function getDrawingNameOrDescription(d) {
+export function getDrawingNameOrDescription(d) {
 	return d.name ? d.name : getDrawingDescription(d);
 }
 
 // this seems not that helpful anymore..
-function getDrawingDialogId(d) {
+export function getDrawingDialogId(d) {
 	var dialogId = null;
 
 	if (d.type === TileType.Sprite || d.type === TileType.Item) {
@@ -116,7 +167,7 @@ function getDrawingDialogId(d) {
 
 /* COLOR UTILS */
 //hex-to-rgb method borrowed from stack overflow
-function hexToRgb(hex) {
+export function hexToRgb(hex) {
 	// Expand shorthand form (e.g. "03F") to full form (e.g. "0033FF")
 	var shorthandRegex = /^#?([a-f\d])([a-f\d])([a-f\d])$/i;
 	hex = hex.replace(shorthandRegex, function(m, r, g, b) {
@@ -130,30 +181,30 @@ function hexToRgb(hex) {
 		b: parseInt(result[3], 16)
 	} : null;
 }
-function componentToHex(c) {
+export function componentToHex(c) {
 	var hex = c.toString(16);
 	return hex.length == 1 ? "0" + hex : hex;
 }
-function rgbToHex(r, g, b) {
+export function rgbToHex(r, g, b) {
 	return "#" + componentToHex(Math.floor(r)) + componentToHex(Math.floor(g)) + componentToHex(Math.floor(b));
 }
 
-function hslToHex(h,s,l) {
+export function hslToHex(h,s,l) {
 	var rgbArr = hslToRgb(h,s,l);
 	return rgbToHex( Math.floor(rgbArr[0]), Math.floor(rgbArr[1]), Math.floor(rgbArr[2]) );
 }
 
-function hexToHsl(hex) {
+export function hexToHsl(hex) {
 	var rgb = hexToRgb(hex);
 	return rgbToHsl(rgb.r, rgb.g, rgb.b);
 }
 
 // really just a vector distance
-function colorDistance(a1,b1,c1,a2,b2,c2) {
+export function colorDistance(a1,b1,c1,a2,b2,c2) {
 	return Math.sqrt( Math.pow(a1 - a2, 2) + Math.pow(b1 - b2, 2) + Math.pow(c1 - c2, 2) );
 }
 
-function hexColorDistance(hex1,hex2) {
+export function hexColorDistance(hex1,hex2) {
 	var color1 = hexToRgb(hex1);
 	var color2 = hexToRgb(hex2);
 	return rgbColorDistance(color1.r, color1.g, color1.b, color2.r, color2.g, color2.b);
@@ -165,7 +216,7 @@ function hexColorDistance(hex1,hex2) {
  * OR 
  * h, s, v
 */
-function HSVtoRGB(h, s, v) {
+export function HSVtoRGB(h, s, v) {
 	var r, g, b, i, f, p, q, t;
 	if (arguments.length === 1) {
 		s = h.s, v = h.v, h = h.h;
@@ -195,7 +246,7 @@ function HSVtoRGB(h, s, v) {
  * OR 
  * r, g, b
 */
-function RGBtoHSV(r, g, b) {
+export function RGBtoHSV(r, g, b) {
 	if (arguments.length === 1) {
 		g = r.g, b = r.b, r = r.r;
 	}
@@ -231,7 +282,7 @@ function RGBtoHSV(r, g, b) {
  * @param   Number  l       The lightness
  * @return  Array           The RGB representation
  */
-function hslToRgb(h, s, l) {
+export function hslToRgb(h, s, l) {
   var r, g, b;
 
   if (s == 0) {
@@ -270,7 +321,7 @@ function hslToRgb(h, s, l) {
  * @param   {number}  b       The blue color value
  * @return  {Array}           The HSL representation
  */
-function rgbToHsl(r, g, b){
+export function rgbToHsl(r, g, b){
 	r /= 255, g /= 255, b /= 255;
 	var max = Math.max(r, g, b), min = Math.min(r, g, b);
 	var h, s, l = (max + min) / 2;

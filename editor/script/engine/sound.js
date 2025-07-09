@@ -1,9 +1,11 @@
+import { Tempo, ArpeggioPattern, Note, Octave } from "./world.js"
+
 /* PITCH HELPER FUNCTIONS */
-function pitchToSteps(pitch) {
+export function pitchToSteps(pitch) {
 	return (pitch.octave * Note.COUNT) + pitch.note;
 }
 
-function stepsToPitch(steps) {
+export function stepsToPitch(steps) {
 	var pitch = { beats: 1, note: Note.C, octave: Octave[2], };
 
 	while (steps >= Note.COUNT) {
@@ -31,23 +33,23 @@ function stepsToPitch(steps) {
 	return pitch;
 }
 
-function adjustPitch(pitch, stepDelta) {
+export function adjustPitch(pitch, stepDelta) {
 	return stepsToPitch(pitchToSteps(pitch) + stepDelta);
 }
 
-function pitchDistance(pitchA, pitchB) {
+export function pitchDistance(pitchA, pitchB) {
 	return pitchToSteps(pitchB) - pitchToSteps(pitchA);
 }
 
-function isMinPitch(pitch) {
+export function isMinPitch(pitch) {
 	return pitchToSteps(pitch) <= pitchToSteps({ note: Note.C, octave: Octave[2] });
 }
 
-function isMaxPitch(pitch) {
+export function isMaxPitch(pitch) {
 	return pitchToSteps(pitch) >= pitchToSteps({ note: Note.B, octave: Octave[5] });
 }
 
-function SoundPlayer() {
+export function SoundPlayer() {
 	// frequencies (in hertz) for octave 0 (or is it octave 4?)
 	var frequencies = [
 		261.7, // middle C

@@ -1,3 +1,5 @@
+import { bitsyLog } from "./system.js";
+
 export function GraphicsSystem() {
 	var self = this;
 

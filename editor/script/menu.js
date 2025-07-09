@@ -1,132 +1,76 @@
+import { setBitsy } from "./system/system.js"
+import { labelElementFactory, tryGetMenuString } from "./util.js";
+import { enableGlobalAudioContext } from "./system/soundchip.js";
+
 /* shared HTML element creation functions */
-function tryGetMenuString(menuText) {
-	var menuString;
+export function groupElementFactory(iconUtils) {
+	let createLabelElement = labelElementFactory(iconUtils)
+	return function(options) {
+		// todo : better setting name?
+		var hasHeader = options && (options.text || options.icon);
+		var isExpandable = options && (options.expandable === true);
 
-	if (menuText && menuText.id && localization) {
-		menuString = localization.GetStringOrFallback(menuText.id, menuText.text);
-	}
-	else if (menuText && menuText.text) {
-		// no localization available
-		menuString = menuText.text;
-	}
-	else if (menuText) {
-		// fallback to raw string
-		menuString = menuText;
-	}
+		var groupElement;
+		var groupHeaderLabel;
 
-	return menuString;
-}
-
-function createGroupElement(options) {
-	// todo : better setting name?
-	var hasHeader = options && (options.text || options.icon);
-	var isExpandable = options && (options.expandable === true);
-
-	var groupElement;
-	var groupHeaderLabel;
-
-	if (hasHeader) {
-		groupHeaderLabel = createLabelElement({
-			text: options.text,
-			description: options.description,
-			icon: options.icon,
-			style: "bitsy-menu-header",
-			elementType: "span", // override the element type to make it clickable
-		});
-	}
-
-	if (isExpandable) {
-		var groupDetails = document.createElement("details");
-
-		if (options && options.open === true) {
-			groupDetails.setAttribute("open", "");
+		if (hasHeader) {
+			groupHeaderLabel = createLabelElement({
+				text: options.text,
+				description: options.description,
+				icon: options.icon,
+				style: "bitsy-menu-header",
+				elementType: "span", // override the element type to make it clickable
+			});
 		}
 
-		groupDetails.ontoggle = function(e) {
-			if (options.ontoggle) {
-				options.ontoggle(e);
+		if (isExpandable) {
+			var groupDetails = document.createElement("details");
+
+			if (options && options.open === true) {
+				groupDetails.setAttribute("open", "");
 			}
-		};
 
-		if (hasHeader) {
-			var groupSummary = document.createElement("summary");
-			groupSummary.appendChild(groupHeaderLabel);
-			groupDetails.appendChild(groupSummary);
+			groupDetails.ontoggle = function(e) {
+				if (options.ontoggle) {
+					options.ontoggle(e);
+				}
+			};
+
+			if (hasHeader) {
+				var groupSummary = document.createElement("summary");
+				groupSummary.appendChild(groupHeaderLabel);
+				groupDetails.appendChild(groupSummary);
+			}
+
+			groupElement = groupDetails;
+		}
+		else {
+			var groupDiv = document.createElement("div");
+
+			if (hasHeader) {
+				groupDiv.appendChild(groupHeaderLabel);
+			}
+
+			groupElement = groupDiv;
 		}
 
-		groupElement = groupDetails;
-	}
-	else {
-		var groupDiv = document.createElement("div");
+		groupElement.classList.add("bitsy-menu-group");
 
-		if (hasHeader) {
-			groupDiv.appendChild(groupHeaderLabel);
+		if (options && options.enabled === false) {
+			groupElement.classList.add("disabled");
 		}
 
-		groupElement = groupDiv;
-	}
-
-	groupElement.classList.add("bitsy-menu-group");
-
-	if (options && options.enabled === false) {
-		groupElement.classList.add("disabled");
-	}
-
-	// todo : set via class instead? (name: row/column or horizontal/vertical?)
-	if (options && options.direction) {
-		groupElement.setAttribute("flex-direction", options.direction);
-	}
-
-	return groupElement;
-}
-
-function createIconElement(id) {
-	return iconUtils.CreateIcon(id);
-}
-
-function createLabelElement(options) {
-	var elementType = (options && options.elementType) ? options.elementType : "label";
-	var label = document.createElement(elementType);
-	label.classList.add("bitsy-menu-label");
-
-	if (options.style) {
-		label.classList.add(options.style);
-	}
-
-	if (options.icon) {
-		label.appendChild(createIconElement(options.icon));
-	}
-
-	var labelText = tryGetMenuString(options.text);
-	if (labelText) {
-		var textSpan = document.createElement("span");
-		textSpan.innerText = labelText;
-
-		if (options.id) {
-			textSpan.id = options.id + "Text";
+		// todo : set via class instead? (name: row/column or horizontal/vertical?)
+		if (options && options.direction) {
+			groupElement.setAttribute("flex-direction", options.direction);
 		}
 
-		label.appendChild(textSpan);
+		return groupElement;
 	}
-
-	var labelTooltip = tryGetMenuString(options.description);
-	if (labelTooltip) {
-		label.title = labelTooltip;
-	}
-
-	if (options.for) {
-		label.setAttribute("for", options.for);
-	}
-
-	if (options.id) {
-		label.id = options.id;
-	}
-
-	return label;
 }
 
 // todo : name? textbox vs textInput?
-function createTextInputElement(options) {
+export function createTextInputElement(options) {
 	var input = document.createElement("input");
 	input.type = "text";
 
@@ -208,197 +152,210 @@ function createColorInputElement(options) {
 	return input;
 }
 
-function createRadioElement(options) {
-	var radioForm = document.createElement("form");
+export function radioElementFactory(iconUtils) {
+	let createLabelElement = labelElementFactory(iconUtils)
+	return function(options) {
+		var radioForm = document.createElement("form");
 
-	for (var i = 0; i < options.options.length; i++) {
-		var option = options.options[i];
+		for (var i = 0; i < options.options.length; i++) {
+			var option = options.options[i];
 
-		var value = (option.value != undefined ? option.value : null);
+			var value = (option.value != undefined ? option.value : null);
 
-		var radioInput = document.createElement("input");
-		radioInput.type = "radio";
-		radioInput.name = options.name;
-		radioInput.id = options.name + "-" + value;
-		radioInput.value = value;
-		radioForm.appendChild(radioInput);
+			var radioInput = document.createElement("input");
+			radioInput.type = "radio";
+			radioInput.name = options.name;
+			radioInput.id = options.name + "-" + value;
+			radioInput.value = value;
+			radioForm.appendChild(radioInput);
 
-		if (value === options.value) {
-			radioInput.checked = true;
+			if (value === options.value) {
+				radioInput.checked = true;
+			}
+
+			radioInput.onclick = function(e) {
+				if (options.onclick) {
+					options.onclick(e);
+				}
+			};
+
+			var labelStyle = "middle";
+			if (i === 0) {
+				labelStyle = "left";
+			}
+			else if (i === options.options.length - 1) {
+				labelStyle = "right";
+			}
+
+			radioForm.appendChild(createLabelElement({
+				icon: option.icon,
+				text: option.text,
+				description: option.description,
+				for: radioInput.id,
+				style: labelStyle,
+			}));
 		}
 
-		radioInput.onclick = function(e) {
+		return radioForm;
+	}
+}
+
+function selectElementFactory(localization) {
+	return function createSelectElement(options) {
+		var selectElement = document.createElement("select");
+		selectElement.onchange = function (e) {
+			if (options.onchange) {
+				options.onchange(e);
+			}
+		}
+
+		// create default empty option
+		{
+			var optionElement = document.createElement("option");
+			optionElement.innerText = "";
+			optionElement.title = "no option selected";
+			optionElement.value = null;
+			optionElement.selected = true;
+			optionElement.disabled = true;
+			optionElement.hidden = true;
+			selectElement.appendChild(optionElement);
+		}
+
+		for (var i = 0; i < options.options.length; i++) {
+			var option = options.options[i];
+			var value = (option.value != undefined ? option.value : null);
+			var optionElement = document.createElement("option");
+
+			var optionText = tryGetMenuString(option.text, localization);
+			optionElement.innerText = optionText;
+
+			var optionTooltip = tryGetMenuString(option.description, localization);
+			optionElement.title = optionTooltip;
+
+			optionElement.value = value;
+			optionElement.selected = (value === options.value);
+			selectElement.appendChild(optionElement);
+		}
+
+		return selectElement;
+	}
+}
+
+export function buttonElementFactory(iconUtils, localization) {
+	return function(options) {
+		var button = document.createElement("button");
+
+		if (options.icon) {
+			button.appendChild(iconUtils.CreateIcon(options.icon));
+		}
+
+		var buttonText = tryGetMenuString(options.text, localization);
+		if (buttonText) {
+			var textSpan = document.createElement("span");
+			textSpan.innerText = buttonText;
+			button.appendChild(textSpan);
+		}
+
+		var buttonTooltip = tryGetMenuString(options.description, localization);
+		if (buttonTooltip) {
+			button.title = buttonTooltip;
+		}
+
+		if (options.enabled != undefined) {
+			button.disabled = !options.enabled;
+		}
+
+		button.onclick = function (e) {
 			if (options.onclick) {
 				options.onclick(e);
 			}
 		};
 
-		var labelStyle = "middle";
-		if (i === 0) {
-			labelStyle = "left";
-		}
-		else if (i === options.options.length - 1) {
-			labelStyle = "right";
+		if (options.style) {
+			button.classList.add(options.style);
 		}
 
-		radioForm.appendChild(createLabelElement({
-			icon: option.icon,
-			text: option.text,
-			description: option.description,
-			for: radioInput.id,
-			style: labelStyle,
-		}));
+		return button;
 	}
-
-	return radioForm;
 }
 
-function createSelectElement(options) {
-	var selectElement = document.createElement("select");
-	selectElement.onchange = function (e) {
-		if (options.onchange) {
-			options.onchange(e);
-		}
-	}
+export function toggleElementFactory(iconUtils) {
+	let createLabelElement = labelElementFactory(iconUtils)
+	return function(options) {
+		var toggleSpan = document.createElement("span");
+		toggleSpan.id = options.id + "Span";
 
-	// create default empty option
-	{
-		var optionElement = document.createElement("option");
-		optionElement.innerText = "";
-		optionElement.title = "no option selected";
-		optionElement.value = null;
-		optionElement.selected = true;
-		optionElement.disabled = true;
-		optionElement.hidden = true;
-		selectElement.appendChild(optionElement);
-	}
-
-	for (var i = 0; i < options.options.length; i++) {
-		var option = options.options[i];
-		var value = (option.value != undefined ? option.value : null);
-		var optionElement = document.createElement("option");
-
-		var optionText = tryGetMenuString(option.text);
-		optionElement.innerText = optionText;
-
-		var optionTooltip = tryGetMenuString(option.description);
-		optionElement.title = optionTooltip;
-
-		optionElement.value = value;
-		optionElement.selected = (value === options.value);
-		selectElement.appendChild(optionElement);
-	}
-
-	return selectElement;
-}
-
-function createButtonElement(options) {
-	var button = document.createElement("button");
-
-	if (options.icon) {
-		button.appendChild(createIconElement(options.icon));
-	}
-
-	var buttonText = tryGetMenuString(options.text);
-	if (buttonText) {
-		var textSpan = document.createElement("span");
-		textSpan.innerText = buttonText;
-		button.appendChild(textSpan);
-	}
-
-	var buttonTooltip = tryGetMenuString(options.description);
-	if (buttonTooltip) {
-		button.title = buttonTooltip;
-	}
-
-	if (options.enabled != undefined) {
-		button.disabled = !options.enabled;
-	}
-
-	button.onclick = function (e) {
-		if (options.onclick) {
-			options.onclick(e);
-		}
-	};
-
-	if (options.style) {
-		button.classList.add(options.style);
-	}
-
-	return button;
-}
-
-function createToggleElement(options) {
-	var toggleSpan = document.createElement("span");
-	toggleSpan.id = options.id + "Span";
-
-	var checkboxInput = document.createElement("input");
-	checkboxInput.type = "checkbox";
-	checkboxInput.value = options.value;
-	checkboxInput.id = options.id; // todo : auto-generate IDs?
-	checkboxInput.checked = options.checked;
-	checkboxInput.onclick = function (e) {
-		if (options.onclick) {
-			options.onclick(e);
-		}
-	}
-	toggleSpan.appendChild(checkboxInput);
-
-	if (options.enabled != undefined) {
-		checkboxInput.disabled = !options.enabled;
-	}
-
-	var toggleLabel = createLabelElement({
-		icon: options.icon,
-		id: options.id + "Label",
-		text: options.text,
-		for: checkboxInput.id,
-		// style: "button",
-		description: options.description,
-		style: options.style
-	});
-	toggleSpan.appendChild(toggleLabel);
-
-	return toggleSpan;
-}
-
-function createFileInputElement(options) {
-	var fileInputSpan = document.createElement("span");
-
-	var fileInput = document.createElement("input");
-	fileInput.type = "file";
-	fileInput.style = "display:none;"; // hack! should add to default style
-	fileInput.accept = options.accept;
-	fileInput.id = options.id; // todo : auto-generate IDs?
-	fileInput.onchange = function (e) {
-		// load file chosen by user
-		var files = e.target.files;
-		var file = files[0];
-		var reader = new FileReader();
-		reader.readAsText(file);
-
-		reader.onloadend = function() {
-			if (options.onload) {
-				options.onload(reader.result);
+		var checkboxInput = document.createElement("input");
+		checkboxInput.type = "checkbox";
+		checkboxInput.value = options.value;
+		checkboxInput.id = options.id; // todo : auto-generate IDs?
+		checkboxInput.checked = options.checked;
+		checkboxInput.onclick = function (e) {
+			if (options.onclick) {
+				options.onclick(e);
 			}
 		}
+		toggleSpan.appendChild(checkboxInput);
+
+		if (options.enabled != undefined) {
+			checkboxInput.disabled = !options.enabled;
+		}
+
+		var toggleLabel = createLabelElement({
+			icon: options.icon,
+			id: options.id + "Label",
+			text: options.text,
+			for: checkboxInput.id,
+			// style: "button",
+			description: options.description,
+			style: options.style
+		});
+		toggleSpan.appendChild(toggleLabel);
+
+		return toggleSpan;
 	}
-	fileInputSpan.appendChild(fileInput);
-
-	var fileInputLabel = createLabelElement({
-		icon: options.icon,
-		id: options.id + "Label",
-		text: options.text,
-		for: fileInput.id,
-		description: options.description,
-		style: "filePickerLabel" // hack - add to default style!
-	});
-	fileInputSpan.appendChild(fileInputLabel);
-
-	return fileInputSpan;
 }
 
-function createOptionsForFindCategory(categoryId, noneOption) {
+function fileInputElementFactory(iconUtils) {
+	let createLabelElement = labelElementFactory(iconUtils)
+	return function(options) {
+		var fileInputSpan = document.createElement("span");
+
+		var fileInput = document.createElement("input");
+		fileInput.type = "file";
+		fileInput.style = "display:none;"; // hack! should add to default style
+		fileInput.accept = options.accept;
+		fileInput.id = options.id; // todo : auto-generate IDs?
+		fileInput.onchange = function (e) {
+			// load file chosen by user
+			var files = e.target.files;
+			var file = files[0];
+			var reader = new FileReader();
+			reader.readAsText(file);
+
+			reader.onloadend = function() {
+				if (options.onload) {
+					options.onload(reader.result);
+				}
+			}
+		}
+		fileInputSpan.appendChild(fileInput);
+
+		var fileInputLabel = createLabelElement({
+			icon: options.icon,
+			id: options.id + "Label",
+			text: options.text,
+			for: fileInput.id,
+			description: options.description,
+			style: "filePickerLabel" // hack - add to default style!
+		});
+		fileInputSpan.appendChild(fileInputLabel);
+
+		return fileInputSpan;
+	}
+}
+
+function createOptionsForFindCategory(findTool, categoryId, noneOption) {
 	var options = [];
 
 	if (findTool) {
@@ -432,7 +389,7 @@ function createOptionsForFindCategory(categoryId, noneOption) {
 }
 
 /* MENU INTERFACE */
-function MenuInterface(tool) {
+export function MenuInterface(tool, findTool, iconUtils, localization) {
 	var self = this;
 
 	this.tool = tool;
@@ -449,13 +406,21 @@ function MenuInterface(tool) {
 			enableGlobalAudioContext();
 
 			if (self.tool.system) {
-				bitsy = self.tool.system; // hack to force correct system
+				setBitsy(self.tool.system); // hack to force correct system
 			}
 
 			handler(e);
 			self.update();
 		}
 	}
+
+	let createButtonElement = buttonElementFactory(iconUtils)
+	let createLabelElement = labelElementFactory(iconUtils)
+	let createToggleElement = toggleElementFactory(iconUtils)
+	let createFileInputElement = fileInputElementFactory(iconUtils)
+	let createRadioElement = radioElementFactory(iconUtils)
+	let createGroupElement = groupElementFactory(iconUtils)
+	let createSelectElement = selectElementFactory(localization)
 
 	// todo : still not sure if I like push & pop as the names of these methods..
 	this.push = function(message) {
@@ -473,7 +438,7 @@ function MenuInterface(tool) {
 					break;
 				case "select":
 					if (message.data) {
-						message.options = createOptionsForFindCategory(message.data, message.noneOption);
+						message.options = createOptionsForFindCategory(findTool, message.data, message.noneOption);
 						createFunction = createSelectElement;
 					}
 					// todo : not sure how I feel about the dropdown override option

@@ -1,4 +1,9 @@
-import {iconUtils} from "./editor_state.js" // VERIFY
+import {bitsyLog} from "./system/system.js"
+import {scale, mapsize} from "./system/system.js"
+import { room } from "./engine/bitsy.js"
+
+import {iconUtils, events} from "./editor_state.js"
+import {createRoomThumbnailRenderer, getContrastingColor, refreshGameData} from "./editor.js"
 
 export function RoomMarkerTool(markerCanvas1, markerCanvas2) {
 	var selectedRoom = null;

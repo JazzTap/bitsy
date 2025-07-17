@@ -1,12 +1,13 @@
 import { TileType, labelElementFactory, rgbToHex, rgbToHsl } from "./util.js"
-import { initSystem, bitsyLog, tilesize, scale, mapsize, width, attachCanvas } from "./system/system.js"
+import { initSystem, bitsyLog, tilesize, scale, mapsize, width, attachCanvas, loadGame, quitGame } from "./system/system.js"
 import { Resources } from "./generated/resources.js"
 
-import { clearGameData, loadWorldFromGameData, getPal, getRoomPal, animationTime, initRoom,
-	curDefaultPal, sprite, tile, room, item, renderer, state, dialog, palette,
-	setInventoryCallback, setVariableCallback, setGameResetCallback, setInitRoomCallback } from "./engine/bitsy.js"
+import { clearGameData, getPal, getRoomPal, animationTime, initRoom,
+	curDefaultPal, sprite, tile, room, item, renderer, state, dialog, palette, flags,
+	setInventoryCallback, setVariableCallback, setGameResetCallback, setInitRoomCallback, textDirection,
+	loadWorldFromGameData, serializeWorld } from "./engine/bitsy.js"
 import { FontManager } from "./engine/font.js"
-import { titleDialogId, version } from "./engine/world.js"
+import { titleDialogId, version, createDrawingData, defaultFontName } from "./engine/world.js"
 
 import { gif } from "./gif.js"
 import { Exporter } from "./exporter.js"
@@ -14,7 +15,7 @@ import { ThumbnailRenderer, ThumbnailRendererBase, renderTileToCanvas } from "./
 import { Store }  from "./store.js"
 import { updateInventoryUI } from "./inventory.js"
 
-import { bindToolDialogs } from "../index.js"
+import { bindToolDialogs, testShim } from "../index.js"
 
 import { FindTool } from "./find.js"
 import { DialogTool } from "./dialog_editor.js"
@@ -30,9 +31,9 @@ import { makeBlipTool } from "./tools/blip.js"
 
 import { setAboutPage, initAbout } from "./tools/about.js" // FIXME
 import { localization, readUrlParameters, iconUtils,
-	events, isPlayMode,	 getPanelPrefs, showPanel, togglePanel, togglePanelCore } from "./editor_state.js"
+	events, getPanelPrefs, showPanel, updatePanelPrefs, togglePanel, togglePanelCore } from "./editor_state.js"
 
-import { attachServer } from "./system/multiplayer.js" // FIXME
+import { attachServer, updateText } from "./system/multiplayer.js" // FIXME
 
 /* MODES */
 var EditMode = {
@@ -62,7 +63,7 @@ export function getDrawingFrameData(drawing, frameIndex) {
 
 /* UNIQUE ID METHODS */
 // TODO - lots of duplicated code around stuff (ex: all these things with IDs)
-function nextTileId() {
+export function nextTileId() {
 	return nextObjectId( sortedTileIdList() );
 }
 
@@ -205,7 +206,7 @@ export function findAndReplaceTileInAllRooms( findTile, replaceTile ) {
 }
 
 /* MAKE DRAWING OBJECTS */
-function makeTile(id, imageData) {
+export function makeTile(id, imageData) {
 	tile[id] = makeDrawing("TIL", id, imageData);
 }
 
@@ -585,15 +586,17 @@ export function setDefaultGameState() {
 	renderer.ClearCache();
 }
 
+export let isPlayMode = false;
 export function refreshGameData() {
 	if (isPlayMode) {
-		return; //never store game data while in playmode (TODO: wouldn't be necessary if the game data was decoupled form editor data)
+		return; //never store game data while in playmode (TODO: wouldn't be necessary if the game data was decoupled from editor data)
 	}
 
 	flags.ROOM_FORMAT = 1; // always save out comma separated format, even if the old format is read in
 
 	var gameDataNoFonts = serializeWorld(true);
-	Store.set("game_data", gameDataNoFonts);
+	server.handle.change((doc) => { updateText(doc, ["bitsy"], gameDataNoFonts) });
+	// Store.set("game_data", gameDataNoFonts); // autosave triggered by change listener
 
 	// make sure to update the game tool!
 	// this ensures the game data text is up-to-date
@@ -723,8 +726,8 @@ export function resetFindTool() {
 	});
 }
 
-// window.addEventListener('load', start)
-export function start() {
+export let server
+export async function start() {
 	initSystem();
 
 	// TODO : I need to get rid of this event system... it's too hard to debug
@@ -733,18 +736,11 @@ export function start() {
 		// force re-load the dialog tool
 		openDialogTool(titleDialogId, /*insertNextToId*/ null, /*showIfHidden*/ false);
 	});
-
-	let isPlayerEmbeddedInEditor = true; // FIXME: flag for game player to make changes specific to editor
-
 	detectBrowserFeatures();
 
 	// enable multiplayer editing
-	// - TODO: pass bitsy source to DocHandle
-	// - TODO: pass DocHandle.change to bitsy source
-	// https://github.com/automerge/automerge-repo/blob/main/packages/automerge-repo/README.md?plain=1
-
-	const server = attachServer(true)
-	console.log(server)
+	server = await attachServer(true)
+	let handle = server.handle
 
 	readUrlParameters();
 
@@ -771,6 +767,16 @@ export function start() {
 		setDefaultGameState();
 		drawing = sprite["A"]; // will this break?
 	}
+	
+    // listen to multiplayer server
+    handle.on("change", () => {
+		console.log('sync crdt')
+
+		var gamedataChanged = handle.doc().bitsy;
+        Store.set("game_data", gamedataChanged)
+
+		on_game_data_change_core();
+    })
 
 	// now world data like `sprite` and `tile` is loaded
 	// let's make the find tool so that tool cards can use it
@@ -787,7 +793,7 @@ export function start() {
 	curRoomLocationDiv.classList.add("bitsy-playmode-room-location");
 	roomTool.mainElement.insertBefore(curRoomLocationDiv, roomTool.canvasElement);
 
-	paintTool = new PaintTool(drawing, roomTool, document.getElementById("paint"), document.getElementById("newPaintMenu"));
+	paintTool = new PaintTool(document.getElementById("paint"), document.getElementById("newPaintMenu"));
 	bitsyLog("PAINT TOOL " + paintTool, "editor")
 	paintTool.onReloadTile = function(){ reloadTile() };
 	paintTool.onReloadSprite = function(){ reloadSprite() };
@@ -922,10 +928,11 @@ export function start() {
 
 	// game tool
 	gameTool = makeGameTool(localization);
+	// debug helper
+	testShim(gameTool);
 
 	// onclick handlers
 	bindToolDialogs();
-
 	// about tool
 	initAbout();
 }
@@ -1494,19 +1501,19 @@ export function roomPaletteChange(event) {
 export function updateDrawingNameUI() {
 	var obj = paintTool.getCurObject();
 
-	if (drawing.type == TileType.Avatar) { // hacky
+	if (drawing?.type == TileType.Avatar) { // hacky
 		document.getElementById("drawingName").value = "avatar"; // TODO: localize
 	}
-	else if (obj.name != null) {
+	else if (obj?.name != null) {
 		document.getElementById("drawingName").value = obj.name;
 	}
 	else {
 		document.getElementById("drawingName").value = "";
 	}
 
-	document.getElementById("drawingName").placeholder = getCurPaintModeStr() + " " + drawing.id;
+	document.getElementById("drawingName").placeholder = getCurPaintModeStr() + " " + drawing?.id;
 
-	document.getElementById("drawingName").readOnly = (drawing.type == TileType.Avatar);
+	document.getElementById("drawingName").readOnly = (drawing?.type == TileType.Avatar);
 }
 
 export function on_paint_avatar() {
@@ -1865,19 +1872,33 @@ export function renderPaintThumbnail(drawing) {
 }
 
 export function getCurPaintModeStr() {
-	if(drawing.type == TileType.Sprite || drawing.type == TileType.Avatar) {
+	if(drawing?.type == TileType.Sprite || drawing?.type == TileType.Avatar) {
 		return localization.GetStringOrFallback("sprite_label", "sprite");
 	}
-	else if(drawing.type == TileType.Item) {
+	else if(drawing?.type == TileType.Item) {
 		return localization.GetStringOrFallback("item_label", "item");
 	}
-	else if(drawing.type == TileType.Tile) {
+	else if(drawing?.type == TileType.Tile) {
 		return localization.GetStringOrFallback("tile_label", "tile");
 	}
 }
 
 export function on_change_adv_dialog() {
 	on_change_dialog();
+}
+
+export function reload_game_data() {
+	// same as core, but doesn't reset editor state
+	var gamedataStorage = Store.get("game_data");
+	bitsyLog(gamedataStorage, "editor");
+	
+	clearGameData();
+	loadWorldFromGameData(gamedataStorage);
+
+	events.Raise("game_data_change");	
+	console.log('reload_game_data ok')
+
+	// refreshGameData();
 }
 
 export function on_game_data_change() {
@@ -1977,6 +1998,10 @@ export function on_game_data_change_core() {
 
 	// TODO -- start using this for more things
 	events.Raise("game_data_change");
+}
+
+export function setDrawing(newDrawing) {
+	drawing = newDrawing;
 }
 
 export function updateFontDescriptionUI() {

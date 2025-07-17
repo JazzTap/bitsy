@@ -1,3 +1,4 @@
+import { isPlayerEmbeddedInEditor } from "../editor_state.js";
 import { enableGlobalAudioContext } from "./soundchip.js";
 
 export function InputSystem() {

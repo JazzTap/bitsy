@@ -1,4 +1,6 @@
-import { tileColorStartIndex } from "./world.js"
+import { bitsy } from "../system/system.js";
+import { textColorIndex, textBackgroundIndex, textDirection, textArrowIndex, player } from "./bitsy.js";
+import { tileColorStartIndex, TextDirection } from "./world.js"
 
 export function Dialog() {
 

@@ -4,7 +4,7 @@ import {IconUtils} from "./icons.js"
 import {EventManager} from "./event_manager.js"
 import {Localization} from "./localization.js"
 
-export let isPlayMode = false;
+export let isPlayerEmbeddedInEditor = true  // FIXME: flag for game player to make changes specific to editor
 
 let urlParameters = {};
 export function readUrlParameters() {

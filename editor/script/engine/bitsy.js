@@ -1,11 +1,13 @@
 import { TileRenderer } from "./renderer.js"
 import { bitsy } from "../system/system.js"
-import { version, defaultFontName, TextDirection, createDefaultFlags, Tempo, Solfa, Note,
-	parseWorld, engineFeatureFlags, tileColorStartIndex, titleDialogId } from "./world.js"
+import { version, defaultFontName, TextDirection, createDefaultFlags,
+	Tempo, Solfa, Note, maxTuneLength, barLength, Octave, SquareWave, ArpeggioPattern,
+	parseWorld, engineFeatureFlags, tileColorStartIndex, titleDialogId, getEngineVersion, scriptInterpreter } from "./world.js"
 import {TransitionManager} from "./transition.js"
 import {Dialog} from "./dialog.js"
 import {FontManager} from "./font.js"
 import {SoundPlayer} from "./sound.js"
+import {isPlayerEmbeddedInEditor} from "../editor_state.js"
 
 /* WORLD DATA */
 export let room = {};
@@ -26,6 +28,9 @@ export let blip = {};
 export let playerId = "A";
 export let fontName = defaultFontName;
 export let textDirection = TextDirection.LeftToRight;
+
+export function setFont(newFontName) { fontName = newFontName; }
+export function setTextDirection(dir) { textDirection = dir; }
 
 /* FLAGS */
 export let flags = createDefaultFlags();
@@ -129,7 +134,7 @@ export function setVariableCallback (foo) { onVariableChanged = foo }
 export function setGameResetCallback (foo) { onGameReset = foo }
 export function setInitRoomCallback (foo) { onInitRoom = foo }
 
-var isPlayerEmbeddedInEditor = false;
+// export var isPlayerEmbeddedInEditor = false;
 
 export let renderer;
 if (engineFeatureFlags.isRendererEnabled) {
@@ -283,7 +288,7 @@ export function setInitialVariables() {
 		return;
 	}
 
-	for(id in variable) {
+	for(let id in variable) {
 		var value = variable[id]; // default to string
 		if(value === "true") {
 			value = true;
@@ -353,8 +358,8 @@ export function update(dt) {
 			var didAnimate = updateAnimation(dt);
 
 			// test whether player moved so we can redraw just the avatar
-			playerCurX = player().x;
-			playerCurY = player().y;
+			var playerCurX = player().x;
+			var playerCurY = player().y;
 			var didPlayerMove = (playerPrevX != playerCurX) || (playerPrevY != playerCurY);
 
 			drawRoom(room[state.room], { redrawAnimated: didAnimate, redrawAvatar: didPlayerMove });
@@ -572,7 +577,7 @@ var playerPrevX = 0;
 var playerPrevY = 0;
 
 export function movePlayer(direction, isFirstMove) {
-	didPlayerMove = false;
+	var didPlayerMove = false;
 	var roomIds = Object.keys(room);
 
 	if (player().room == null || roomIds.indexOf(player().room) < 0) {
@@ -718,15 +723,15 @@ export function movePlayerThroughExit(ext) {
 }
 
 /* PALETTE INDICES */
-var backgroundIndex = 0;
-var textBackgroundIndex = 1;
-var textArrowIndex = 2;
-var textColorIndex = 3;
+export var backgroundIndex = 0;
+export var textBackgroundIndex = 1;
+export var textArrowIndex = 2;
+export var textColorIndex = 3;
 
 // precalculated rainbow colors
-var rainbowColorStartIndex = 4;
-var rainbowColorCount = 10;
-var rainbowColors = [
+export var rainbowColorStartIndex = 4;
+export var rainbowColorCount = 10;
+export var rainbowColors = [
 	[255,0,0],
 	[255,217,0],
 	[78,255,0],
@@ -898,7 +903,7 @@ export function isWall(x, y, roomId) {
 }
 
 export function getItem(roomId,x,y) {
-	for (i in room[roomId].items) {
+	for (let i in room[roomId].items) {
 		var item = room[roomId].items[i];
 		if (x == item.x && y == item.y) {
 			return item;
@@ -909,7 +914,7 @@ export function getItem(roomId,x,y) {
 
 // todo : roomId isn't useful in these functions anymore! safe to remove?
 export function getExit(roomId, x, y) {
-	for (i in state.exits) {
+	for (let i in state.exits) {
 		var e = state.exits[i];
 		if (x == e.x && y == e.y) {
 			return e;
@@ -919,7 +924,7 @@ export function getExit(roomId, x, y) {
 }
 
 export function getEnding(roomId, x, y) {
-	for (i in state.endings) {
+	for (let i in state.endings) {
 		var e = state.endings[i];
 		if (x == e.x && y == e.y) {
 			return e;
@@ -1027,7 +1032,7 @@ export function serializeWorld(skipFonts) {
 	}
 	worldStr += "\n";
 	/* FLAGS */
-	for (f in flags) {
+	for (let f in flags) {
 		worldStr += "! " + f + " " + flags[f] + "\n";
 	}
 	worldStr += "\n"
@@ -1044,8 +1049,8 @@ export function serializeWorld(skipFonts) {
 	for (let id in palette) {
 		if (id != "default") {
 			worldStr += "PAL " + id + "\n";
-			for (i in getPal(id)) {
-				for (j in getPal(id)[i]) {
+			for (let i in getPal(id)) {
+				for (let j in getPal(id)[i]) {
 					worldStr += getPal(id)[i][j];
 					if (j < 2) worldStr += ",";
 				}
@@ -1071,8 +1076,8 @@ export function serializeWorld(skipFonts) {
 		}
 		else if ( flags.ROOM_FORMAT == 1 ) {
 			// new comma separated format
-			for (i in room[id].tilemap) {
-				for (j in room[id].tilemap[i]) {
+			for (let i in room[id].tilemap) {
+				for (let j in room[id].tilemap[i]) {
 					worldStr += room[id].tilemap[i][j];
 					if (j < room[id].tilemap[i].length-1) worldStr += ","
 				}
@@ -1086,7 +1091,7 @@ export function serializeWorld(skipFonts) {
 		if (room[id].walls.length > 0) {
 			/* WALLS */
 			worldStr += "WAL ";
-			for (j in room[id].walls) {
+			for (let j in room[id].walls) {
 				worldStr += room[id].walls[j];
 				if (j < room[id].walls.length-1) {
 					worldStr += ",";
@@ -1096,7 +1101,7 @@ export function serializeWorld(skipFonts) {
 		}
 		if (room[id].items.length > 0) {
 			/* ITEMS */
-			for (j in room[id].items) {
+			for (let j in room[id].items) {
 				var itm = room[id].items[j];
 				worldStr += "ITM " + itm.id + " " + itm.x + "," + itm.y;
 				worldStr += "\n";
@@ -1104,7 +1109,7 @@ export function serializeWorld(skipFonts) {
 		}
 		if (room[id].exits.length > 0) {
 			/* EXITS */
-			for (j in room[id].exits) {
+			for (let j in room[id].exits) {
 				var e = room[id].exits[j];
 				if ( isExitValid(e) ) {
 					worldStr += "EXT " + e.x + "," + e.y + " " + e.dest.room + " " + e.dest.x + "," + e.dest.y;
@@ -1120,7 +1125,7 @@ export function serializeWorld(skipFonts) {
 		}
 		if (room[id].endings.length > 0) {
 			/* ENDINGS */
-			for (j in room[id].endings) {
+			for (let j in room[id].endings) {
 				var e = room[id].endings[j];
 				// todo isEndingValid
 				worldStr += "END " + e.id + " " + e.x + "," + e.y;
@@ -1185,7 +1190,7 @@ export function serializeWorld(skipFonts) {
 			worldStr += "POS " + sprite[id].room + " " + sprite[id].x + "," + sprite[id].y + "\n";
 		}
 		if (sprite[id].inventory != null) {
-			for(itemId in sprite[id].inventory) {
+			for(let itemId in sprite[id].inventory) {
 				worldStr += "ITM " + itemId + " " + sprite[id].inventory[itemId] + "\n";
 			}
 		}
@@ -1497,10 +1502,10 @@ export function serializeDrawing(drwId) {
 
 	var drawingData = renderer.GetDrawingSource(drwId);
 	var drwStr = "";
-	for (f in drawingData) {
-		for (y in drawingData[f]) {
+	for (let f in drawingData) {
+		for (let y in drawingData[f]) {
 			var rowStr = "";
-			for (x in drawingData[f][y]) {
+			for (let x in drawingData[f][y]) {
 				rowStr += drawingData[f][y][x];
 			}
 			drwStr += rowStr + "\n";

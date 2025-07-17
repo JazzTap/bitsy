@@ -1,5 +1,6 @@
 import { initRoom } from "./bitsy.js";
-import { events } from "../editor_state.js"
+import { bitsy } from "../system/system.js";
+import { events, isPlayerEmbeddedInEditor } from "../editor_state.js"
 
 export function Script() {
 

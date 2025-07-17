@@ -1,5 +1,5 @@
 import {bitsyLog} from "./system/system.js"
-import { hexToHsl } from "./util.js";
+import { rgbToHsl, hexToHsl, colorDistance } from "./util.js";
 
 export function gif() {
 

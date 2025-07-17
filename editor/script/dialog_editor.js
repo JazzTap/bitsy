@@ -1,6 +1,6 @@
 import { rgbToHex } from "./util.js"
-import { scriptInterpreter, titleDialogId } from "./engine/world.js"
-import { getTitle } from "./engine/bitsy.js"
+import { scriptInterpreter, scriptUtils, titleDialogId } from "./engine/world.js"
+import { getTitle, curDefaultPal, sprite, tile, room, item, dialog, palette } from "./engine/bitsy.js"
 
 import { ThumbnailRenderer } from "./thumbnail.js"
 import { iconUtils, events } from "./editor_state.js" 
@@ -1355,7 +1355,7 @@ export function DialogTool(localization, sortedDialogIdList) {
 		textEffectsDrawingSpan.appendChild(textEffectsDrawingSelect);
 
 		// TODO : there needs to be a shared function for these dropdowns...
-		for (id in sprite) {
+		for (let id in sprite) {
 			var option = document.createElement("option");
 
 			var spriteName = (id === "A" ?
@@ -1374,7 +1374,7 @@ export function DialogTool(localization, sortedDialogIdList) {
 			textEffectsDrawingSelect.appendChild(option);
 		}
 
-		for (id in tile) {
+		for (let id in tile) {
 			var option = document.createElement("option");
 
 			var tileName = localization.GetStringOrFallback("tile_label", "tile") + " " + id;
@@ -1389,7 +1389,7 @@ export function DialogTool(localization, sortedDialogIdList) {
 			textEffectsDrawingSelect.appendChild(option);
 		}
 
-		for (id in item) {
+		for (let id in item) {
 			var option = document.createElement("option");
 
 			var itemName = localization.GetStringOrFallback("item_label", "item") + " " + id;
@@ -3248,7 +3248,7 @@ export function DialogTool(localization, sortedDialogIdList) {
 				parameterInput.appendChild(tuneOffOption);
 
 				// todo : use IDs or names??
-				for (id in tune) {
+				for (let id in tune) {
 					// "0" is reserved for the off option
 					if (id != "0") {
 						var tuneOption = document.createElement("option");
@@ -3271,7 +3271,7 @@ export function DialogTool(localization, sortedDialogIdList) {
 				parameterInput.title = "choose blip";
 
 				// todo : use IDs or names??
-				for (id in blip) {
+				for (let id in blip) {
 					var blipOption = document.createElement("option");
 					blipOption.value = id;
 					blipOption.innerText = GetBlipNameFromId(id);
@@ -3291,7 +3291,7 @@ export function DialogTool(localization, sortedDialogIdList) {
 				parameterInput.title = "choose palette";
 
 				// todo : use IDs or names??
-				for (id in palette) {
+				for (let id in palette) {
 					// todo : do I even *use* "default" anymore??
 					if (id != "default") {
 						var paletteOption = document.createElement("option");
@@ -3314,7 +3314,7 @@ export function DialogTool(localization, sortedDialogIdList) {
 				parameterInput.title = "choose sprite";
 
 				// todo : use IDs or names??
-				for (id in sprite) {
+				for (let id in sprite) {
 					var spriteOption = document.createElement("option");
 					spriteOption.value = id;
 					spriteOption.innerText = GetSpriteNameFromId(id);

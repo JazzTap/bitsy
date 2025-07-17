@@ -1,4 +1,5 @@
-import {start, toggleDialogCode, toggleToolBar, togglePlayMode, togglePanelAnimated, showAbout,
+import {start, 
+    toggleDialogCode, toggleToolBar, togglePlayMode, togglePanelAnimated, showAbout,
     prevMarker, nextMarker, startAddMarker, duplicateMarker, deleteMarker, newExit, newExitOneWay, newEnding, cancelAddMarker,
     changeExitDirection, selectMarkerRoom1, toggleMoveMarker1, selectMarkerRoom2, toggleMoveMarker2,
     on_paint_avatar, on_paint_tile, on_paint_sprite, on_paint_item, prev, next, newDrawing, duplicateDrawing, deleteDrawing,
@@ -13,9 +14,13 @@ import {showPanel, hidePanel} from "./script/editor_state.js"
 
 start()
 
+export function testShim (gameTool) {
+    // console.log(gameTool)
+    // gameTool.show('') // navigate game tool to data tab
+}
+
 export function bindToolDialogs () { 
-    // include guards are important!
-    // although, I'm not sure why calling this from start() is not a cyclic dependency
+    // I get called during editor initialization by start()
     
     document.querySelectorAll(".bitsy-card-title").forEach(u => u.addEventListener("onmousedown", grabCard))
 

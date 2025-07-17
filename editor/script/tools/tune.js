@@ -4,8 +4,8 @@ import { SoundPlayer } from "../engine/sound.js";
 import { tune, updatePaletteWithTileColors, setTile, serializeNote } from "../engine/bitsy.js";
 
 import { makeToolCard } from "../card.js"
-import { isPlayMode, localization } from "../editor_state.js";
-import { grabCard, findTool, togglePanelAnimated, refreshGameData } from "../editor.js"
+import { localization } from "../editor_state.js";
+import { grabCard, findTool, togglePanelAnimated, refreshGameData, isPlayMode } from "../editor.js"
 
 export function makeTuneTool() {
 	return makeToolCard("tune", grabCard, findTool, localization, togglePanelAnimated, function(tool) {

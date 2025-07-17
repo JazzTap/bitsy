@@ -1,8 +1,15 @@
-import { fontName, serializeWorld, textDirection } from "../engine/bitsy.js";
+import { fontName, setFont, serializeWorld } from "../engine/bitsy.js";
 import { makeToolCard } from "../card.js"
 import { Store } from "../store.js";
+import { flags, setTextDirection } from "../engine/bitsy.js";
+import { TextDirection } from "../engine/world.js";
+import { bitsy, bitsyLog } from "../system/system.js";
 
-import { updateEditorTextDirection, grabCard, findTool, togglePanelAnimated, refreshGameData } from "../editor.js"
+import { server, grabCard, findTool, togglePanelAnimated, refreshGameData, setDefaultGameState,
+	updateEditorTextDirection
+ } from "../editor.js"
+import { updateText } from "../system/multiplayer.js";
+
 
 export function makeGameTool(localization) {
 	return makeToolCard("game", grabCard, findTool, localization, togglePanelAnimated, function(tool) {
@@ -172,8 +179,8 @@ export function makeGameTool(localization) {
 					var gamedataChanged = e.target.value;
 					Store.set("game_data", gamedataChanged);
 
-					// TODO : is there a better way to handle the global editor update?
-					on_game_data_change();
+					// update remote data
+					server.handle.change((doc) => { updateText(doc, ["bitsy"], gamedataChanged) })
 				}
 			});
 		}
@@ -199,8 +206,7 @@ export function makeGameTool(localization) {
 			var gamedataImported = exporter.importGame(fileText);
 			Store.set("game_data", gamedataImported);
 
-			// TODO : is there a better way to handle the global editor update?
-			on_game_data_change();
+			server.handle.change((doc) => { updateText(doc, ["bitsy"], gamedataImported) })
 		}
 
 		window.exportGameData = function exportGameData() {
@@ -215,7 +221,7 @@ export function makeGameTool(localization) {
 			var gamedataImported = fileText;
 			Store.set("game_data", gamedataImported);
 
-			on_game_data_change();
+			server.handle.change((doc) => { updateText(doc, ["bitsy"], gamedataImported) })
 		}
 
 		window.newGameDialog = function newGameDialog() {
@@ -234,7 +240,9 @@ export function makeGameTool(localization) {
 			// re-apply language settings
 			updateLanguage(localization.GetLanguage());
 
-			on_game_data_change();
+			var gamedataDefault = serializeWorld()
+			Store.set("game_data", gamedataDefault);
+			server.handle.change((doc) => { updateText(doc, ["bitsy"], gamedataDefault) })
 		}
 
 		window.filenameFromGameTitle = function filenameFromGameTitle() {
@@ -588,7 +596,7 @@ export function makeGameTool(localization) {
 				doPickTextDirection = false;
 			}
 
-			fontName = newFontName;
+			setFont(newFontName);
 
 			if (doPickTextDirection) {
 				bitsyLog("PICK TEXT DIR", "editor");
@@ -598,14 +606,14 @@ export function makeGameTool(localization) {
 			refreshGameData();
 		}
 
-		/* window.pickDefaultTextDirectionForFont = function pickDefaultTextDirectionForFont(newFontName) {
+		window.pickDefaultTextDirectionForFont = function pickDefaultTextDirectionForFont(newFontName) {
 			var newTextDirection = TextDirection.LeftToRight;
 			if (newFontName === "arabic") {
 				newTextDirection = TextDirection.RightToLeft;
 			}
 			updateEditorTextDirection(newTextDirection);
-			textDirection = newTextDirection;
-		} */
+			setTextDirection(newTextDirection);
+		}
 
 		window.onChangeFont = function onChangeFont(e) {
 			if (e.target.value != "custom") {

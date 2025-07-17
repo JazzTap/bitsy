@@ -1,3 +1,4 @@
+import { bitsy } from "../system/system.js";
 import { Tempo, ArpeggioPattern, Note, Octave } from "./world.js"
 
 /* PITCH HELPER FUNCTIONS */

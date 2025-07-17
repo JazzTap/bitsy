@@ -4,8 +4,8 @@ import { blip, updatePaletteWithTileColors, setTile } from "../engine/bitsy.js";
 import { bitsy, tilesize } from "../system/system.js";
 
 import { makeToolCard } from "../card.js"
-import { isPlayMode, localization } from "../editor_state.js"
-import { grabCard, findTool, togglePanelAnimated, refreshGameData } from "../editor.js"
+import { localization } from "../editor_state.js"
+import { grabCard, findTool, togglePanelAnimated, refreshGameData, isPlayMode } from "../editor.js"
 
 // todo : is this the right place for this function to live?
 export function makeBlipTile(soundPlayer, blipId, invert) {

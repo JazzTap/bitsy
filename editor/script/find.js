@@ -4,10 +4,10 @@ import { tile, sprite, item, room, palette, tune, blip } from "./engine/bitsy.js
 import { titleDialogId } from "./engine/world.js"
 
 import {groupElementFactory, radioElementFactory, createTextInputElement} from "./menu.js"
-import {createSpriteThumbnailRenderer, createTileThumbnailRenderer, createItemThumbnailRenderer,
+import {createSpriteThumbnailRenderer, createTileThumbnailRenderer, createItemThumbnailRenderer, curDialogEditorId,
 	createPaletteThumbnailRenderer, createRoomThumbnailRenderer, drawing, roomTool, paletteTool, tuneTool, blipTool,
 	sortedDialogIdList, sortedTileIdList, sortedSpriteIdList, sortedItemIdList, sortedRoomIdList, sortedPaletteIdList, sortedBase36IdList,
-	curDialogEditorId} from "./editor.js"
+	on_paint_sprite_ui_update, on_paint_avatar_ui_update, on_paint_tile_ui_update, on_paint_item_ui_update} from "./editor.js"
 
 import {events, localization} from "./editor_state.js"
 

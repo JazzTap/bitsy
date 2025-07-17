@@ -1,4 +1,4 @@
-# bitsy
+# bitsy (v8.12, + multiplayer editor)
 
 ~ a little engine for little games, worlds, and stories ~
 

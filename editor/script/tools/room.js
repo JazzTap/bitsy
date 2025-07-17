@@ -2,16 +2,16 @@ import { TileType } from "../util.js"
 
 import { bitsy } from "../system/system.js"
 import { tileColorStartIndex } from "../engine/world.js"
-import { initRoom, getSpriteAt, getItem,
+import { initRoom, getSpriteAt, getItem, isWall, textColorIndex, textBackgroundIndex,
 		room, tile, sprite, item,
-		updateAnimation, drawRoom } from "../engine/bitsy.js"
+		updateAnimation, setTile, drawRoom } from "../engine/bitsy.js"
 
 import { makeToolCard } from "../card.js"
 import { drawGrid } from "../paint.js"
-import { grabCard, findTool, markerTool, paintTool,
-	togglePanelAnimated, getContrastingColor,
-	isSnapshotInProgress, refreshGameData } from "../editor.js"
-import { getPanelSetting, isPlayMode } from "../editor_state.js"
+import { grabCard, findTool, markerTool, paintTool, isPlayMode,
+	togglePanelAnimated, getContrastingColor, isColorDark, isSnapshotInProgress, refreshGameData,
+	on_paint_sprite_ui_update, on_paint_avatar_ui_update, on_paint_tile_ui_update, on_paint_item_ui_update } from "../editor.js"
+import { getPanelSetting, setPanelSetting } from "../editor_state.js"
 
 export function makeRoomTool(localization, showPanelRef) {
 	return makeToolCard("room", grabCard, findTool, localization, togglePanelAnimated, function(tool) {

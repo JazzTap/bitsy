@@ -1,7 +1,9 @@
 import {bitsyLog} from "./system/system.js"
 import {item, player, variable} from "./engine/bitsy.js"
-import {isPlayMode, iconUtils} from "./editor_state.js"
-import {refreshGameData} from "./editor.js"
+import { scriptInterpreter } from "./engine/world.js"
+
+import {iconUtils} from "./editor_state.js"
+import {refreshGameData, isPlayMode} from "./editor.js"
 /* 
 INVENTORY UI 
 

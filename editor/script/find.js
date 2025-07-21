@@ -7,13 +7,13 @@ import {groupElementFactory, radioElementFactory, createTextInputElement} from "
 import {createSpriteThumbnailRenderer, createTileThumbnailRenderer, createItemThumbnailRenderer, curDialogEditorId,
 	createPaletteThumbnailRenderer, createRoomThumbnailRenderer, drawing, roomTool, paletteTool, tuneTool, blipTool,
 	sortedDialogIdList, sortedTileIdList, sortedSpriteIdList, sortedItemIdList, sortedRoomIdList, sortedPaletteIdList, sortedBase36IdList,
-	on_paint_sprite_ui_update, on_paint_avatar_ui_update, on_paint_tile_ui_update, on_paint_item_ui_update} from "./editor.js"
+	on_paint_sprite_ui_update, on_paint_avatar_ui_update, on_paint_tile_ui_update, on_paint_item_ui_update,
+	openDialogTool} from "./editor.js"
 
-import {events, localization} from "./editor_state.js"
+import {events, localization, showPanel} from "./editor_state.js"
 
-export function FindTool(showPanelRef, iconUtils, options) {
+export function FindTool(iconUtils, options) {
 	options.mainElement.innerHTML = "";
-	this.showPanel = showPanelRef
 
 	var spriteThumbnailRenderer = createSpriteThumbnailRenderer();
 	var tileThumbnailRenderer = createTileThumbnailRenderer();
@@ -49,7 +49,7 @@ export function FindTool(showPanelRef, iconUtils, options) {
 			openTool: function(id) {
 				paintTool.selectDrawing(sprite[id]);
 				on_paint_avatar_ui_update();
-				this.showPanel("paintPanel", "findPanel");
+				showPanel("paintPanel", "findPanel");
 			},
 			renderer: spriteThumbnailRenderer,
 		},
@@ -77,7 +77,7 @@ export function FindTool(showPanelRef, iconUtils, options) {
 			openTool: function(id) {
 				paintTool.selectDrawing(tile[id]);
 				on_paint_tile_ui_update();
-				this.showPanel("paintPanel", "findPanel");
+				showPanel("paintPanel", "findPanel");
 			},
 			renderer: tileThumbnailRenderer,
 		},
@@ -109,7 +109,7 @@ export function FindTool(showPanelRef, iconUtils, options) {
 			openTool: function(id) {
 				paintTool.selectDrawing(sprite[id]);
 				on_paint_sprite_ui_update();
-				this.showPanel("paintPanel", "findPanel");
+				showPanel("paintPanel", "findPanel");
 			},
 			renderer: spriteThumbnailRenderer,
 		},
@@ -137,7 +137,7 @@ export function FindTool(showPanelRef, iconUtils, options) {
 			openTool: function(id) {
 				paintTool.selectDrawing(item[id]);
 				on_paint_item_ui_update();
-				this.showPanel("paintPanel", "findPanel");
+				showPanel("paintPanel", "findPanel");
 			},
 			renderer: itemThumbnailRenderer,
 		},
@@ -172,7 +172,7 @@ export function FindTool(showPanelRef, iconUtils, options) {
 			},
 			openTool: function(id) {
 				selectRoom(id);
-				this.showPanel("roomPanel", "findPanel");
+				showPanel("roomPanel", "findPanel");
 			},
 			renderer: roomThumbnailRenderer,
 		},
@@ -199,7 +199,7 @@ export function FindTool(showPanelRef, iconUtils, options) {
 			},
 			openTool: function(id) {
 				paletteTool.Select(id);
-				this.showPanel("colorsPanel", "findPanel");
+				showPanel("colorsPanel", "findPanel");
 			},
 			renderer: paletteThumbnailRenderer,
 		},
@@ -226,7 +226,7 @@ export function FindTool(showPanelRef, iconUtils, options) {
 			},
 			openTool: function(id) {
 				openDialogTool(id);
-				this.showPanel("dialogPanel", "findPanel");
+				showPanel("dialogPanel", "findPanel");
 			},
 		},
 		{

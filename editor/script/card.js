@@ -9,7 +9,7 @@ import { enableGlobalAudioContext } from "./system/soundchip.js";
 import {MouseInterface} from "./mouse.js"
 import {MenuInterface, buttonElementFactory, toggleElementFactory, createTextInputElement} from "./menu.js"
 import {events, showPanel, hidePanel, iconUtils} from "./editor_state.js"
-import {mobileOffsetCorrection, refreshGameData} from "./editor.js"
+import {mobileOffsetCorrection, refreshGameData, showAbout} from "./editor.js"
 
 /* TOOL CARDS */
 export function makeToolCard(processName, grabCard, findTool, localization, togglePanelAnimated, initFunction) {
@@ -52,7 +52,7 @@ export function makeToolCard(processName, grabCard, findTool, localization, togg
 		icon: "help",
 		description: "show about page for " + card.name(),
 		onclick: function() {
-			showAbout(card.aboutPage, cardDiv.id);
+			showAbout("./docs"+card.aboutPage.slice(1), cardDiv.id); // FIXME: should ./docs be my about tool's working directory?
 		}
 	}));
 

@@ -1,10 +1,10 @@
 import { rgbToHex } from "./util.js"
 import { scriptInterpreter, scriptUtils, titleDialogId } from "./engine/world.js"
-import { getTitle, curDefaultPal, sprite, tile, room, item, dialog, palette } from "./engine/bitsy.js"
+import { getTitle, getPal, curDefaultPal, sprite, tile, room, item, dialog, palette } from "./engine/bitsy.js"
 
 import { ThumbnailRenderer } from "./thumbnail.js"
 import { iconUtils, events } from "./editor_state.js" 
-import { refreshGameData } from "./editor.js"
+import { refreshGameData, openDialogTool, nextAvailableDialogId, getCurDialogId } from "./editor.js"
 import { EventListener } from "./event_manager.js"
 
 // TODO : name?

@@ -1,14 +1,15 @@
 import { TileType } from "../util.js"
 
 import { bitsy } from "../system/system.js"
-import { tileColorStartIndex } from "../engine/world.js"
+import { tileColorStartIndex, createRoomData } from "../engine/world.js"
 import { initRoom, getSpriteAt, getItem, isWall, textColorIndex, textBackgroundIndex,
 		room, tile, sprite, item,
 		updateAnimation, setTile, drawRoom } from "../engine/bitsy.js"
 
 import { makeToolCard } from "../card.js"
 import { drawGrid } from "../paint.js"
-import { grabCard, findTool, markerTool, paintTool, isPlayMode,
+import { MarkerType, LinkState } from "../room_markers.js"
+import { grabCard, findTool, markerTool, paintTool, isPlayMode, nextObjectId, sortedBase36IdList, sortedPaletteIdList, sortedRoomIdList,
 	togglePanelAnimated, getContrastingColor, isColorDark, isSnapshotInProgress, refreshGameData,
 	on_paint_sprite_ui_update, on_paint_avatar_ui_update, on_paint_tile_ui_update, on_paint_item_ui_update } from "../editor.js"
 import { getPanelSetting, setPanelSetting } from "../editor_state.js"
@@ -364,6 +365,7 @@ export function makeRoomTool(localization, showPanelRef) {
 				}
 			}
 
+			// FIXME: this polling loop registers each room click 3 or 4 times b/c update triggers a slow network operation
 			if (onNextClickHandler != null) {
 				// allows any tool to listen for a room click
 				if (tool.mouse.down() && !prevIsMouseDown) {

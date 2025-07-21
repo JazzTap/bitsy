@@ -1,4 +1,5 @@
-import {tileColorStartIndex} from "./world.js"
+import { getPal } from "./bitsy.js";
+import { tileColorStartIndex } from "./world.js"
 
 export var TransitionManager = function() {
 	var transitionStart = null;

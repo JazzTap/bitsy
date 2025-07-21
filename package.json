@@ -11,7 +11,7 @@
 		"ssh2": "^1.11.0"
 	},
 	"scripts": {
-		"client": "npx http-server ./",
+		"client": "npx http-server ./editor/",
 		"server": "npx @automerge/automerge-repo-sync-server",
 		"dev": "concurrently \"npm run client\" \"npm run server\" "
 	}

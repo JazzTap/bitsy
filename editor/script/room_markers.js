@@ -1,9 +1,12 @@
 import {bitsyLog} from "./system/system.js"
 import {scale, mapsize} from "./system/system.js"
 import { room } from "./engine/bitsy.js"
+import { createExitData, createEndingData } from "./engine/world.js"
+import { clamp, deleteUnreferencedDialog } from "./util.js"
 
-import {iconUtils, events} from "./editor_state.js"
-import {createRoomThumbnailRenderer, getContrastingColor, refreshGameData} from "./editor.js"
+import {iconUtils, events, localization} from "./editor_state.js"
+import {createRoomThumbnailRenderer, getContrastingColor, refreshGameData,
+	sortedRoomIdList, dialogTool, nextAvailableDialogId } from "./editor.js"
 
 export function RoomMarkerTool(markerCanvas1, markerCanvas2) {
 	var selectedRoom = null;
@@ -991,7 +994,7 @@ export function RoomMarkerTool(markerCanvas1, markerCanvas2) {
 
 } // RoomMarkerTool()
 
-var MarkerType = { // TODO : I should probably find a way to get rid of this
+export var MarkerType = { // TODO : I should probably find a way to get rid of this
 	Exit : 0,
 	Ending : 1,
 };
@@ -1042,7 +1045,7 @@ export function RoomMarkerBase(parentRoom) {
 } // RoomMarkerBase()
 
 // NOTE: the "link state" is a UI time concept -- it is not stored in the game data
-var LinkState = {
+export var LinkState = {
 	TwoWay : 0, // two way exit
 	OneWayOriginal : 1, // one way exit - in same state as when it was "gathered"
 	OneWaySwapped : 2, // one way exit - swapped direction from how it was "gathered"

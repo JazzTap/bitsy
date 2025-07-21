@@ -1,11 +1,12 @@
 import { bitsy, tilesize } from "../system/system.js";
-import { tileColorStartIndex, Note, Solfa, maxTuneLength, ArpeggioPattern, barLength, Octave } from "../engine/world.js"
+import { tileColorStartIndex, Note, Solfa, maxTuneLength, ArpeggioPattern, barLength, Octave,
+	createTuneBarData } from "../engine/world.js"
 import { SoundPlayer } from "../engine/sound.js";
 import { tune, updatePaletteWithTileColors, setTile, serializeNote } from "../engine/bitsy.js";
 
 import { makeToolCard } from "../card.js"
 import { localization } from "../editor_state.js";
-import { grabCard, findTool, togglePanelAnimated, refreshGameData, isPlayMode } from "../editor.js"
+import { grabCard, findTool, togglePanelAnimated, refreshGameData, isPlayMode, nextObjectId, sortedBase36IdList } from "../editor.js"
 
 export function makeTuneTool() {
 	return makeToolCard("tune", grabCard, findTool, localization, togglePanelAnimated, function(tool) {

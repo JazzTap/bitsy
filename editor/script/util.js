@@ -1,3 +1,4 @@
+import { sprite, item, room } from "./engine/bitsy.js";
 /* UTILS
 miscellaneous utility functions for the editor
 TODO: encapsulate in an object maybe? or is that overkill?

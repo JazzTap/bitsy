@@ -1,12 +1,25 @@
 import { bitsyLog } from "./system/system.js"
+import {Localization} from "./localization.js"
+import { FontManager } from "./engine/font.js"
 import {Store} from "./store.js"
 import {IconUtils} from "./icons.js"
 import {EventManager} from "./event_manager.js"
-import {Localization} from "./localization.js"
 
 export let isPlayerEmbeddedInEditor = true  // FIXME: flag for game player to make changes specific to editor
 
+/* FONT MANAGER */
+var defaultFonts = [
+		"ascii_small.bitsyfont",
+		"unicode_european_small.bitsyfont",
+		"unicode_european_large.bitsyfont",
+		"unicode_asian.bitsyfont",
+		"arabic.bitsyfont",
+	];
+export let fontManager = new FontManager(defaultFonts); // FIXME: engine has its own fontManager, which we intend to clobber
+
 let urlParameters = {};
+export let localization;
+
 export function readUrlParameters() {
 	bitsyLog(" --- reading url parameters --- ", "editor");
 
@@ -28,8 +41,8 @@ export function readUrlParameters() {
 			}
 		}
 	}
+	localization = new Localization(urlParameters["lang"]); // VERIFY
 }
-export let localization = new Localization(urlParameters["lang"]); // was in editor start()
 
 /* ICONS */
 export let iconUtils = new IconUtils()

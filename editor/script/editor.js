@@ -1,13 +1,13 @@
-import { TileType, labelElementFactory, rgbToHex, rgbToHsl } from "./util.js"
+import { TileType, labelElementFactory, rgbToHex, rgbToHsl, getDrawingNameOrDescription } from "./util.js"
 import { initSystem, bitsyLog, tilesize, scale, mapsize, width, attachCanvas, loadGame, quitGame } from "./system/system.js"
 import { Resources } from "./generated/resources.js"
 
 import { clearGameData, getPal, getRoomPal, animationTime, initRoom,
 	curDefaultPal, sprite, tile, room, item, renderer, state, dialog, palette, flags,
 	setInventoryCallback, setVariableCallback, setGameResetCallback, setInitRoomCallback, textDirection,
-	loadWorldFromGameData, serializeWorld } from "./engine/bitsy.js"
-import { FontManager } from "./engine/font.js"
-import { titleDialogId, version, createDrawingData, defaultFontName } from "./engine/world.js"
+	loadWorldFromGameData, serializeWorld, updateNamesFromCurData } from "./engine/bitsy.js"
+import { titleDialogId, version, defaultFontName,
+	createDrawingData, createExitData, createEndingData} from "./engine/world.js"
 
 import { gif } from "./gif.js"
 import { Exporter } from "./exporter.js"
@@ -30,7 +30,7 @@ import { makeTuneTool } from "./tools/tune.js"
 import { makeBlipTool } from "./tools/blip.js"
 
 import { setAboutPage, initAbout } from "./tools/about.js" // FIXME
-import { localization, readUrlParameters, iconUtils,
+import { localization, readUrlParameters, iconUtils, fontManager,
 	events, getPanelPrefs, showPanel, updatePanelPrefs, togglePanel, togglePanelCore } from "./editor_state.js"
 
 import { attachServer, updateText } from "./system/multiplayer.js" // FIXME
@@ -194,9 +194,9 @@ export function isColorDark(palId) {
 }
 
 export function findAndReplaceTileInAllRooms( findTile, replaceTile ) {
-	for (roomId in room) {
-		for (y in room[roomId].tilemap) {
-			for (x in room[roomId].tilemap[y]) {
+	for (let roomId in room) {
+		for (let y in room[roomId].tilemap) {
+			for (let x in room[roomId].tilemap[y]) {
 				if (room[roomId].tilemap[y][x] === findTile) {
 					room[roomId].tilemap[y][x] = replaceTile;
 				}
@@ -323,7 +323,9 @@ export let curDialogEditorId = null; // can I wrap this all up somewhere? -- fee
 export let curDialogEditor = null;
 export let curPlaintextDialogEditor = null; // the duplication is a bit weird, but better than recreating editors all the time?
 
-function openDialogTool(dialogId, insertNextToId, showIfHidden) { // todo : rename since it doesn't always "open" it?
+export function openDialogTool(dialogId, insertNextToId, showIfHidden) { // todo : rename since it doesn't always "open" it?
+	// console.log(new Error("who opened the dialog tool?"))
+
 	if (showIfHidden === undefined || showIfHidden === null) {
 		showIfHidden = true;
 	}
@@ -587,7 +589,7 @@ export function setDefaultGameState() {
 }
 
 export let isPlayMode = false;
-export function refreshGameData() {
+export async function refreshGameData() {
 	if (isPlayMode) {
 		return; //never store game data while in playmode (TODO: wouldn't be necessary if the game data was decoupled from editor data)
 	}
@@ -632,6 +634,9 @@ export let drawing;
 var tileIndex = 0;
 var spriteIndex = 0;
 var itemIndex = 0;
+export function setTileIndex(idx) { tileIndex = idx; }
+export function setSpriteIndex(idx) { spriteIndex = idx; }
+export function setItemIndex(idx) { itemIndex = idx; }
 
 /* ROOM */
 var roomIndex = 0;
@@ -650,16 +655,6 @@ var gifFrameData = [];
 /* EXPORT HTML */
 var makeURL = null;
 var exporter = new Exporter();
-
-/* FONT MANAGER */
-var defaultFonts = [
-		"ascii_small.bitsyfont",
-		"unicode_european_small.bitsyfont",
-		"unicode_european_large.bitsyfont",
-		"unicode_asian.bitsyfont",
-		"arabic.bitsyfont",
-	];
-let fontManager = new FontManager(defaultFonts); // FIXME: engine has its own fontManager, which we intend to clobber
 
 function detectBrowserFeatures() {
 	bitsyLog("BROWSER FEATURES", "editor");
@@ -721,7 +716,7 @@ export function isPortraitOrientation() {
 
 export let findTool
 export function resetFindTool() {
-	findTool = new FindTool(showPanel, iconUtils, {
+	findTool = new FindTool(iconUtils, {
 		mainElement : document.getElementById("findPanelMain"),
 	});
 }
@@ -1150,11 +1145,11 @@ export function prev() {
 export function copyDrawingData(sourceDrawingData) {
     var copiedDrawingData = [];
 
-    for (frame in sourceDrawingData) {
+    for (let frame in sourceDrawingData) {
         copiedDrawingData.push([]);
-        for (y in sourceDrawingData[frame]) {
+        for (let y in sourceDrawingData[frame]) {
             copiedDrawingData[frame].push([]);
-            for (x in sourceDrawingData[frame][y]) {
+            for (let x in sourceDrawingData[frame][y]) {
                 copiedDrawingData[frame][y].push(sourceDrawingData[frame][y][x]);
             }
         }
@@ -1542,6 +1537,7 @@ export function on_paint_avatar_ui_update() {
 }
 
 export function on_paint_tile() {
+	console.log("on_paint_tile")
 	tileIndex = 0;
 	var tileId = sortedTileIdList()[tileIndex];
 	drawing = tile[tileId];
@@ -1903,7 +1899,7 @@ export function reload_game_data() {
 
 export function on_game_data_change() {
 	on_game_data_change_core();
-	refreshGameData();
+	// refreshGameData();
 
 	// reset find tool (a bit heavy handed?)
 	resetFindTool();
@@ -1913,37 +1909,37 @@ export function on_game_data_change_core() {
 	var gamedataStorage = Store.get("game_data");
 	bitsyLog(gamedataStorage, "editor");
 
+	console.log(roomTool?.selectedId)
+	console.log(getRoomPal(roomTool?.selectedId))
+
 	clearGameData();
 
 	// reparse world if user directly manipulates game data
 	loadWorldFromGameData(gamedataStorage);
 
-	if (roomTool) {
+	// FIXME: update the dialog tool (etc) without reloading DOM
+	/* if (roomTool) {
 		roomTool.selectAtIndex(0);
 	}
-
 	if (tuneTool) {
 		tuneTool.selectAtIndex(0);
 	}
-
 	if (blipTool) {
 		blipTool.selectAtIndex(0);
-	}
+	} */
 
 	if (gameTool) {
 		gameTool.menu.update();
 	}
-
 	if (markerTool) {
 		markerTool.Refresh();
 	}
 
 	var curPaintMode = TileType.Avatar;
-
 	if (drawing) {
 		curPaintMode = drawing.type;
 	}
-
+ 
 	//fallback if there are no tiles, sprites, map
 	// TODO : switch to using stored default file data (requires separated parser / game data code)
 	if (Object.keys(sprite).length == 0) {
@@ -1965,7 +1961,8 @@ export function on_game_data_change_core() {
 	// refresh images
 	renderer.ClearCache();
 
-	roomIndex = 0;
+	// try not to clobber editor state
+	// roomIndex = 0;
 
 	if (curPaintMode === TileType.Tile) {
 		drawing = tile[sortedTileIdList()[0]];
@@ -1980,9 +1977,7 @@ export function on_game_data_change_core() {
 		drawing = sprite[sortedSpriteIdList().filter(function (id) { return id != "A"; })[0]];
 	}
 
-	if (paintTool) { // guard on startup
-		paintTool.reloadDrawing();
-	}
+	// paintTool.reloadDrawing(); // this reloads the dialog UI
 
 	// FIXME: catch undefined fontName on startup
 	// if user pasted in a custom font into game data - update the stored custom font
@@ -1997,7 +1992,7 @@ export function on_game_data_change_core() {
 	updateInventoryUI(localization);
 
 	// TODO -- start using this for more things
-	events.Raise("game_data_change");
+	// events.Raise("game_data_change"); // this event reloads all the panels, which we don't want
 }
 
 export function setDrawing(newDrawing) {

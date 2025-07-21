@@ -1,11 +1,11 @@
-import { Note } from "../engine/world.js";
+import { Note, createBlipData } from "../engine/world.js";
 import { SoundPlayer, isMinPitch, isMaxPitch } from "../engine/sound.js";
 import { blip, updatePaletteWithTileColors, setTile } from "../engine/bitsy.js";
 import { bitsy, tilesize } from "../system/system.js";
 
 import { makeToolCard } from "../card.js"
 import { localization } from "../editor_state.js"
-import { grabCard, findTool, togglePanelAnimated, refreshGameData, isPlayMode } from "../editor.js"
+import { grabCard, findTool, togglePanelAnimated, refreshGameData, isPlayMode, nextObjectId, sortedBase36IdList } from "../editor.js"
 
 // todo : is this the right place for this function to live?
 export function makeBlipTile(soundPlayer, blipId, invert) {

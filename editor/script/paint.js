@@ -1,4 +1,4 @@
-import {TileType} from "./util.js"
+import {TileType, deleteUnreferencedDialog} from "./util.js"
 
 import { state, sprite, room, tile, renderer, getPal, getOffset } from "./engine/bitsy.js"
 import {tilesize, bitsyLog, bitsy} from "./system/system.js"
@@ -6,8 +6,10 @@ import {MenuInterface} from "./menu.js"
 
 import {getPanelSetting, iconUtils, events, localization} from "./editor_state.js"
 import {drawing, roomTool, findTool, getDrawingImageSource, getContrastingColor,
-	getDrawingFrameData, mobileOffsetCorrection, refreshGameData, isPlayMode,
-	nextSpriteId, nextTileId, makeSprite, makeTile, makeItem, setDrawing, toggleWallUI } from "./editor.js"
+	getDrawingFrameData, mobileOffsetCorrection, refreshGameData, isPlayMode, setDrawing, toggleWallUI,
+	nextSpriteId, nextTileId, nextItemId, makeSprite, makeTile, makeItem, 
+	setTileIndex, setSpriteIndex, setItemIndex, nextTile, nextSprite, nextItem,
+	copyDrawingData, findAndReplaceTileInAllRooms } from "./editor.js"
 /*
 	PAINT
 */
@@ -312,7 +314,7 @@ export function PaintTool(canvas, menuElement) {
 		self.updateCanvas();
 		refreshGameData();
 
-		tileIndex = Object.keys(tile).length - 1;
+		setTileIndex(Object.keys(tile).length - 1);
 	}
 
 	function newSprite(imageData) {
@@ -325,7 +327,7 @@ export function PaintTool(canvas, menuElement) {
 		self.updateCanvas();
 		refreshGameData();
 
-		spriteIndex = Object.keys(sprite).length - 1;
+		setSpriteIndex(Object.keys(sprite).length - 1);
 	}
 
 	function newItem(imageData) {
@@ -339,7 +341,7 @@ export function PaintTool(canvas, menuElement) {
 		updateInventoryItemUI();
 		refreshGameData();
 
-		itemIndex = Object.keys(item).length - 1;
+		setItemIndex(Object.keys(item).length - 1);
 	}
 
 	// TODO - may need to extract this for different tools beyond the paint tool (put it in core.js?)

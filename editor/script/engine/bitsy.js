@@ -1,13 +1,12 @@
 import { TileRenderer } from "./renderer.js"
 import { bitsy } from "../system/system.js"
-import { version, defaultFontName, TextDirection, createDefaultFlags,
+import { version, defaultFontName, TextDirection, createDefaultFlags, createExitData, createEndingData,
 	Tempo, Solfa, Note, maxTuneLength, barLength, Octave, SquareWave, ArpeggioPattern,
 	parseWorld, engineFeatureFlags, tileColorStartIndex, titleDialogId, getEngineVersion, scriptInterpreter } from "./world.js"
 import {TransitionManager} from "./transition.js"
 import {Dialog} from "./dialog.js"
-import {FontManager} from "./font.js"
 import {SoundPlayer} from "./sound.js"
-import {isPlayerEmbeddedInEditor} from "../editor_state.js"
+import {isPlayerEmbeddedInEditor, fontManager} from "../editor_state.js"
 
 /* WORLD DATA */
 export let room = {};
@@ -1724,10 +1723,10 @@ if (engineFeatureFlags.isDialogEnabled) {
 	dialogBuffer = dialogModule.CreateBuffer();
 }
 
-var fontManager;
+/* var fontManager;
 if (engineFeatureFlags.isFontEnabled) {
 	fontManager = new FontManager();
-}
+} */
 
 // TODO : is this scriptResult thing being used anywhere???
 export function onExitDialog(scriptResult, dialogCallback) {

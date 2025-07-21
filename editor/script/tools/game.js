@@ -5,9 +5,8 @@ import { flags, setTextDirection } from "../engine/bitsy.js";
 import { TextDirection } from "../engine/world.js";
 import { bitsy, bitsyLog } from "../system/system.js";
 
-import { server, grabCard, findTool, togglePanelAnimated, refreshGameData, setDefaultGameState,
-	updateEditorTextDirection
- } from "../editor.js"
+import { server, grabCard, findTool, togglePanelAnimated, refreshGameData, setDefaultGameState, updateEditorTextDirection} from "../editor.js"
+import { fontManager } from "../editor_state.js";
 import { updateText } from "../system/multiplayer.js";
 
 

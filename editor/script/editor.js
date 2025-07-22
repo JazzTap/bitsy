@@ -765,7 +765,7 @@ export async function start() {
 	
     // listen to multiplayer server
     handle.on("change", () => {
-		console.log('sync crdt')
+		// console.log('sync crdt')
 
 		var gamedataChanged = handle.doc().bitsy;
         Store.set("game_data", gamedataChanged)
@@ -1909,15 +1909,14 @@ export function on_game_data_change_core() {
 	var gamedataStorage = Store.get("game_data");
 	bitsyLog(gamedataStorage, "editor");
 
-	console.log(roomTool?.selectedId)
-	console.log(getRoomPal(roomTool?.selectedId))
+	// TODO: why is roomTool undefined here? want to FIX palette reverts to default
 
 	clearGameData();
 
 	// reparse world if user directly manipulates game data
 	loadWorldFromGameData(gamedataStorage);
 
-	// FIXME: update the dialog tool (etc) without reloading DOM
+	// TODO: update the dialog tool (etc) without reloading DOM
 	/* if (roomTool) {
 		roomTool.selectAtIndex(0);
 	}

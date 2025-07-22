@@ -1388,13 +1388,13 @@ export function on_edit_mode() {
 
 	quitGame();
 
-	// clear render cache(s)
-	renderer.ClearCache();
-	roomTool.renderer.ClearCache();
-
 	// reparse world to reset any changes from gameplay
 	var gamedataStorage = Store.get("game_data");
 	loadWorldFromGameData(gamedataStorage);
+	
+	// clear render cache
+	renderer.ClearCache();
+	roomTool.renderer.ClearCache();
 
 	state.room = sortedRoomIdList()[roomIndex]; //restore current room to pre-play state
 

@@ -787,7 +787,7 @@ export async function start() {
 	
     // listen to multiplayer server
     handle.on("change", () => {
-		console.log('sync crdt')
+		// console.log('sync crdt')
 
 		var gamedataChanged = handle.doc().bitsy;
         Store.set("game_data", gamedataChanged)

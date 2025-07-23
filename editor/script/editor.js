@@ -1925,13 +1925,12 @@ export function on_game_data_change_core() {
 	}
 	if (blipTool) {
 		blipTool.selectAtIndex(0);
-	} */
-
-	if (gameTool) {
-		gameTool.menu.update();
-	}
+	} 
 	if (markerTool) {
 		markerTool.Refresh();
+	} */
+	if (gameTool) {
+		gameTool.menu.update();
 	}
 
 	var curPaintMode = TileType.Avatar;
@@ -1961,7 +1960,7 @@ export function on_game_data_change_core() {
 	renderer.ClearCache();
 
 	// try not to clobber editor state
-	// roomIndex = 0;
+	/* roomIndex = 0;
 
 	if (curPaintMode === TileType.Tile) {
 		drawing = tile[sortedTileIdList()[0]];
@@ -1974,7 +1973,7 @@ export function on_game_data_change_core() {
 	}
 	else if (curPaintMode === TileType.Sprite) {
 		drawing = sprite[sortedSpriteIdList().filter(function (id) { return id != "A"; })[0]];
-	}
+	} */
 
 	// paintTool.reloadDrawing(); // this reloads the dialog UI
 

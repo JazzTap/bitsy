@@ -97,7 +97,7 @@ export function PaintTool(canvas, menuElement) {
 	}
 
 	const onMouseUp = (e) => {
-		bitsyLog("?????", "editor");
+		bitsyLog("painting edit", "editor");
 		if (isPainting) {
 			isPainting = false;
 
@@ -307,12 +307,12 @@ export function PaintTool(canvas, menuElement) {
 	function newTile(imageData) {
 		var id = nextTileId();
 		makeTile(id, imageData);
+		refreshGameData();
 
 		setDrawing(tile[id])
 		self.reloadDrawing(); //hack for ui consistency (hack x 2: order matters for animated tiles)
 
 		self.updateCanvas();
-		refreshGameData();
 
 		setTileIndex(Object.keys(tile).length - 1);
 	}
@@ -320,12 +320,12 @@ export function PaintTool(canvas, menuElement) {
 	function newSprite(imageData) {
 		var id = nextSpriteId();
 		makeSprite(id, imageData);
+		refreshGameData();
 
 		setDrawing(sprite[id])
 		self.reloadDrawing(); //hack (order matters for animated tiles)
 
 		self.updateCanvas();
-		refreshGameData();
 
 		setSpriteIndex(Object.keys(sprite).length - 1);
 	}
@@ -333,13 +333,13 @@ export function PaintTool(canvas, menuElement) {
 	function newItem(imageData) {
 		var id = nextItemId();
 		makeItem(id, imageData);
+		refreshGameData();
 
 		setDrawing(item[id])
 		self.reloadDrawing(); //hack (order matters for animated tiles)
 
 		self.updateCanvas();
 		updateInventoryItemUI();
-		refreshGameData();
 
 		setItemIndex(Object.keys(item).length - 1);
 	}
@@ -400,6 +400,7 @@ export function PaintTool(canvas, menuElement) {
 	}
 
 	events.Listen("palette_change", function(event) {
+		console.log(new Error("paint tool saw palette_change"))
 		self.updateCanvas();
 
 		if (self.isCurDrawingAnimated) {
@@ -412,6 +413,7 @@ export function PaintTool(canvas, menuElement) {
 	this.menuElement = menuElement;
 
 	this.menuUpdate = function() {
+		console.log(new Error("paint tool ran menuUpdate"))
 		if (drawing?.type != TileType.Tile && drawing?.type != TileType.Avatar) {
 			self.menu.push({ control: "group" });
 			self.menu.push({ control: "label", icon: "blip", description: "blip (sound effect)" });

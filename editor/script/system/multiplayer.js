@@ -16,7 +16,7 @@ export async function attachServer(debug = false) {
     // Then set up an automerge repo (loading with our annoying WASM hack)
     const repo = new AutomergeRepo.Repo({
         storage: new IndexedDBStorageAdapter(),
-        network: [new BrowserWebSocketClientAdapter("wss://4f46fceb5ea9.ngrok-free.app")],
+        network: [new BrowserWebSocketClientAdapter("wss://3e61543e22d8.ngrok-free.app")],
     })
     let handle
 

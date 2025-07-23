@@ -1967,6 +1967,11 @@ export function on_game_data_change_core() {
 	if (markerTool) {
 		markerTool.Refresh();
 	}
+
+	var curPaintMode = TileType.Avatar;
+	if (drawing) {
+		curPaintMode = drawing.type;
+	}
  
 	//fallback if there are no tiles, sprites, map
 	// TODO : switch to using stored default file data (requires separated parser / game data code)
@@ -1991,7 +1996,7 @@ export function on_game_data_change_core() {
 	renderer.ClearCache();
 
 	// try not to clobber editor state
-	// roomIndex = 0;
+	/* roomIndex = 0;
 
 	/*
 	var curPaintMode = TileType.Avatar;

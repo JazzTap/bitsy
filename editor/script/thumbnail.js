@@ -2,7 +2,7 @@ import {TileType, labelElementFactory, rgbToHex} from "./util.js"
 import {gif} from "./gif.js"
 
 import {bitsyLog, tilesize, scale} from "./system/system.js"
-import { state, room, getPal, animationTime } from "./engine/bitsy.js";
+import { state, room, getPal, getRoomPal, animationTime } from "./engine/bitsy.js";
 import { roomTool, getDrawingImageSource } from "./editor.js";
 
 // renders a tile to canvas (kind of hackily recreates some of the TileRenderer logic - oh well)

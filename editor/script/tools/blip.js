@@ -574,6 +574,10 @@ export function makeBlipTool() {
 
 			delete blip[id];
 		};
+		
+		tool.getSelectedId = function() {
+			return selectedId
+		}
 
 		tool.onGameDataChange = function() {
 			// force render refresh // todo : need to think about the architecture of sharing renderers

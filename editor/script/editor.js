@@ -754,8 +754,12 @@ export async function start() {
 	}
 
 	//load last auto-save
-	var gamedataStorage = Store.get("game_data");
-	if (gamedataStorage) {
+	var gamedataStorage = handle.doc().bitsy;
+	if (gamedataStorage !== null) {
+		Store.set("game_data", gamedataStorage)
+		on_game_data_change_core();
+	}
+	else if (Store.get("game_data"))  {
 		on_game_data_change_core();
 	}
 	else {
@@ -770,7 +774,8 @@ export async function start() {
 		var gamedataChanged = handle.doc().bitsy;
         Store.set("game_data", gamedataChanged)
 
-		on_game_data_change_core();
+		on_game_data_change_core()
+		// reload_game_data(); // causes flicker
     })
 
 	// now world data like `sprite` and `tile` is loaded
@@ -1537,7 +1542,6 @@ export function on_paint_avatar_ui_update() {
 }
 
 export function on_paint_tile() {
-	console.log("on_paint_tile")
 	tileIndex = 0;
 	var tileId = sortedTileIdList()[tileIndex];
 	drawing = tile[tileId];
@@ -1884,6 +1888,9 @@ export function on_change_adv_dialog() {
 }
 
 export function reload_game_data() {
+	// FIXME: why does palette revert?
+	console.log(roomTool?.selectedId, getRoomPal(roomTool?.selectedId))
+
 	// same as core, but doesn't reset editor state
 	var gamedataStorage = Store.get("game_data");
 	bitsyLog(gamedataStorage, "editor");
@@ -1891,9 +1898,7 @@ export function reload_game_data() {
 	clearGameData();
 	loadWorldFromGameData(gamedataStorage);
 
-	events.Raise("game_data_change");	
-	console.log('reload_game_data ok')
-
+	events.Raise("game_data_change");
 	// refreshGameData();
 }
 
@@ -1909,24 +1914,24 @@ export function on_game_data_change_core() {
 	var gamedataStorage = Store.get("game_data");
 	bitsyLog(gamedataStorage, "editor");
 
-	console.log(roomTool?.selectedId)
-	console.log(getRoomPal(roomTool?.selectedId))
-
+	let roomId = roomTool?.getSelectedId() || 0,  
+		tuneId = tuneTool?.getSelectedId() || 0,
+		blipId = blipTool?.getSelectedId() || 0
 	clearGameData();
 
 	// reparse world if user directly manipulates game data
 	loadWorldFromGameData(gamedataStorage);
 
-	// FIXME: update the dialog tool (etc) without reloading DOM
-	/* if (roomTool) {
-		roomTool.selectAtIndex(0);
+	if (roomTool) {
+		roomTool.selectAtIndex(roomId);
 	}
 	if (tuneTool) {
-		tuneTool.selectAtIndex(0);
+		tuneTool.selectAtIndex(tuneId);
 	}
 	if (blipTool) {
-		blipTool.selectAtIndex(0);
-	} */
+		blipTool.selectAtIndex(blipId);
+	}
+	
 
 	if (gameTool) {
 		gameTool.menu.update();
@@ -1935,6 +1940,7 @@ export function on_game_data_change_core() {
 		markerTool.Refresh();
 	}
 
+	// FIXME: update the dialog tool (etc) without reloading DOM
 	var curPaintMode = TileType.Avatar;
 	if (drawing) {
 		curPaintMode = drawing.type;

@@ -1742,6 +1742,10 @@ export function makeTuneTool() {
 
 			delete tune[id];
 		};
+		
+		tool.getSelectedId = function() {
+			return curTuneId
+		}
 
 		tool.onGameDataChange = function() {
 			// force render refresh // todo : need to think about the architecture of sharing renderers

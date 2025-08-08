@@ -832,6 +832,10 @@ export function makeRoomTool(localization, showPanelRef) {
 			delete room[id];
 		};
 
+		tool.getSelectedId = function() {
+			return selectedId
+		}
+
 		tool.onGameDataChange = function() {
 			// TODO
 		};

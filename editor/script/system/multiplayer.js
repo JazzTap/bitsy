@@ -25,7 +25,7 @@ export async function attachServer(debug = false) {
 	    // var defaultData = Resources["defaultGameData.bitsy"]; // too much clutter from orphaned instances
 
         handle = repo.create()
-        handle.change(doc => { doc.bitsy = null; })
+        handle.change(doc => { doc.bitsy = ""; })
 
         let res = handle.url.split(':')[1]
         if (debug) console.log('created new instance:', res)

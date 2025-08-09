@@ -400,7 +400,6 @@ export function PaintTool(canvas, menuElement) {
 	}
 
 	events.Listen("palette_change", function(event) {
-		console.log(new Error("paint tool saw palette_change"))
 		self.updateCanvas();
 
 		if (self.isCurDrawingAnimated) {
@@ -413,7 +412,6 @@ export function PaintTool(canvas, menuElement) {
 	this.menuElement = menuElement;
 
 	this.menuUpdate = function() {
-		console.log(new Error("paint tool ran menuUpdate"))
 		if (drawing?.type != TileType.Tile && drawing?.type != TileType.Avatar) {
 			self.menu.push({ control: "group" });
 			self.menu.push({ control: "label", icon: "blip", description: "blip (sound effect)" });

@@ -755,7 +755,8 @@ export async function start() {
 
 	//load last auto-save
 	var gamedataStorage = handle.doc().bitsy;
-	if (gamedataStorage !== null) {
+	if (gamedataStorage !== "") {
+		// FIXME: remote maybe not available immediately
 		Store.set("game_data", gamedataStorage)
 		on_game_data_change_core();
 	}

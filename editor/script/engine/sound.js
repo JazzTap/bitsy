@@ -1,5 +1,5 @@
 import { bitsy } from "../system/system.js";
-import { Tempo, ArpeggioPattern, Note, Octave } from "./world.js"
+import { Tempo, ArpeggioPattern, Note, Octave, Solfa } from "./world.js"
 
 /* PITCH HELPER FUNCTIONS */
 export function pitchToSteps(pitch) {

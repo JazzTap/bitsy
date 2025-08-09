@@ -769,7 +769,7 @@ export async function start() {
 	
     // listen to multiplayer server
     handle.on("change", () => {
-		console.log('sync crdt')
+		// console.log('sync crdt')
 
 		var gamedataChanged = handle.doc().bitsy;
         Store.set("game_data", gamedataChanged)
@@ -1968,7 +1968,7 @@ export function on_game_data_change_core() {
 	renderer.ClearCache();
 
 	// try not to clobber editor state
-	// roomIndex = 0;
+	/* roomIndex = 0;
 
 	if (curPaintMode === TileType.Tile) {
 		drawing = tile[sortedTileIdList()[0]];
@@ -1981,7 +1981,7 @@ export function on_game_data_change_core() {
 	}
 	else if (curPaintMode === TileType.Sprite) {
 		drawing = sprite[sortedSpriteIdList().filter(function (id) { return id != "A"; })[0]];
-	}
+	} */
 
 	// paintTool.reloadDrawing(); // this reloads the dialog UI
 

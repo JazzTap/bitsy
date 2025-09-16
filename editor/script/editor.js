@@ -787,6 +787,8 @@ export async function start() {
 	roomTool.rootElement.classList.add("bitsy-playmode-enable");
 	roomTool.titlebarElement.classList.add("bitsy-playmode-reverse-color");
 	roomTool.nav.element.classList.add("bitsy-playmode-hide");
+	window.roomTool = roomTool // enable automation
+
 	var curRoomLocationDiv = document.createElement("div");
 	curRoomLocationDiv.id = "curRoomLocation";
 	curRoomLocationDiv.classList.add("bitsy-playmode-show");

@@ -8,7 +8,7 @@ import { IndexedDBStorageAdapter } from "https://esm.sh/@automerge/automerge-rep
 import { BrowserWebSocketClientAdapter } from "https://esm.sh/@automerge/automerge-repo-network-websocket@2.1.0?bundle-deps"
 // import { MessageChannelNetworkAdapter } from "https://esm.sh/@automerge/automerge-repo-network-messagechannel@2.0.0-alpha.14?bundle-deps"
 
-// import {Resources} from "../generated/resources.js"
+import {Resources} from "../generated/resources.js"
 
 export const updateText = AutomergeRepo.updateText
 
@@ -22,10 +22,10 @@ export async function attachServer(debug = false) {
 
     const params = new URLSearchParams(window.location.search);
     if (!params.get('instance')) {
-	    // var defaultData = Resources["defaultGameData.bitsy"]; // too much clutter from orphaned instances
+	    var defaultData = Resources["defaultGameData.bitsy"]; // too much clutter from orphaned instances
 
         handle = repo.create()
-        handle.change(doc => { doc.bitsy = null; })
+        handle.change(doc => { doc.bitsy = defaultData; })
 
         let res = handle.url.split(':')[1]
         if (debug) console.log('created new instance:', res)

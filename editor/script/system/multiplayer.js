@@ -8,9 +8,11 @@ import { IndexedDBStorageAdapter } from "https://esm.sh/@automerge/automerge-rep
 import { BrowserWebSocketClientAdapter } from "https://esm.sh/@automerge/automerge-repo-network-websocket@2.1.0?bundle-deps"
 // import { MessageChannelNetworkAdapter } from "https://esm.sh/@automerge/automerge-repo-network-messagechannel@2.0.0-alpha.14?bundle-deps"
 
-import {Resources} from "../generated/resources.js"
+import { Resources } from "../generated/resources.js"
+import { Store } from "../store.js"
 
 export const updateText = AutomergeRepo.updateText
+export let userId = Store.get('multiplayer_bitsy_user_id')
 
 export async function attachServer(debug = false) {
     // Then set up an automerge repo (loading with our annoying WASM hack)
@@ -19,13 +21,18 @@ export async function attachServer(debug = false) {
         network: [new BrowserWebSocketClientAdapter("ws://localhost:3030/")],
     })
     let handle
+    
+    if (!userId) {
+        userId = uuidv4();
+        Store.set('multiplayer_bitsy_user_id', userId)
+    }
 
     const params = new URLSearchParams(window.location.search);
     if (!params.get('instance')) {
 	    var defaultData = Resources["defaultGameData.bitsy"]; // too much clutter from orphaned instances
 
         handle = repo.create()
-        handle.change(doc => { doc.bitsy = defaultData; })
+        handle.change(doc => { doc.bitsy = defaultData; doc.mutex = {}; doc.mutex[userId] = 'none' })
 
         let res = handle.url.split(':')[1]
         if (debug) console.log('created new instance:', res)
@@ -37,6 +44,18 @@ export async function attachServer(debug = false) {
     else {
         handle = await repo.find('automerge:' + params.get('instance'))
         if (debug) console.log('attached to instance:', params.get('instance'))
+
+        let res = {...handle.doc().mutex}
+        res[userId] = 'none'
+        handle.change(doc => { doc.mutex = res; })
+        if (debug) console.log(res)
     }
     return {repo, handle}
+}
+
+// @broofa https://stackoverflow.com/questions/105034/how-do-i-create-a-guid-uuid/2117523#2117523
+function uuidv4() {
+  return "10000000-1000-4000-8000-100000000000".replace(/[018]/g, c =>
+    (+c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> +c / 4).toString(16)
+  );
 }

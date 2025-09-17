@@ -36,6 +36,7 @@ function renderDrawing(drawing) {
 		var frameTileId = renderTileFromDrawingData(frameData, col, bgc);
 		drawingCache.render[cacheId].push(frameTileId);
 	}
+	// console.log(col, bgc, drwId, drawingFrames)
 }
 
 function renderTileFromDrawingData(drawingData, col, bgc) {
@@ -69,6 +70,8 @@ function isDrawingRendered(drawing) {
 }
 
 function getRenderedDrawingFrames(drawing) {
+	// if (drawing.name && drawing.name.includes("pick")) console.log(drawing)
+
 	var cacheId = createRenderCacheId(drawing.drw, drawing.col);
 	return drawingCache.render[cacheId];
 }

@@ -214,6 +214,8 @@ export function makeRoomTool(localization, showPanelRef) {
 		}
 
 		function pick(drawing) {
+			// console.log(tool.world.names.tile) // wrong paint tool index makes drawingCache bad
+			
 			if (drawing.type === TileType.Avatar) {
 				on_paint_avatar_ui_update();
 			}
@@ -238,8 +240,8 @@ export function makeRoomTool(localization, showPanelRef) {
 			if (drawing.type === TileType.Tile) {
 				if (!prevIsMouseDown) {
 					if (selectedRoom.tilemap[y][x] === "0") {
-						// paint with selected tile
 						curPaintTile = drawing.id;
+						// paint with selected tile
 					}
 					else {
 						// erase tiles

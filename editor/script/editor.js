@@ -793,6 +793,7 @@ export async function start() {
         Store.set("game_data", gamedataChanged)
 
 		mutex = handle.doc().mutex
+
 		on_game_data_change_core()
 		// reload_game_data(); // causes flicker
     })
@@ -1936,9 +1937,9 @@ export function on_game_data_change() {
 export function on_game_data_change_core() {
 	var gamedataStorage = Store.get("game_data");
 	bitsyLog(gamedataStorage, "editor");
+	console.log(mutex[userId])
 
-	// console.log(mutex[userId]) // FIXME: don't clobber the tool we're holding
-
+	// FIXME: don't clobber the tool we're holding
 	let roomId = roomTool?.getSelectedId() || 0,  
 		tuneId = tuneTool?.getSelectedId() || 0,
 		blipId = blipTool?.getSelectedId() || 0,
@@ -1947,10 +1948,9 @@ export function on_game_data_change_core() {
 		spriteId = sortedSpriteIdList().filter(function (id) { return id != "A"; })[spriteIndex];
 		
 	clearGameData();
+	loadWorldFromGameData(gamedataStorage); // reparse world if user directly manipulates game data
 
-	// reparse world if user directly manipulates game data
-	loadWorldFromGameData(gamedataStorage);
-
+	/*
 	if (roomTool) {
 		roomTool.selectAtIndex(roomId);
 	}
@@ -1985,6 +1985,7 @@ export function on_game_data_change_core() {
 	if (Object.keys(item).length == 0) {
 		makeItem("0");
 	}
+	*/
 
 	// refresh images
 	renderer.ClearCache();
@@ -1992,6 +1993,7 @@ export function on_game_data_change_core() {
 	// try not to clobber editor state
 	// roomIndex = 0;
 
+	/*
 	var curPaintMode = TileType.Avatar;
 	if (drawing) {
 		curPaintMode = drawing.type;
@@ -2011,6 +2013,8 @@ export function on_game_data_change_core() {
 	}
 
 	// paintTool.reloadDrawing(); // this reloads the dialog UI
+	updateInventoryUI(localization);
+   */
 
 	// FIXME: catch undefined fontName on startup
 	// if user pasted in a custom font into game data - update the stored custom font
@@ -2021,8 +2025,6 @@ export function on_game_data_change_core() {
 		};
 		Store.set('custom_font', fontStorage);
 	} */
-
-	updateInventoryUI(localization);
 
 	// TODO -- start using this for more things
 	// events.Raise("game_data_change"); // this event reloads all the panels, which we don't want

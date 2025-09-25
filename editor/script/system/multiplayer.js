@@ -20,15 +20,16 @@ export async function attachServer(debug = false) {
         storage: new IndexedDBStorageAdapter(),
         network: [new BrowserWebSocketClientAdapter("ws://localhost:3030/")],
     })
+    const params = new URLSearchParams(window.location.search);
+
     let handle
-    
-    if (!userId) {
-        userId = uuidv4();
-        Store.set('multiplayer_bitsy_user_id', userId)
+    if (params.get('instance')) {
+        handle = await repo.find('automerge:' + params.get('instance'))
+        if (debug) console.log('attached to instance:', params.get('instance'))
     }
 
-    const params = new URLSearchParams(window.location.search);
-    if (!params.get('instance')) {
+    // if there's no session here, spin one up
+    if (!handle) {
 	    var defaultData = Resources["defaultGameData.bitsy"]; // too much clutter from orphaned instances
 
         handle = repo.create()
@@ -42,13 +43,15 @@ export async function attachServer(debug = false) {
         history.pushState({}, '', `${location.pathname}?${params.toString()}${location.hash}`)
     }
     else {
-        handle = await repo.find('automerge:' + params.get('instance'))
-        if (debug) console.log('attached to instance:', params.get('instance'))
-
         let res = {...handle.doc().mutex}
         res[userId] = 'none'
         handle.change(doc => { doc.mutex = res; })
         if (debug) console.log(res)
+    }
+    
+    if (!userId) {
+        userId = uuidv4();
+        Store.set('multiplayer_bitsy_user_id', userId)
     }
     return {repo, handle}
 }

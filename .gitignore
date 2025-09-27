@@ -16,3 +16,4 @@ build/*
 cache/*
 experiments/node_modules/*
 .amrg/*
+.node-persist/*

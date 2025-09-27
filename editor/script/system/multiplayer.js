@@ -18,7 +18,7 @@ export async function attachServer(debug = false) {
     // Then set up an automerge repo (loading with our annoying WASM hack)
     const repo = new AutomergeRepo.Repo({
         storage: new IndexedDBStorageAdapter(),
-        network: [new BrowserWebSocketClientAdapter("wss://duck-composed-closely.ngrok-free.app/")],
+        network: [new BrowserWebSocketClientAdapter("http://localhost:3030")],
     })
     const params = new URLSearchParams(window.location.search);
 

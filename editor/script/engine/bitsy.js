@@ -54,7 +54,6 @@ if (engineFeatureFlags.isSoundEnabled) {
 
 // todo : this is basically a copy of the one in world.js - can I remove it?
 export function updateNamesFromCurData() {
-
 	function createNameMap(objectStore) {
 		var map = {};
 

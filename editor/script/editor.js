@@ -33,7 +33,7 @@ import { setAboutPage, initAbout } from "./tools/about.js" // FIXME
 import { localization, readUrlParameters, iconUtils, fontManager,
 	events, getPanelPrefs, showPanel, updatePanelPrefs, togglePanel, togglePanelCore } from "./editor_state.js"
 
-import { attachServer, updateText } from "./system/multiplayer.js" // FIXME
+import { attachServer, updateText, userId } from "./system/multiplayer.js" // FIXME
 
 /* MODES */
 var EditMode = {
@@ -589,16 +589,23 @@ export function setDefaultGameState() {
 }
 
 export let isPlayMode = false;
-export async function refreshGameData() {
+export let mutex = {}
+
+export async function refreshGameDataCore(component = 'none') {
 	if (isPlayMode) {
 		return; //never store game data while in playmode (TODO: wouldn't be necessary if the game data was decoupled from editor data)
 	}
-
 	flags.ROOM_FORMAT = 1; // always save out comma separated format, even if the old format is read in
 
+	console.log("refreshGameData: " + component)
+
 	var gameDataNoFonts = serializeWorld(true);
-	server.handle.change((doc) => { updateText(doc, ["bitsy"], gameDataNoFonts) });
-	// Store.set("game_data", gameDataNoFonts); // autosave triggered by change listener
+	server.handle.change((doc) => {
+		updateText(doc, ["bitsy"], gameDataNoFonts);
+		doc.mutex[userId] = component; 
+	});
+	// change listener triggers autosave, don't need to repeat
+	// Store.set("game_data", gameDataNoFonts);
 
 	// make sure to update the game tool!
 	// this ensures the game data text is up-to-date
@@ -608,6 +615,17 @@ export async function refreshGameData() {
 		gameTool.menu.update();
 	}
 }
+// josh w comeau https://stackoverflow.com/a/75988895
+const debounce = (callback, wait) => {
+  let timeoutId = null;
+  return (...args) => {
+    window.clearTimeout(timeoutId);
+    timeoutId = window.setTimeout(() => {
+      callback(...args);
+    }, wait);
+  };
+}
+export const refreshGameData = debounce((component) => refreshGameDataCore(component), 250)
 
 /* TIMER */
 function Timer() {
@@ -775,6 +793,8 @@ export async function start() {
 		var gamedataChanged = handle.doc().bitsy;
         Store.set("game_data", gamedataChanged)
 
+		mutex = handle.doc().mutex
+
 		on_game_data_change_core()
 		// reload_game_data(); // causes flicker
     })
@@ -788,6 +808,8 @@ export async function start() {
 	roomTool.rootElement.classList.add("bitsy-playmode-enable");
 	roomTool.titlebarElement.classList.add("bitsy-playmode-reverse-color");
 	roomTool.nav.element.classList.add("bitsy-playmode-hide");
+	window.roomTool = roomTool // enable automation
+
 	var curRoomLocationDiv = document.createElement("div");
 	curRoomLocationDiv.id = "curRoomLocation";
 	curRoomLocationDiv.classList.add("bitsy-playmode-show");
@@ -1038,7 +1060,7 @@ export function on_drawing_name_change() {
 	}
 
 	refreshGameData();
-	bitsyLog(names, "editor");
+	bitsyLog(newName, "editor");
 }
 
 export function on_palette_name_change(event) {
@@ -1568,7 +1590,7 @@ export function on_paint_tile_ui_update() {
 	}
 }
 
-export function on_paint_sprite() {
+export function on_paint_sprite() { // navigate to sprites through the paint dialog
 	if (sortedSpriteIdList().length > 1)
 	{
 		spriteIndex = 1;
@@ -1588,6 +1610,8 @@ export function on_paint_sprite() {
 }
 
 export function on_paint_sprite_ui_update() {
+	console.log(spriteIndex, sortedSpriteIdList()[spriteIndex], drawing.id)
+
 	document.getElementById("dialog").setAttribute("style","display:block;");
 	document.getElementById("wall").setAttribute("style","display:none;");
 	document.getElementById("animationOuter").setAttribute("style","display:block;");
@@ -1899,7 +1923,7 @@ export function reload_game_data() {
 	clearGameData();
 	loadWorldFromGameData(gamedataStorage);
 
-	events.Raise("game_data_change");
+	events.Raise("game_data_change"); // who consumes this?
 	// refreshGameData();
 }
 
@@ -1914,15 +1938,20 @@ export function on_game_data_change() {
 export function on_game_data_change_core() {
 	var gamedataStorage = Store.get("game_data");
 	bitsyLog(gamedataStorage, "editor");
+	console.log(mutex[userId])
 
+	// FIXME: don't clobber the tool we're holding
 	let roomId = roomTool?.getSelectedId() || 0,  
 		tuneId = tuneTool?.getSelectedId() || 0,
-		blipId = blipTool?.getSelectedId() || 0
+		blipId = blipTool?.getSelectedId() || 0,
+		tileId = sortedTileIdList()[tileIndex],
+		itemId = sortedItemIdList()[itemIndex],
+		spriteId = sortedSpriteIdList().filter(function (id) { return id != "A"; })[spriteIndex];
+		
 	clearGameData();
+	loadWorldFromGameData(gamedataStorage); // reparse world if user directly manipulates game data
 
-	// reparse world if user directly manipulates game data
-	loadWorldFromGameData(gamedataStorage);
-
+	/*
 	if (roomTool) {
 		roomTool.selectAtIndex(roomId);
 	}
@@ -1932,7 +1961,6 @@ export function on_game_data_change_core() {
 	if (blipTool) {
 		blipTool.selectAtIndex(blipId);
 	}
-	
 
 	if (gameTool) {
 		gameTool.menu.update();
@@ -1941,7 +1969,6 @@ export function on_game_data_change_core() {
 		markerTool.Refresh();
 	}
 
-	// FIXME: update the dialog tool (etc) without reloading DOM
 	var curPaintMode = TileType.Avatar;
 	if (drawing) {
 		curPaintMode = drawing.type;
@@ -1964,6 +1991,7 @@ export function on_game_data_change_core() {
 	if (Object.keys(item).length == 0) {
 		makeItem("0");
 	}
+	*/
 
 	// refresh images
 	renderer.ClearCache();
@@ -1971,20 +1999,28 @@ export function on_game_data_change_core() {
 	// try not to clobber editor state
 	/* roomIndex = 0;
 
+	/*
+	var curPaintMode = TileType.Avatar;
+	if (drawing) {
+		curPaintMode = drawing.type;
+	}
 	if (curPaintMode === TileType.Tile) {
-		drawing = tile[sortedTileIdList()[0]];
+		drawing = tile[tileId] || tile[sortedTileIdList()[0]];
 	}
 	else if (curPaintMode === TileType.Item) {
-		drawing = item[sortedItemIdList()[0]];
+		drawing = item[itemId] || item[sortedItemIdList()[0]];
 	}
 	else if (curPaintMode === TileType.Avatar) {
 		drawing = sprite["A"];
 	}
 	else if (curPaintMode === TileType.Sprite) {
-		drawing = sprite[sortedSpriteIdList().filter(function (id) { return id != "A"; })[0]];
-	} */
+		let ids = sortedSpriteIdList().filter(function (id) { return id != "A"; })
+		drawing = sprite[spriteId] || sprite[ids[0]];
+	}
 
 	// paintTool.reloadDrawing(); // this reloads the dialog UI
+	updateInventoryUI(localization);
+   */
 
 	// FIXME: catch undefined fontName on startup
 	// if user pasted in a custom font into game data - update the stored custom font
@@ -1995,8 +2031,6 @@ export function on_game_data_change_core() {
 		};
 		Store.set('custom_font', fontStorage);
 	} */
-
-	updateInventoryUI(localization);
 
 	// TODO -- start using this for more things
 	// events.Raise("game_data_change"); // this event reloads all the panels, which we don't want

@@ -296,7 +296,7 @@ function createNavControls(findTool, localization, options) {
 			else {
 				category.setItemName(selectedId, null);
 			}
-			refreshGameData(options.system._name);
+			refreshGameData('card '+ options.system._name);
 		},
 	});
 	navDiv.appendChild(nameInput);
@@ -380,7 +380,7 @@ function createNavControls(findTool, localization, options) {
 		onclick : function() {
 			setBitsy(options.system); // hack to use correct system
 			options.add();
-			refreshGameData(options.system._name);
+			refreshGameData('card '+ options.system._name);
 			selectAtIndex(-1);
 		},
 	});
@@ -391,7 +391,7 @@ function createNavControls(findTool, localization, options) {
 		description : "duplicate " + category.getCategoryName(),
 		onclick : function() {
 			options.duplicate(selectedId);
-			refreshGameData(options.system._name);
+			refreshGameData('card '+ options.system._name);
 			selectAtIndex(-1);
 		},
 	});
@@ -406,7 +406,7 @@ function createNavControls(findTool, localization, options) {
 			if (confirm("are you sure you want to delete this " + category.getCategoryName() + "?")) {
 				var curIndex = getCurIndex();
 				options.delete(selectedId);
-				refreshGameData(options.system._name);
+				refreshGameData('card '+ options.system._name);
 				selectAtIndex(curIndex);
 			}
 		},

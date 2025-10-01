@@ -67,7 +67,7 @@ export function DialogTool(localization, sortedDialogIdList) {
 
 		titleTextInput.onchange = function() {
 			setTitle(titleTextInput.value);
-			refreshGameData();
+			refreshGameData('dialog');
 			events.Raise("dialog_update", { dialogId:titleDialogId, editorId:editorId });
 		}
 
@@ -228,7 +228,7 @@ export function DialogTool(localization, sortedDialogIdList) {
 			if (onChange != null) {
 				onChange(dialogId);
 			}
-			refreshGameData();
+			refreshGameData('dialog');
 		}
 
 		var dialogIdSelect = document.createElement("select");
@@ -410,7 +410,7 @@ export function DialogTool(localization, sortedDialogIdList) {
 
 			dialog[dialogId].src = dialogStr;
 
-			refreshGameData();
+			refreshGameData('dialog');
 
 			events.Raise("dialog_update", { dialogId:dialogId, editorId:editorId });
 			if (didMakeNewDialog) {
@@ -499,7 +499,7 @@ export function DialogTool(localization, sortedDialogIdList) {
 
 			dialog[dialogId].src = dialogStr;
 
-			refreshGameData();
+			refreshGameData('dialog');
 
 			events.Raise("dialog_update", { dialogId:dialogId, editorId:editorId });
 		}

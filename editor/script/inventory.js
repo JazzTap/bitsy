@@ -31,7 +31,7 @@ export function updateInventoryItemUI(localization){
 				player().inventory[id] = parseFloat( event.target.value );
 			}
 			if(!isPlayMode)
-				refreshGameData();
+				refreshGameData('inventory');
 		}
 	}
 
@@ -83,7 +83,7 @@ function updateInventoryVariableUI(localization){
 			}
 			else {
 				variable[varInfo.id] = event.target.value;
-				refreshGameData();
+				refreshGameData('inventory');
 			}
 		};
 	}
@@ -104,7 +104,7 @@ function updateInventoryVariableUI(localization){
 			else {
 				variable[event.target.value] = "" + variable[varInfo.id] + "";
 				var oldId = varInfo.id;
-				setTimeout(function() {delete variable[oldId]; refreshGameData();}, 0); //hack to avoid some kind of delete race condition? (there has to be a better way)
+				setTimeout(function() {delete variable[oldId]; refreshGameData('inventory');}, 0); //hack to avoid some kind of delete race condition? (there has to be a better way)
 
 				varInfo.id = event.target.value;
 				varDiv.id = "inventoryVariable_" + varInfo.id;
@@ -120,7 +120,7 @@ function updateInventoryVariableUI(localization){
 			}
 			else {
 				delete variable[varInfo.id];
-				refreshGameData();
+				refreshGameData('inventory');
 				updateInventoryVariableUI();
 			}
 		}

@@ -102,7 +102,7 @@ export function PaintTool(canvas, menuElement) {
 			isPainting = false;
 
 			this.updateDrawingData();
-			refreshGameData();
+			refreshGameData('paint');
 
 			self.updateCanvas();
 
@@ -260,7 +260,7 @@ export function PaintTool(canvas, menuElement) {
 
 		drawing.isWall = checked;
 
-		refreshGameData();
+		refreshGameData('paint');
 
 		if (toggleWallUI != null && toggleWallUI != undefined) { // a bit hacky
 			toggleWallUI(checked);
@@ -313,6 +313,7 @@ export function PaintTool(canvas, menuElement) {
 		self.reloadDrawing(); //hack for ui consistency (hack x 2: order matters for animated tiles)
 
 		self.updateCanvas();
+		refreshGameData('paint tile');
 
 		setTileIndex(Object.keys(tile).length - 1);
 	}
@@ -326,6 +327,7 @@ export function PaintTool(canvas, menuElement) {
 		self.reloadDrawing(); //hack (order matters for animated tiles)
 
 		self.updateCanvas();
+		refreshGameData('paint sprite');
 
 		setSpriteIndex(Object.keys(sprite).length - 1);
 	}
@@ -340,6 +342,7 @@ export function PaintTool(canvas, menuElement) {
 
 		self.updateCanvas();
 		updateInventoryItemUI();
+		refreshGameData('paint item');
 
 		setItemIndex(Object.keys(item).length - 1);
 	}
@@ -359,7 +362,7 @@ export function PaintTool(canvas, menuElement) {
 				delete tile[drawing.id];
 
 				findAndReplaceTileInAllRooms(drawing.id, "0");
-				refreshGameData();
+				refreshGameData('paint tile');
 
 				nextTile();
 			}
@@ -375,7 +378,7 @@ export function PaintTool(canvas, menuElement) {
 				delete sprite[drawing.id];
 
 				deleteUnreferencedDialog(dlgId);
-				refreshGameData();
+				refreshGameData('paint sprite');
 
 				nextSprite();
 			}
@@ -391,7 +394,7 @@ export function PaintTool(canvas, menuElement) {
 
 				deleteUnreferencedDialog(dlgId);
 				removeAllItems(drawing.id);
-				refreshGameData();
+				refreshGameData('paint item');
 
 				nextItem();
 				updateInventoryItemUI();
@@ -427,7 +430,7 @@ export function PaintTool(canvas, menuElement) {
 					else {
 						drawing.blip = e.target.value;
 					}
-					refreshGameData();
+					refreshGameData('paint');
 				}
 			});
 			self.menu.pop({ control: "group" });

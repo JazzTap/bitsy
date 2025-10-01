@@ -915,11 +915,18 @@ export async function start() {
 	Store.set('engine_version', version);
 
 	// create title widgets
-	var titleTextWidgets = document.getElementsByClassName("titleWidgetContainer");
+	let titleTextWidgets = document.getElementsByClassName("titleWidgetContainer");
 	for (var i = 0; i < titleTextWidgets.length; i++) {
 		var widget = dialogTool.CreateTitleWidget();
 		titleTextWidgets[i].appendChild(widget.GetElement());
 	}
+	
+	let instanceNameWidget = document.getElementsByClassName("instanceNameContainer")[0];
+	let instanceTextInput = document.createElement("input");
+	instanceTextInput.classList.add("textInputField");
+	instanceTextInput.type = "text";
+	instanceTextInput.readOnly = true;
+	instanceNameWidget.appendChild(instanceTextInput);
 
 	// prepare dialog tool
 	openDialogTool(titleDialogId, undefined, false); // start with the title open

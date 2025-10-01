@@ -249,7 +249,7 @@ export function makeDrawing(type, id, imageData) {
 /* EVENTS */
 export function on_change_title(e) {
 	setTitle(e.target.value);
-	refreshGameData();
+	refreshGameData('title');
 
 	// make sure all editors with a title know to update
 	events.Raise("dialog_update", { dialogId:titleDialogId, editorId:null });
@@ -394,7 +394,7 @@ export function onDialogNameChange(event) {
 	else {
 		dialog[curDialogEditorId].name = null;
 	}
-	refreshGameData();
+	refreshGameData('dialog name');
 }
 
 export function nextDialog() {
@@ -459,7 +459,7 @@ export function addNewDialog() {
 	var id = nextAvailableDialogId();
 
 	dialog[id] = { src:" ", name:null };
-	refreshGameData();
+	refreshGameData('dialog new');
 
 	openDialogTool(id);
 
@@ -472,7 +472,7 @@ export function duplicateDialog() {
 	if (curDialogEditorId != null) {
 		var id = nextAvailableDialogId();
 		dialog[id] = { src: dialog[curDialogEditorId].src.slice(), name: null, id: id, };
-		refreshGameData();
+		refreshGameData('dialog dupe');
 
 		openDialogTool(id);
 
@@ -519,7 +519,7 @@ export function deleteDialog() {
 		}
 
 		delete dialog[tempDialogId];
-		refreshGameData();
+		refreshGameData('dialog delete');
 
 		alwaysShowDrawingDialog = document.getElementById("dialogAlwaysShowDrawingCheck").checked = false;
 
@@ -553,7 +553,7 @@ function reloadDialogUI() {
 			CreateFromEmptyTextBox: true,
 			OnCreateNewDialog: function(id) {
 				obj.dlg = id;
-				refreshGameData();
+				refreshGameData('dialog create');
 			},
 			GetDefaultName: function() {
 				var desc = getDrawingNameOrDescription(drawing);
@@ -842,10 +842,10 @@ export async function start() {
 	document.getElementById("colorPaletteOptionBackground").checked = true;
 	paletteTool = new PaletteTool(colorPicker,["colorPaletteLabelBackground", "colorPaletteLabelTile", "colorPaletteLabelSprite"],"paletteName");
 	events.Listen("palette_change", function(event) {
-		refreshGameData();
+		refreshGameData('palette');
 	});
 	events.Listen("palette_list_change", function(event) {
-		refreshGameData();
+		refreshGameData('palette');
 	});
 
 	if (!browserFeatures.fileDownload) {
@@ -924,8 +924,10 @@ export async function start() {
 	let instanceNameWidget = document.getElementsByClassName("instanceNameContainer")[0];
 	let instanceTextInput = document.createElement("input");
 	instanceTextInput.classList.add("textInputField");
+	instanceTextInput.style.width = "calc(100% - 15px)"
 	instanceTextInput.type = "text";
 	instanceTextInput.readOnly = true;
+	instanceTextInput.value = Store.get("instance_name")
 	instanceNameWidget.appendChild(instanceTextInput);
 
 	// prepare dialog tool
@@ -1066,7 +1068,7 @@ export function on_drawing_name_change() {
 		// renderPaintThumbnail( drawing.id ); // hacky way to update name
 	}
 
-	refreshGameData();
+	refreshGameData('drawing name');
 	bitsyLog(newName, "editor");
 }
 
@@ -1523,7 +1525,7 @@ export function roomPaletteChange(event) {
 	// hacky?
 	initRoom(state.room);
 
-	refreshGameData();
+	refreshGameData('room');
 
 	paintTool.updateCanvas();
 }
@@ -1921,7 +1923,7 @@ export function on_change_adv_dialog() {
 
 export function reload_game_data() {
 	// FIXME: why does palette revert?
-	console.log(roomTool?.selectedId, getRoomPal(roomTool?.selectedId))
+	// console.log(roomTool?.selectedId, getRoomPal(roomTool?.selectedId))
 
 	// same as core, but doesn't reset editor state
 	var gamedataStorage = Store.get("game_data");
@@ -1931,12 +1933,10 @@ export function reload_game_data() {
 	loadWorldFromGameData(gamedataStorage);
 
 	events.Raise("game_data_change"); // who consumes this?
-	// refreshGameData();
 }
 
 export function on_game_data_change() {
 	on_game_data_change_core();
-	// refreshGameData();
 
 	// reset find tool (a bit heavy handed?)
 	resetFindTool();
@@ -1945,7 +1945,7 @@ export function on_game_data_change() {
 export function on_game_data_change_core() {
 	var gamedataStorage = Store.get("game_data");
 	bitsyLog(gamedataStorage, "editor");
-	console.log(mutex[userId])
+	console.log('which tool?: ' + mutex[userId])
 
 	// FIXME: don't clobber the tool we're holding
 	let roomId = roomTool?.getSelectedId() || 0,  
@@ -2455,7 +2455,7 @@ export function addSpriteAnimation() {
 	renderer.ClearCache();
 
 	//refresh data model
-	refreshGameData();
+	refreshGameData('paint sprite');
 	paintTool.reloadDrawing();
 
 	// reset animations
@@ -2480,7 +2480,7 @@ export function removeSpriteAnimation() {
 	renderer.ClearCache();
 
 	//refresh data model
-	refreshGameData();
+	refreshGameData('paint sprite');
 	paintTool.reloadDrawing();
 
 	// reset animations
@@ -2510,7 +2510,7 @@ export function addTileAnimation() {
 	renderer.ClearCache();
 
 	//refresh data model
-	refreshGameData();
+	refreshGameData('paint tile');
 	paintTool.reloadDrawing();
 
 	// reset animations
@@ -2535,7 +2535,7 @@ export function removeTileAnimation() {
 	renderer.ClearCache();
 
 	//refresh data model
-	refreshGameData();
+	refreshGameData('paint tile');
 	paintTool.reloadDrawing();
 
 	// reset animations
@@ -2566,7 +2566,7 @@ function addItemAnimation() {
 	renderer.ClearCache();
 
 	//refresh data model
-	refreshGameData();
+	refreshGameData('paint item');
 	paintTool.reloadDrawing();
 
 	// reset animations
@@ -2591,7 +2591,7 @@ export function removeItemAnimation() {
 	renderer.ClearCache();
 
 	//refresh data model (TODO : these should really be a shared method)
-	refreshGameData();
+	refreshGameData('paint item');
 	paintTool.reloadDrawing();
 
 	// reset animations

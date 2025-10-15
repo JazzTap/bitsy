@@ -9,7 +9,7 @@ import {drawing, roomTool, findTool, getDrawingImageSource, getContrastingColor,
 	getDrawingFrameData, mobileOffsetCorrection, refreshGameData, isPlayMode, setDrawing, toggleWallUI,
 	nextSpriteId, nextTileId, nextItemId, makeSprite, makeTile, makeItem, 
 	setTileIndex, setSpriteIndex, setItemIndex, nextTile, nextSprite, nextItem,
-	copyDrawingData, findAndReplaceTileInAllRooms } from "./editor.js"
+	copyDrawingData, findAndReplaceTileInAllRooms, renderAnimationPreview } from "./editor.js"
 /*
 	PAINT
 */

@@ -173,7 +173,7 @@ export function PaintTool(canvas, menuElement) {
 		for (var x = 0; x < tilesize; x++) {
 			for (var y = 0; y < tilesize; y++) {
 				// draw alternate frame
-				if (self.isCurDrawingAnimated && curDrawingAltFrameData()[y][x] === 1) {
+				if (self.isCurDrawingAnimated && this.curDrawingAltFrameData()[y][x] === 1) {
 					ctx.globalAlpha = 0.3;
 					ctx.fillRect(x*paint_scale,y*paint_scale,1*paint_scale,1*paint_scale);
 					ctx.globalAlpha = 1;

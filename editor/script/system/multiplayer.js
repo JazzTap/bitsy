@@ -11,7 +11,7 @@ import { BrowserWebSocketClientAdapter } from "https://esm.sh/@automerge/automer
 import { Resources } from "../generated/resources.js"
 import { Store } from "../store.js"
 
-export const serverURL = "http://localhost:3030"
+export const serverURL = "https://duck-composed-closely.ngrok-free.app"
 
 export const updateText = AutomergeRepo.updateText
 export let userId = Store.get('multiplayer_bitsy_user_id')

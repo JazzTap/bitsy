@@ -11,7 +11,8 @@ import { BrowserWebSocketClientAdapter } from "https://esm.sh/@automerge/automer
 import { Resources } from "../generated/resources.js"
 import { Store } from "../store.js"
 
-export const serverURL = "https://duck-composed-closely.ngrok-free.app"
+export const DEBUG_LOCAL = true
+export const serverURL = DEBUG_LOCAL ? "http://localhost:3030" : "https://duck-composed-closely.ngrok-free.app"
 
 export const updateText = AutomergeRepo.updateText
 export let userId = Store.get('multiplayer_bitsy_user_id')
@@ -36,7 +37,7 @@ export async function attachServer(debug = false) {
     const headers = { "Content-Type": "application/json", }
     if (instanceRaw) {
         // try handle lookup by instance slug
-        let req = await fetch(`${serverURL}/api/handle`, {
+        let req = await fetchOrElse(`${serverURL}/api/handle`, {
             method: "POST",
             headers,
             body: JSON.stringify({"iid": instanceRaw})
@@ -65,7 +66,7 @@ export async function attachServer(debug = false) {
         while (true) {
             // HACK: generate new slugs until we discover a free one
             instanceName = generateSlug();
-            let req = await fetch(`${serverURL}/api/handle`, {
+            let req = await fetchOrElse(`${serverURL}/api/handle`, {
                 method: "POST",
                 headers,
                 body: JSON.stringify({"iid": instanceName})
@@ -88,7 +89,7 @@ export async function attachServer(debug = false) {
         if (debug) console.log('created new instance:', res)
 
         // tell the server our instance slug
-        fetch(`${serverURL}/api/assign`, {method: "POST", headers,
+        fetchOrElse(`${serverURL}/api/assign`, {method: "POST", headers,
             body: JSON.stringify({"handle": res, "iid": instanceName})})
     }
     else {
@@ -115,6 +116,12 @@ function uuidv4() {
   return "10000000-1000-4000-8000-100000000000".replace(/[018]/g, c =>
     (+c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> +c / 4).toString(16)
   );
+}
+
+// skip POST if DEBUG_LOCAL says we're on localhost, since CORS will fail
+function fetchOrElse(url, options) {
+    if (DEBUG_LOCAL) { return {json: () => ({}) }; }
+    return fetch(url, options)
 }
 
  const generateSlug = () => {

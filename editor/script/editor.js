@@ -960,13 +960,13 @@ export async function start() {
 
 	// game tool
 	gameTool = makeGameTool(localization);
-	// debug helper
-	testShim(gameTool);
-
-	// onclick handlers
-	bindToolDialogs();
 	// about tool
 	initAbout();
+
+	// debug helper
+	testShim(gameTool);
+	// onclick handlers
+	bindToolDialogs();
 }
 
 export function newDrawing() {

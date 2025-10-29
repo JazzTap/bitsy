@@ -91,13 +91,14 @@ export function bindToolDialogs () {
     document.querySelector("#exitOptionsToggleCheck2").addEventListener("click", (event) => toggleExitOptions(1, event.target.checked))
     document.querySelector("#exitOptionsToggleCheck1_alt").addEventListener("click", (event) => toggleExitOptions(0, event.target.checked))
 
+    document.querySelector("#showInventoryButton").addEventListener("click", showPanel("inventoryPanel", "paintPanel"))
+    document.querySelector("#showFindColors").addEventListener("click", openFindTool("PAL", "colorsPanel"))
+
     document.querySelector("#hideAbout").addEventListener("click", hidePanel("aboutPanel"))
     document.querySelector("#hideExits").addEventListener("click", hidePanel("exitsPanel"))
     document.querySelector("#hidePaint").addEventListener("click", hidePanel("paintPanel"))
-    document.querySelector("#showInventoryButton").addEventListener("click", showPanel("inventoryPanel", "paintPanel"))
     document.querySelector("#hideFind").addEventListener("click", hidePanel("findPanel"))
     document.querySelector("#hideColors").addEventListener("click", hidePanel("colorsPanel"))
-    document.querySelector("#showFindColors").addEventListener("click", openFindTool("PAL", "colorsPanel"))
     document.querySelector("#hideDialog").addEventListener("click", hidePanel("dialogPanel"))
     document.querySelector("#hideInventory").addEventListener("click", hidePanel("inventoryPanel"))
     document.querySelector("#hideGif").addEventListener("click", hidePanel("gifPanel"))

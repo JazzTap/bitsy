@@ -1,6 +1,6 @@
 import { bitsy, tilesize } from "../system/system.js";
 import { tileColorStartIndex, Note, Solfa, Tempo, maxTuneLength, ArpeggioPattern, barLength, Octave, SquareWave,
-	createTuneBarData } from "../engine/world.js"
+	createTuneData, createTuneBarData } from "../engine/world.js"
 import { SoundPlayer } from "../engine/sound.js";
 import { tune, blip, updatePaletteWithTileColors, setTile, serializeNote } from "../engine/bitsy.js";
 

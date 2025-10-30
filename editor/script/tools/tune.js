@@ -1,12 +1,14 @@
 import { bitsy, tilesize } from "../system/system.js";
-import { tileColorStartIndex, Note, Solfa, maxTuneLength, ArpeggioPattern, barLength, Octave,
+import { tileColorStartIndex, Note, Solfa, Tempo, maxTuneLength, ArpeggioPattern, barLength, Octave, SquareWave,
 	createTuneBarData } from "../engine/world.js"
 import { SoundPlayer } from "../engine/sound.js";
-import { tune, updatePaletteWithTileColors, setTile, serializeNote } from "../engine/bitsy.js";
+import { tune, blip, updatePaletteWithTileColors, setTile, serializeNote } from "../engine/bitsy.js";
 
+import { makeBlipTile } from "./blip.js";
 import { makeToolCard } from "../card.js"
 import { localization } from "../editor_state.js";
-import { grabCard, findTool, togglePanelAnimated, refreshGameData, isPlayMode, nextObjectId, sortedBase36IdList } from "../editor.js"
+import { grabCard, findTool, blipTool, togglePanelAnimated, refreshGameData,
+	isPlayMode, nextObjectId, sortedBase36IdList } from "../editor.js"
 
 export function makeTuneTool() {
 	return makeToolCard("tune", grabCard, findTool, localization, togglePanelAnimated, function(tool) {
@@ -1268,7 +1270,7 @@ export function makeTuneTool() {
 
 			// arpeggio pattern
 			if (tonic.beats > 0) {
-				var arpeggioSteps = soundPlayer.getArpeggioSteps(tune[curTuneId]);
+				var arpeggioSteps = tool.soundPlayer.getArpeggioSteps(tune[curTuneId]);
 				for (var i = 0; i < arpeggioSteps.length; i++) {
 					var noteIndex = key.notes[arpeggioSteps[i] % Solfa.COUNT];
 					if (arpeggioSteps[i] >= Solfa.COUNT) {

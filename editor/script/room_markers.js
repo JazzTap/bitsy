@@ -3,6 +3,7 @@ import {scale, mapsize} from "./system/system.js"
 import { room } from "./engine/bitsy.js"
 import { createExitData, createEndingData } from "./engine/world.js"
 import { clamp, deleteUnreferencedDialog } from "./util.js"
+import { selectRoom } from "./editor.js"
 
 import {iconUtils, events, localization} from "./editor_state.js"
 import {createRoomThumbnailRenderer, getContrastingColor, refreshGameData,
@@ -104,7 +105,7 @@ export function RoomMarkerTool(markerCanvas1, markerCanvas2) {
 
 		markerList = GatherMarkerList();
 		SelectMarker(markerList.find(function(m) { return m.type == MarkerType.Exit && m.exit == newExit; }));
-		refreshGameData();
+		refreshGameData('marker add');
 	};
 
 	this.AddEnding = function() {
@@ -122,7 +123,7 @@ export function RoomMarkerTool(markerCanvas1, markerCanvas2) {
 
 		markerList = GatherMarkerList();
 		SelectMarker(markerList.find(function(m) { return m.type == MarkerType.Ending && m.ending == newEnding; }));
-		refreshGameData();
+		refreshGameData('marker add');
 	}
 
 	// todo : handle two-way exits (and collisions!)
@@ -146,7 +147,7 @@ export function RoomMarkerTool(markerCanvas1, markerCanvas2) {
 
 			markerList = GatherMarkerList();
 			SelectMarker(markerList.find(function(m) { return m.type == MarkerType.Exit && m.exit == newExit; }));
-			refreshGameData();
+			refreshGameData('marker dupe');
 		}
 		else if (curMarker.type === MarkerType.Ending) {
 			var newEnding = copyEndingData(curMarker.ending);
@@ -163,7 +164,7 @@ export function RoomMarkerTool(markerCanvas1, markerCanvas2) {
 
 			markerList = GatherMarkerList();
 			SelectMarker(markerList.find(function(m) { return m.type == MarkerType.Ending && m.ending == newEnding; }));
-			refreshGameData();
+			refreshGameData('marker dupe');
 		}
 	}
 
@@ -340,7 +341,7 @@ export function RoomMarkerTool(markerCanvas1, markerCanvas2) {
 								input.value,
 								curPos.x,
 								curPos.y);
-							refreshGameData();
+							refreshGameData('marker place');
 							RenderMarkerSelection();
 						}
 					}(i, editRoomSelect);
@@ -355,7 +356,7 @@ export function RoomMarkerTool(markerCanvas1, markerCanvas2) {
 								curPos.room,
 								parseInt(input.value),
 								curPos.y);
-							refreshGameData();
+							refreshGameData('marker place');
 							RenderMarkerSelection();
 						}
 					}(i, editPosX);
@@ -370,7 +371,7 @@ export function RoomMarkerTool(markerCanvas1, markerCanvas2) {
 								curPos.room,
 								curPos.x,
 								parseInt(input.value));
-							refreshGameData();
+							refreshGameData('marker place');
 							RenderMarkerSelection();
 						}
 					}(i, editPosY);
@@ -553,7 +554,7 @@ export function RoomMarkerTool(markerCanvas1, markerCanvas2) {
 			{
 				OnCreateNewDialog : function(id) {
 					exit.dlg = id;
-					refreshGameData();
+					refreshGameData('marker text');
 				},
 				Presets : [
 					{
@@ -600,7 +601,7 @@ export function RoomMarkerTool(markerCanvas1, markerCanvas2) {
 
 		var exit = (exitIndex == 1 && curMarker.hasReturn) ? curMarker.return : curMarker.exit;
 		exit.transition_effect = effectId === "none" ? null : effectId;
-		refreshGameData();
+		refreshGameData('marker transition');
 	}
 
 	this.ToggleExitOptions = function(exitIndex, visibility) {
@@ -633,7 +634,7 @@ export function RoomMarkerTool(markerCanvas1, markerCanvas2) {
 
 		markerList = GatherMarkerList();
 		SelectMarker(markerList.length > 0 ? markerList[0] : null);
-		refreshGameData();
+		refreshGameData('marker remove');
 	}
 
 	this.IsPlacingMarker = function () {
@@ -772,7 +773,7 @@ export function RoomMarkerTool(markerCanvas1, markerCanvas2) {
 	this.PlaceMarker = function(x, y) {
 		if (curMarker != null) {
 			curMarker.PlaceMarker(placementMode,selectedRoom,x,y);
-			refreshGameData();
+			refreshGameData('marker place');
 			ResetMarkerList();
 		}
 
@@ -935,7 +936,7 @@ export function RoomMarkerTool(markerCanvas1, markerCanvas2) {
 		if (dragMarker != null) {
 			dragMarker.EndDrag();
 			dragMarker = null;
-			refreshGameData();
+			refreshGameData('marker place');
 			RenderMarkerSelection();
 		}
 	}
@@ -953,7 +954,7 @@ export function RoomMarkerTool(markerCanvas1, markerCanvas2) {
 		if (curMarker != null && curMarker.type == MarkerType.Exit) {
 			curMarker.ChangeLink();
 
-			refreshGameData();
+			refreshGameData('marker swap');
 			RenderMarkerSelection();
 		}
 	}

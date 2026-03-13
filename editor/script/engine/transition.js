@@ -1,5 +1,6 @@
-import { getPal } from "./bitsy.js";
+import { getPal, player, room, tile, renderer, sprite, updatePaletteWithTileColors } from "./bitsy.js"
 import { tileColorStartIndex } from "./world.js"
+import { bitsy } from "../system/system.js"
 
 export var TransitionManager = function() {
 	var transitionStart = null;
@@ -381,8 +382,8 @@ export var TransitionManager = function() {
 		}
 
 		//draw tiles
-		for (i in room.tilemap) {
-			for (j in room.tilemap[i]) {
+		for (let i in room.tilemap) {
+			for (let j in room.tilemap[i]) {
 				var id = room.tilemap[i][j];
 				var x = parseInt(j);
 				var y = parseInt(i);
@@ -412,7 +413,7 @@ export var TransitionManager = function() {
 		}
 
 		//draw sprites
-		for (id in sprite) {
+		for (let id in sprite) {
 			var spr = sprite[id];
 			if (spr.room === room.id) {
 				drawTileInPixelBuffer(

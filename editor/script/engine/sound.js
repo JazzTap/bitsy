@@ -1,6 +1,6 @@
 import { bitsy } from "../system/system.js";
-import { serializeNote } from "./bitsy.js";
-import { Tempo, ArpeggioPattern, Note, Octave, Solfa } from "./world.js"
+import { blip, serializeNote } from "./bitsy.js";
+import { Tempo, ArpeggioPattern, Note, Octave, Solfa } from "./world.js";
 
 /* PITCH HELPER FUNCTIONS */
 export function pitchToSteps(pitch) {

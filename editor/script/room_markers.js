@@ -6,8 +6,8 @@ import { clamp, deleteUnreferencedDialog } from "./util.js"
 import { selectRoom } from "./editor.js"
 
 import {iconUtils, events, localization} from "./editor_state.js"
-import {createRoomThumbnailRenderer, getContrastingColor, refreshGameData,
-	sortedRoomIdList, dialogTool, nextAvailableDialogId } from "./editor.js"
+import {createRoomThumbnailRenderer, CreateDefaultName, getContrastingColor, refreshGameData,
+	selectRoom, sortedRoomIdList, dialogTool, nextAvailableDialogId } from "./editor.js"
 
 export function RoomMarkerTool(markerCanvas1, markerCanvas2) {
 	var selectedRoom = null;

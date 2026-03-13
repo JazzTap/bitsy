@@ -104,7 +104,7 @@ export function ThumbnailRenderer(sprite) {
 
 		var hexPalette = [];
 		var roomColors = getPal(palId);
-		for (i in roomColors) {
+		for (let i in roomColors) {
 			var hexStr = rgbToHex(roomColors[i][0], roomColors[i][1], roomColors[i][2]).slice(1);
 			hexPalette.push(hexStr);
 		}

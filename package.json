@@ -14,7 +14,7 @@
 	"scripts": {
         "test": "node ./dev/test_simultaneous_edits.cjs",
 		"client": "npx http-server ./editor/",
-		"server": "npx @automerge/automerge-repo-sync-server",
+		"server": "node ./automerge-repo-sync-server/src/index.js",
 		"dev": "concurrently \"npm run client\" \"npm run server\" "
 	}
 }

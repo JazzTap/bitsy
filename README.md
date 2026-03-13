@@ -10,10 +10,9 @@ cd automerge-repo-sync-server
 npm install
 cd ..
 npm install
-npm run client && server
+npm run dev
 ```
 Open the client at `localhost:8080`. Server runs on `localhost:3000` by default.
-If using Powershell instead of Bash, substitute `npm run dev`.
 
 The address bar will now have your instance string, e.g.  
 `http://localhost:8080/?instance=4CDQ9qsgqS4bQ1gfxUwFhy8q5WHX`  

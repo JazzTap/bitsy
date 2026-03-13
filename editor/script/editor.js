@@ -1,4 +1,4 @@
-import { TileType, labelElementFactory, rgbToHex, rgbToHsl, getDrawingNameOrDescription } from "./util.js"
+import { TileType, labelElementFactory, rgbToHex, rgbToHsl, getDrawingDialogId, getDrawingNameOrDescription } from "./util.js"
 import { initSystem, bitsyLog, tilesize, scale, mapsize, width, attachCanvas, loadGame, quitGame } from "./system/system.js"
 import { Resources } from "./generated/resources.js"
 
@@ -960,13 +960,13 @@ export async function start() {
 
 	// game tool
 	gameTool = makeGameTool(localization);
-	// debug helper
-	testShim(gameTool);
-
-	// onclick handlers
-	bindToolDialogs();
 	// about tool
 	initAbout();
+
+	// debug helper
+	testShim(gameTool);
+	// onclick handlers
+	bindToolDialogs();
 }
 
 export function newDrawing() {
@@ -2963,7 +2963,7 @@ export function CreateDefaultName(defaultNamePrefix, objectStore, ignoreNumberIf
 
 	var nameCount = ignoreNumberIfFirstName ? -1 : 0; // hacky :(
 	for (let id in objectStore) {
-		if (objectStore[id].name) {
+		if (objectStore[id]?.name) {
 			if (objectStore[id].name.indexOf(defaultNamePrefix) === 0) {
 				var nameCountStr = objectStore[id].name.slice(defaultNamePrefix.length);
 

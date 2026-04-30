@@ -56,6 +56,14 @@ body {
 }
 
 /* canvas */
+#pointerOverlay {
+  position: absolute;
+  z-index: 2;
+  pointer-events: none;
+  margin-bottom: 0;
+  height: 100%;
+}
+
 canvas {
 	width: 100%;
 	margin-bottom: var(--bitsy-space-s);
@@ -97,7 +105,7 @@ textarea {
 	background: black;
 	color: white;
 	resize: none;
-	border: none
+	border: none;
 	padding: var(--bitsy-space-s);
 	border-radius: var(--bitsy-space-xs);
 	flex-grow: 1;

@@ -641,6 +641,12 @@ function Timer() {
 }
 
 var editMode = EditMode.Edit; // TODO : move to core.js?
+const editorWindow = document.querySelector("#editorWindow")
+
+/* MULTIPLAYER */
+export let server
+export let copresenceContext
+export const peerCursors = {}
 
 /* TOOL CONTROLLERS */
 export let roomTool;
@@ -739,7 +745,6 @@ export function resetFindTool() {
 	});
 }
 
-export let server
 export async function start() {
 	initSystem();
 
@@ -750,6 +755,9 @@ export async function start() {
 		openDialogTool(titleDialogId, /*insertNextToId*/ null, /*showIfHidden*/ false);
 	});
 	detectBrowserFeatures();
+
+	resizeCanvasOverlay()
+	copresenceContext = document.getElementById('pointerOverlay').getContext('2d');
 
 	// enable multiplayer editing
 	server = await attachServer(true)
@@ -798,6 +806,45 @@ export async function start() {
 		on_game_data_change_core()
 		// reload_game_data(); // causes flicker
     })
+	
+	const cursorIcon = bakeCursor()
+    handle.on("ephemeral-message", ({handle, senderId, message}) => {
+		let ctx = copresenceContext
+
+		// HACK: initialize peers on connection, not in the mousemove handler
+		let u = peerCursors[senderId]
+		if (u === undefined) {
+			let randomColor = '#000'
+			console.log('saw peer with color ' + handle[senderId])
+			if (!handle[senderId])
+				handle[senderId] = randomColor
+			peerCursors[senderId] = {color: handle[senderId]};
+		}
+		peerCursors[senderId].mouseX = message.mouseX;
+		peerCursors[senderId].mouseY = message.mouseY;
+		peerCursors[senderId].age = 0;
+
+		// clear out timed-out peers
+		for (let i in peerCursors) {
+			if (peerCursors[i].age > 500)
+				delete peerCursors[i]
+		}
+
+		ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+		ctx.fillStyle = '#fff'
+		for (let i in peerCursors) {
+			let msg = peerCursors[i]
+			++msg.age;
+			ctx.strokeStyle = msg.color;
+
+			ctx.save();
+			ctx.translate(msg.mouseX - editorWindow.scrollLeft,
+							msg.mouseY - editorWindow.scrollTop);
+			ctx.fill(cursorIcon);
+			ctx.stroke(cursorIcon); // TODO: set color
+			ctx.restore();
+		}
+	})
 
 	// now world data like `sprite` and `tile` is loaded
 	// let's make the find tool so that tool cards can use it
@@ -968,6 +1015,27 @@ export async function start() {
 	// onclick handlers
 	bindToolDialogs();
 }
+
+function bakeCursor(scale = 1) {
+  const p = new Path2D();
+  p.moveTo(0, 0);           // tip (hotspot)
+  p.lineTo(0, 16 * scale);  // left edge bottom
+  p.lineTo(4 * scale, 12 * scale);  // inner notch
+  p.lineTo(7 * scale, 18 * scale);  // stylus tip
+  p.lineTo(9 * scale, 17 * scale);  // stylus right
+  p.lineTo(6 * scale, 11 * scale);  // back to body
+  p.lineTo(11 * scale, 11 * scale); // right shoulder
+  p.closePath();
+  return p;
+}
+
+
+function resizeCanvasOverlay() {
+	let canvas = document.getElementById('pointerOverlay')
+	canvas.width = window.innerWidth;
+	canvas.height = window.innerHeight;
+}
+window.addEventListener('resize', resizeCanvasOverlay, false)
 
 export function newDrawing() {
 	paintTool.newDrawing();
@@ -2754,7 +2822,7 @@ export function panel_onMouseMove(e) {
 
 	bitsyLog("********", "editor")
 }
-document.addEventListener("mousemove",panel_onMouseMove);
+document.addEventListener("mousemove", panel_onMouseMove);
 
 export function panel_onMouseUp(e) {
 	if (grabbedPanel.card == null) return;
@@ -2799,7 +2867,7 @@ export function getElementSize(e) { /* gets visible size */
 }
 
 // sort of a hack to avoid accidentally activating backpage and nextpage while scrolling through editor panels 
-function blockScrollBackpage(e) {
+export function blockScrollBackpage(e) {
 	var el = document.getElementById("editorWindow");
 	var maxX = el.scrollWidth - el.offsetWidth;
 
@@ -2809,6 +2877,16 @@ function blockScrollBackpage(e) {
 	// 	el.scrollLeft = Math.max(0, Math.min(maxX, el.scrollLeft + event.deltaX));
 	// }
 }
+
+// show other peoples' cursors in multiplayer
+export function cursorOverlay(e) {	
+	server.handle.broadcast({
+		mouseX: e.pageX + editorWindow.scrollLeft,
+		mouseY: e.pageY + editorWindow.scrollTop
+	})
+
+}
+document.addEventListener("mousemove", cursorOverlay)
 
 
 export function toggleDialogCode(e) {

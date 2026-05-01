@@ -2,7 +2,7 @@ import { TileType, labelElementFactory, rgbToHex, rgbToHsl, getDrawingDialogId, 
 import { initSystem, bitsyLog, tilesize, scale, mapsize, width, attachCanvas, loadGame, quitGame } from "./system/system.js"
 import { Resources } from "./generated/resources.js"
 
-import { clearGameData, getPal, getRoomPal, animationTime, initRoom,
+import { clearGameData, getPal, getRoomPal, animationTime, initRoom, soundPlayer,
 	curDefaultPal, sprite, tile, room, item, renderer, state, dialog, palette, flags,
 	setInventoryCallback, setVariableCallback, setGameResetCallback, setInitRoomCallback, textDirection,
 	loadWorldFromGameData, serializeWorld, updateNamesFromCurData, resetAllAnimations } from "./engine/bitsy.js"

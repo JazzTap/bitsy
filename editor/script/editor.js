@@ -821,9 +821,13 @@ export async function start() {
 				handle[senderId] = randomColor
 			peerCursors[senderId] = {color: handle[senderId]};
 		}
-		peerCursors[senderId].mouseX = message.mouseX;
-		peerCursors[senderId].mouseY = message.mouseY;
-		peerCursors[senderId].age = 0;
+
+		// update this peer's cursor ghost
+		if (message.type == "mousemove") {
+			u.mouseX = message.mouseX;
+			u.mouseY = message.mouseY;
+			u.age = 0;
+		}
 
 		// clear out timed-out peers
 		for (let i in peerCursors) {
@@ -831,18 +835,31 @@ export async function start() {
 				delete peerCursors[i]
 		}
 
+		// redraw cursors
 		ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
 		ctx.fillStyle = '#fff'
+
+		if (message.type == "mousedown") {
+			ctx.save()
+			ctx.fillStyle = '#ffa7'
+			ctx.translate(u.mouseX - editorWindow.scrollLeft,
+							u.mouseY - editorWindow.scrollTop);
+			ctx.beginPath()
+			ctx.arc(0, 0, 10, 0, 2*Math.PI)
+			ctx.fill()
+			ctx.restore()
+		}
+
 		for (let i in peerCursors) {
 			let msg = peerCursors[i]
 			++msg.age;
-			ctx.strokeStyle = msg.color;
+			ctx.strokeStyle = msg.color; // always black
 
 			ctx.save();
 			ctx.translate(msg.mouseX - editorWindow.scrollLeft,
 							msg.mouseY - editorWindow.scrollTop);
 			ctx.fill(cursorIcon);
-			ctx.stroke(cursorIcon); // TODO: set color
+			ctx.stroke(cursorIcon);
 			ctx.restore();
 		}
 	})
@@ -2891,12 +2908,20 @@ export function blockScrollBackpage(e) {
 // show other peoples' cursors in multiplayer
 export function cursorOverlay(e) {	
 	server.handle.broadcast({
+		type: "mousemove",
 		mouseX: e.pageX + editorWindow.scrollLeft,
 		mouseY: e.pageY + editorWindow.scrollTop
+	})
+}
+export function cursorDownOverlay(e) {
+	server.handle.broadcast({
+		type: "mousedown",
+		target: e.target
 	})
 
 }
 document.addEventListener("mousemove", cursorOverlay)
+document.addEventListener("mousedown", cursorDownOverlay)
 
 
 export function toggleDialogCode(e) {

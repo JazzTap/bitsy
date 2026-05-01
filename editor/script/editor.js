@@ -642,6 +642,7 @@ function Timer() {
 
 var editMode = EditMode.Edit; // TODO : move to core.js?
 const editorWindow = document.querySelector("#editorWindow")
+let instanceTextInput
 
 /* MULTIPLAYER */
 export let server
@@ -969,7 +970,7 @@ export async function start() {
 	}
 	
 	let instanceNameWidget = document.getElementsByClassName("instanceNameContainer")[0];
-	let instanceTextInput = document.createElement("input");
+	instanceTextInput = document.createElement("input");
 	instanceTextInput.classList.add("textInputField");
 	instanceTextInput.style.width = "calc(100% - 15px)"
 	instanceTextInput.type = "text";
@@ -1029,13 +1030,22 @@ function bakeCursor(scale = 1) {
   return p;
 }
 
-
 function resizeCanvasOverlay() {
 	let canvas = document.getElementById('pointerOverlay')
 	canvas.width = window.innerWidth;
 	canvas.height = window.innerHeight;
 }
 window.addEventListener('resize', resizeCanvasOverlay, false)
+
+export function copyInstanceURL() {
+    navigator.clipboard.writeText(`${location.origin}${location.pathname}?instance=${Store.get("instance_name")}`)
+    instanceTextInput.value = "Copied instance URL!"
+	this.readOnly = true
+	setTimeout(() => {
+		instanceTextInput.value = Store.get("instance_name")
+		this.readOnly = false
+	}, 1000);
+}
 
 export function newDrawing() {
 	paintTool.newDrawing();

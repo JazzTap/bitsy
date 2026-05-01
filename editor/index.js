@@ -6,7 +6,7 @@ import {start,
     openFindToolWithCurrentPaintCategory, togglePaintGrid, on_paint_frame1, on_paint_frame2, prevPalette, nextPalette, newPalette,
     duplicatePalette, deletePalette, changeColorPickerIndex, prevDialog, nextDialog, addNewDialog, duplicateDialog, deleteDialog, openFindTool,
     toggleAlwaysShowDrawingDialog, showInventoryItem, showInventoryVariable, startRecordingGif, stopRecordingGif, takeSnapshotGif, toggleSnapshotMode,
-    toggleExitOptions, grabCard, onDialogNameChange, onChangeExitTransitionEffect, blockScrollBackpage,
+    toggleExitOptions, grabCard, onDialogNameChange, onChangeExitTransitionEffect, blockScrollBackpage, copyInstanceURL,
     on_drawing_name_change, on_toggle_wall, on_toggle_animated, on_palette_name_change
 } from "./script/editor.js"
 import {aboutOpenTab} from "./script/tools/about.js"
@@ -119,4 +119,6 @@ export function bindToolDialogs () {
     document.querySelector("#wallCheckbox").addEventListener("change", on_toggle_wall)
     document.querySelector("#animatedCheckbox").addEventListener("change", on_toggle_animated)
     document.querySelector("#paletteName").addEventListener("change", on_palette_name_change)
+
+    document.querySelector("#instanceNameCopy").addEventListener("click", copyInstanceURL)
 }

@@ -11,7 +11,8 @@ import { drawGrid } from "../paint.js"
 import { MarkerType, LinkState } from "../room_markers.js"
 import { grabCard, findTool, markerTool, paintTool, isPlayMode, nextObjectId, sortedBase36IdList, sortedPaletteIdList, sortedRoomIdList,
 	togglePanelAnimated, getContrastingColor, isColorDark, isSnapshotInProgress, refreshGameData,
-	on_paint_sprite_ui_update, on_paint_avatar_ui_update, on_paint_tile_ui_update, on_paint_item_ui_update } from "../editor.js"
+	on_paint_sprite_ui_update, on_paint_avatar_ui_update, on_paint_tile_ui_update, on_paint_item_ui_update,
+	CreateDefaultName } from "../editor.js"
 import { getPanelSetting, setPanelSetting } from "../editor_state.js"
 
 export function makeRoomTool(localization, showPanelRef) {

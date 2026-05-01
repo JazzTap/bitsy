@@ -5,7 +5,7 @@ import { Resources } from "./generated/resources.js"
 import { clearGameData, getPal, getRoomPal, animationTime, initRoom,
 	curDefaultPal, sprite, tile, room, item, renderer, state, dialog, palette, flags,
 	setInventoryCallback, setVariableCallback, setGameResetCallback, setInitRoomCallback, textDirection,
-	loadWorldFromGameData, serializeWorld, updateNamesFromCurData } from "./engine/bitsy.js"
+	loadWorldFromGameData, serializeWorld, updateNamesFromCurData, resetAllAnimations } from "./engine/bitsy.js"
 import { titleDialogId, version, defaultFontName,
 	createDrawingData, createExitData, createEndingData} from "./engine/world.js"
 
@@ -808,6 +808,11 @@ export async function start() {
 		// reload_game_data(); // causes flicker
     })
 	
+	// share my cursor
+	document.addEventListener("mousemove", cursorOverlay)
+	document.addEventListener("mousedown", cursorDownOverlay)
+
+	// render shared cursors
 	const cursorIcon = bakeCursor()
     handle.on("ephemeral-message", ({handle, senderId, message}) => {
 		let ctx = copresenceContext
@@ -2918,10 +2923,7 @@ export function cursorDownOverlay(e) {
 		type: "mousedown",
 		target: e.target
 	})
-
 }
-document.addEventListener("mousemove", cursorOverlay)
-document.addEventListener("mousedown", cursorDownOverlay)
 
 
 export function toggleDialogCode(e) {

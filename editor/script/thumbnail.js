@@ -2,7 +2,9 @@ import {TileType, labelElementFactory, rgbToHex} from "./util.js"
 import {gif} from "./gif.js"
 
 import {bitsyLog, tilesize, scale} from "./system/system.js"
-import { state, room, getPal, getRoomPal, animationTime } from "./engine/bitsy.js";
+import { state, room, item, tile, getPal, getRoomPal, animationTime,
+	getSpriteFrame, getItemFrame, getTileFrame
+ } from "./engine/bitsy.js";
 import { roomTool, getDrawingImageSource } from "./editor.js";
 
 // renders a tile to canvas (kind of hackily recreates some of the TileRenderer logic - oh well)
@@ -299,7 +301,6 @@ export function ThumbnailControl(iconUtils, options) {
 	this.LoadThumbnailImage = function() {
 		if (id && renderer) {
 			var entry = renderer.GetCacheEntry(id);
-
 			if (entry.uri != null) {
 				renderOptions.callback(entry.uri);
 			}

@@ -10,8 +10,9 @@ import {start,
     on_drawing_name_change, on_toggle_wall, on_toggle_animated, on_palette_name_change
 } from "./script/editor.js"
 import {aboutOpenTab} from "./script/tools/about.js"
-import {showPanel, hidePanel} from "./script/editor_state.js"
+import {showPanel, hidePanel, loadIcons} from "./script/editor_state.js"
 
+loadIcons()
 start()
 
 export function testShim (gameTool) {

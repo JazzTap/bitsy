@@ -46,16 +46,17 @@ export function readUrlParameters() {
 
 /* ICONS */
 export let iconUtils = new IconUtils()
+export function loadIcons() {
+	// load icons and replace placeholder elements
+	var elements = document.getElementsByClassName("bitsy_icon");
+	for(var i = 0; i < elements.length; i++) {
+		iconUtils.LoadIcon(elements[i]);
+	}
 
-// load icons and replace placeholder elements
-var elements = document.getElementsByClassName("bitsy_icon");
-for(var i = 0; i < elements.length; i++) {
-	iconUtils.LoadIcon(elements[i]);
-}
-
-var elements = document.getElementsByClassName("bitsy_icon_anim");
-for(var i = 0; i < elements.length; i++) {
-	iconUtils.LoadIconAnimated(elements[i]);
+	var elements = document.getElementsByClassName("bitsy_icon_anim");
+	for(var i = 0; i < elements.length; i++) {
+		iconUtils.LoadIconAnimated(elements[i]);
+	}
 }
 
 /* EVENTS */

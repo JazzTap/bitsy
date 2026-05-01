@@ -1,4 +1,4 @@
-import { initRoom } from "./bitsy.js";
+import { initRoom, names } from "./bitsy.js";
 import { bitsy } from "../system/system.js";
 import { events, isPlayerEmbeddedInEditor } from "../editor_state.js"
 

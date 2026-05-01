@@ -1,4 +1,6 @@
-import {Resources} from "./generated/resources.js"
+import { Resources } from "./generated/resources.js"
+import { fontManager } from "../script/editor_state.js"
+import { browserFeatures, makeURL } from "../script/editor.js"
 
 export function Exporter() {
 
@@ -142,7 +144,7 @@ this.importGame = function( html ) {
 
 } // Exporter()
 
-var ExporterUtils = {
+export var ExporterUtils = {
 	DownloadFile : function(filename, text) {
 
 		if( browserFeatures.blobURL ) {

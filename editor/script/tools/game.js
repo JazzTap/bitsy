@@ -1,11 +1,13 @@
 import { fontName, setFont, serializeWorld } from "../engine/bitsy.js";
 import { makeToolCard } from "../card.js"
 import { Store } from "../store.js";
-import { flags, setTextDirection } from "../engine/bitsy.js";
+import { flags, setTextDirection, getTitle } from "../engine/bitsy.js";
 import { TextDirection } from "../engine/world.js";
 import { bitsy, bitsyLog } from "../system/system.js";
+import { ExporterUtils } from "../exporter.js"
 
-import { server, grabCard, findTool, togglePanelAnimated, refreshGameData, setDefaultGameState, updateEditorTextDirection} from "../editor.js"
+import { server, grabCard, findTool, togglePanelAnimated, refreshGameData,
+	setDefaultGameState, updateEditorTextDirection, exporter} from "../editor.js"
 import { fontManager } from "../editor_state.js";
 import { updateText } from "../system/multiplayer.js";
 
@@ -224,11 +226,18 @@ export function makeGameTool(localization) {
 		}
 
 		window.newGameDialog = function newGameDialog() {
-			var resetMessage = localization.GetStringOrFallback("reset_game_message", "Starting a new game will erase your old data. Consider exporting your work first! Are you sure you want to start over?");
+			// TODO: extend localization to multiplayer Bitsy features
+			// localization.getStringOrFallback("reset_game_message", ...)
+			var resetMessage = "Save this URL if you want to find this instance again. Really start a new instance?";
 			// todo : move the confirm dialog into tool.menu code?
 			if (confirm(resetMessage)) {
 				// todo : move into file.js
-				resetGameData();
+				// resetGameData();
+
+    			const url = new URL(window.location.href);
+        		url.searchParams.delete('instance');
+				window.history.pushState({}, document.title, url);
+				location.reload();
 			}
 		}
 

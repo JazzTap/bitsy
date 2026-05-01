@@ -666,7 +666,7 @@ export function setItemIndex(idx) { itemIndex = idx; }
 var roomIndex = 0;
 
 /* BROWSER COMPATIBILITY */
-var browserFeatures = {
+export var browserFeatures = {
 	colorPicker : false,
 	fileDownload : false,
 	blobURL : false
@@ -677,8 +677,8 @@ var gifencoder = new gif();
 var gifFrameData = [];
 
 /* EXPORT HTML */
-var makeURL = null;
-var exporter = new Exporter();
+export var makeURL = null;
+export var exporter = new Exporter();
 
 function detectBrowserFeatures() {
 	bitsyLog("BROWSER FEATURES", "editor");

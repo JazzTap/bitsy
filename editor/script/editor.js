@@ -804,8 +804,8 @@ export async function start() {
 
 		mutex = handle.doc().mutex
 
-		on_game_data_change_core()
-		// reload_game_data(); // causes flicker
+		// on_game_data_change_core()
+		reload_game_data(); // causes flicker
     })
 	
 	// share my cursor
@@ -2024,12 +2024,14 @@ export function on_change_adv_dialog() {
 export function reload_game_data() {
 	// FIXME: why does palette revert?
 	// console.log(roomTool?.selectedId, getRoomPal(roomTool?.selectedId))
+	console.log("reload_game_data")
 
 	// same as core, but doesn't reset editor state
 	var gamedataStorage = Store.get("game_data");
 	bitsyLog(gamedataStorage, "editor");
 	
 	clearGameData();
+	renderer.ClearCache();
 	loadWorldFromGameData(gamedataStorage);
 
 	events.Raise("game_data_change"); // who consumes this?
@@ -2045,6 +2047,7 @@ export function on_game_data_change() {
 export function on_game_data_change_core() {
 	var gamedataStorage = Store.get("game_data");
 	bitsyLog(gamedataStorage, "editor");
+	console.log("on_game_data_change_core")
 	console.log('which tool?: ' + mutex[userId])
 
 	// FIXME: don't clobber the tool we're holding

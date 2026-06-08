@@ -1,5 +1,6 @@
 import {bitsy} from "../system/system.js"
 import {Script} from "./script.js"
+import { fontManager } from "../editor_state.js";
 
 /* BITSY VERSION */
 // is this the right place for this to live?

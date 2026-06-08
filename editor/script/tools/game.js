@@ -1,14 +1,15 @@
-import { fontName, setFont, serializeWorld } from "../engine/bitsy.js";
 import { makeToolCard } from "../card.js"
 import { Store } from "../store.js";
-import { flags, setTextDirection, getTitle } from "../engine/bitsy.js";
+import { fontName, setFont, serializeWorld, flags, setTextDirection, getTitle, setTitle } from "../engine/bitsy.js";
 import { TextDirection } from "../engine/world.js";
 import { bitsy, bitsyLog } from "../system/system.js";
 import { ExporterUtils } from "../exporter.js"
 
-import { server, grabCard, findTool, togglePanelAnimated, refreshGameData,
-	setDefaultGameState, updateEditorTextDirection, exporter} from "../editor.js"
+import { server, grabCard, findTool, togglePanelAnimated, refreshGameData, reloadDialogUI,
+	setDefaultGameState, updateEditorTextDirection, exporter, updateEditorLanguageStyle,
+	hackUpdatePlaceholderText, hackUpdateEditorToolMenusOnLanguageChange } from "../editor.js"
 import { fontManager } from "../editor_state.js";
+import { updateInventoryUI } from "../inventory.js";
 import { updateText } from "../system/multiplayer.js";
 
 

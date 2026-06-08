@@ -529,7 +529,7 @@ export function deleteDialog() {
 
 // TODO : move into the paint tool
 var paintDialogWidget = null;
-function reloadDialogUI() {
+export function reloadDialogUI() {
 	var dialogContent = document.getElementById("dialog");
 	dialogContent.innerHTML = "";
 
@@ -2059,6 +2059,7 @@ export function on_game_data_change_core() {
 		spriteId = sortedSpriteIdList().filter(function (id) { return id != "A"; })[spriteIndex];
 		
 	clearGameData();
+	renderer.ClearCache();
 	loadWorldFromGameData(gamedataStorage); // reparse world if user directly manipulates game data
 
 	/*
@@ -2102,9 +2103,6 @@ export function on_game_data_change_core() {
 		makeItem("0");
 	}
 	*/
-
-	// refresh images
-	renderer.ClearCache();
 
 	// try not to clobber editor state
 	/* roomIndex = 0;
@@ -3056,7 +3054,7 @@ export function hackUpdateEditorToolMenusOnLanguageChange() {
 }
 
 var curEditorLanguageCode = "en";
-function updateEditorLanguageStyle(newCode) {
+export function updateEditorLanguageStyle(newCode) {
 	document.body.classList.remove("lang_" + curEditorLanguageCode);
 	curEditorLanguageCode = newCode;
 	document.body.classList.add("lang_" + curEditorLanguageCode);

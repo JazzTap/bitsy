@@ -1,6 +1,7 @@
 import { Resources } from "./generated/resources.js"
 import { fontManager } from "../script/editor_state.js"
 import { browserFeatures, makeURL } from "../script/editor.js"
+import { bitsyLog } from "./system/system.js"
 
 export function Exporter() {
 

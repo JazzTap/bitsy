@@ -8,7 +8,7 @@ import {EventManager} from "./event_manager.js"
 export let isPlayerEmbeddedInEditor = true  // FIXME: flag for game player to make changes specific to editor
 
 /* FONT MANAGER */
-var defaultFonts = [
+export var defaultFonts = [
 		"ascii_small.bitsyfont",
 		"unicode_european_small.bitsyfont",
 		"unicode_european_large.bitsyfont",

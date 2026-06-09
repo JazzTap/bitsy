@@ -3,7 +3,7 @@ import { initSystem, bitsyLog, tilesize, scale, mapsize, width, attachCanvas, lo
 import { Resources } from "./generated/resources.js"
 
 import { clearGameData, getPal, getRoomPal, animationTime, initRoom, soundPlayer,
-	curDefaultPal, sprite, tile, room, item, renderer, state, dialog, palette, flags,
+	curDefaultPal, sprite, tile, room, item, renderer, state, dialog, palette, flags, fontName,
 	setInventoryCallback, setVariableCallback, setGameResetCallback, setInitRoomCallback, textDirection,
 	loadWorldFromGameData, serializeWorld, updateNamesFromCurData, resetAllAnimations } from "./engine/bitsy.js"
 import { titleDialogId, version, defaultFontName,
@@ -30,7 +30,7 @@ import { makeTuneTool } from "./tools/tune.js"
 import { makeBlipTool } from "./tools/blip.js"
 
 import { setAboutPage, initAbout } from "./tools/about.js" // FIXME
-import { localization, readUrlParameters, iconUtils, fontManager,
+import { localization, readUrlParameters, iconUtils, fontManager, defaultFonts,
 	events, getPanelPrefs, showPanel, updatePanelPrefs, togglePanel, togglePanelCore } from "./editor_state.js"
 
 import { attachServer, updateText, userId } from "./system/multiplayer.js" // FIXME
@@ -324,7 +324,7 @@ export let curDialogEditor = null;
 export let curPlaintextDialogEditor = null; // the duplication is a bit weird, but better than recreating editors all the time?
 
 export function openDialogTool(dialogId, insertNextToId, showIfHidden) { // todo : rename since it doesn't always "open" it?
-	// console.log(new Error("who opened the dialog tool?"))
+	console.log("dialog tool reload: " + new Error().stack)
 
 	if (showIfHidden === undefined || showIfHidden === null) {
 		showIfHidden = true;
@@ -750,11 +750,11 @@ export async function start() {
 	initSystem();
 
 	// TODO : I need to get rid of this event system... it's too hard to debug
-	events.Listen("game_data_change", function(event) {
+	/* events.Listen("game_data_change", function(event) {
 		// TODO : refactor "openDialogTool" to split out the actual opening from reloading
 		// force re-load the dialog tool
-		openDialogTool(titleDialogId, /*insertNextToId*/ null, /*showIfHidden*/ false);
-	});
+		openDialogTool(titleDialogId, null, false); // titleDialogId, insertNextToId, showIfHidden
+	}); */
 	detectBrowserFeatures();
 
 	resizeCanvasOverlay()
@@ -797,15 +797,14 @@ export async function start() {
 	
     // listen to multiplayer server
     handle.on("change", () => {
-		// console.log('sync crdt')
-
 		var gamedataChanged = handle.doc().bitsy;
         Store.set("game_data", gamedataChanged)
 
 		mutex = handle.doc().mutex
+		console.log('sync crdt: update from ' + Object.entries(mutex))
 
 		// on_game_data_change_core()
-		reload_game_data(); // causes flicker
+		reload_game_data();
     })
 	
 	// share my cursor
@@ -2033,8 +2032,10 @@ export function reload_game_data() {
 	clearGameData();
 	renderer.ClearCache();
 	loadWorldFromGameData(gamedataStorage);
+	// reset animations
+	resetAllAnimations();
 
-	events.Raise("game_data_change"); // who consumes this?
+	// events.Raise("game_data_change"); // causes start() to reload all the editors
 }
 
 export function on_game_data_change() {
@@ -2084,6 +2085,7 @@ export function on_game_data_change_core() {
 	if (drawing) {
 		curPaintMode = drawing.type;
 	}
+	*/
  
 	//fallback if there are no tiles, sprites, map
 	// TODO : switch to using stored default file data (requires separated parser / game data code)
@@ -2102,10 +2104,9 @@ export function on_game_data_change_core() {
 	if (Object.keys(item).length == 0) {
 		makeItem("0");
 	}
-	*/
 
 	// try not to clobber editor state
-	/* roomIndex = 0;
+	// roomIndex = 0;
 
 	/*
 	var curPaintMode = TileType.Avatar;
@@ -2128,17 +2129,17 @@ export function on_game_data_change_core() {
 
 	// paintTool.reloadDrawing(); // this reloads the dialog UI
 	updateInventoryUI(localization);
-   */
+	*/
 
 	// FIXME: catch undefined fontName on startup
 	// if user pasted in a custom font into game data - update the stored custom font
-	/* if (defaultFonts.indexOf(fontName + fontManager.GetExtension()) == -1) {
+	if (defaultFonts.indexOf(fontName + fontManager.GetExtension()) == -1) {
 		var fontStorage = {
 			name : fontName,
 			fontdata : fontManager.GetData(fontName)
 		};
 		Store.set('custom_font', fontStorage);
-	} */
+	}
 
 	// TODO -- start using this for more things
 	// events.Raise("game_data_change"); // this event reloads all the panels, which we don't want

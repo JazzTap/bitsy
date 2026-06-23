@@ -750,11 +750,11 @@ export async function start() {
 	initSystem();
 
 	// TODO : I need to get rid of this event system... it's too hard to debug
-	/* events.Listen("game_data_change", function(event) {
+	events.Listen("game_data_change", function(event) {
 		// TODO : refactor "openDialogTool" to split out the actual opening from reloading
 		// force re-load the dialog tool
-		openDialogTool(titleDialogId, null, false); // titleDialogId, insertNextToId, showIfHidden
-	}); */
+		// openDialogTool(titleDialogId, null, false); // titleDialogId, insertNextToId, showIfHidden
+	});
 	detectBrowserFeatures();
 
 	resizeCanvasOverlay()
@@ -2030,12 +2030,13 @@ export function reload_game_data() {
 	bitsyLog(gamedataStorage, "editor");
 	
 	clearGameData();
-	renderer.ClearCache();
 	loadWorldFromGameData(gamedataStorage);
+
 	// reset animations
 	resetAllAnimations();
+	renderer.ClearCache(); // reset the renderer after loading the world to avoid nondeterminism
 
-	// events.Raise("game_data_change"); // causes start() to reload all the editors
+	// events.Raise("game_data_change"); // callback defined in start()
 }
 
 export function on_game_data_change() {

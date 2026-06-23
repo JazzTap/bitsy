@@ -1,6 +1,8 @@
 import { rgbToHex } from "./util.js"
 import { scriptInterpreter, scriptUtils, titleDialogId } from "./engine/world.js"
-import { getTitle, getPal, curDefaultPal, sprite, tile, room, item, dialog, palette, setTitle } from "./engine/bitsy.js"
+import { getTitle, getPal, curDefaultPal, sprite, tile, room, item, dialog, palette, blip, tune,
+	setTitle } from "./engine/bitsy.js"
+import { tilesize } from "./system/system.js"
 
 import { ThumbnailRenderer } from "./thumbnail.js"
 import { iconUtils, events } from "./editor_state.js" 

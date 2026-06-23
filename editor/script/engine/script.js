@@ -1,6 +1,8 @@
-import { initRoom } from "./bitsy.js";
+import { initRoom, names, fontName, sprite, tile, item, state, tune, blip,
+	 player, transition, dialogRenderer, dialogBuffer, soundPlayer,
+	onInventoryChanged, isEnding, isNarrating, updatePalette, drawRoom } from "./bitsy.js";
 import { bitsy } from "../system/system.js";
-import { events, isPlayerEmbeddedInEditor } from "../editor_state.js"
+import { events, isPlayerEmbeddedInEditor, fontManager } from "../editor_state.js"
 
 export function Script() {
 

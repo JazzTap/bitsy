@@ -178,7 +178,7 @@ this.GetStringOrFallback = function(id, englishFallback) {
 }
 
 function localizationContains(id, text) { // TODO : rename to be more descriptive?
-	for (lang in localizationStrings) {
+	for (var lang in localizationStrings) {
 		var locString = getLocaleString(lang, id);
 		if (locString != null && locString.length > 0 && locString === text) {
 			return true;

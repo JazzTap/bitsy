@@ -6,12 +6,13 @@ import {start,
     openFindToolWithCurrentPaintCategory, togglePaintGrid, on_paint_frame1, on_paint_frame2, prevPalette, nextPalette, newPalette,
     duplicatePalette, deletePalette, changeColorPickerIndex, prevDialog, nextDialog, addNewDialog, duplicateDialog, deleteDialog, openFindTool,
     toggleAlwaysShowDrawingDialog, showInventoryItem, showInventoryVariable, startRecordingGif, stopRecordingGif, takeSnapshotGif, toggleSnapshotMode,
-    toggleExitOptions, grabCard, onDialogNameChange, onChangeExitTransitionEffect,
-    on_drawing_name_change, on_toggle_wall, on_toggle_animated, on_palette_name_change 
+    toggleExitOptions, grabCard, onDialogNameChange, onChangeExitTransitionEffect, blockScrollBackpage, copyInstanceURL,
+    on_drawing_name_change, on_toggle_wall, on_toggle_animated, on_palette_name_change
 } from "./script/editor.js"
 import {aboutOpenTab} from "./script/tools/about.js"
-import {showPanel, hidePanel} from "./script/editor_state.js"
+import {showPanel, hidePanel, loadIcons} from "./script/editor_state.js"
 
+loadIcons()
 start()
 
 export function testShim (gameTool) {
@@ -23,6 +24,7 @@ export function bindToolDialogs () {
     // I get called during editor initialization by start()
     
     document.querySelectorAll(".bitsy-card-title").forEach(u => u.addEventListener("onmousedown", grabCard))
+    document.querySelector("#editorWindow").addEventListener("onmousewheel", blockScrollBackpage)
 
     document.querySelector("#dialogShowCodeCheck").addEventListener("click", toggleDialogCode)
     document.querySelector("#toolsCheck").addEventListener("click", toggleToolBar)
@@ -118,4 +120,6 @@ export function bindToolDialogs () {
     document.querySelector("#wallCheckbox").addEventListener("change", on_toggle_wall)
     document.querySelector("#animatedCheckbox").addEventListener("change", on_toggle_animated)
     document.querySelector("#paletteName").addEventListener("change", on_palette_name_change)
+
+    document.querySelector("#instanceNameCopy").addEventListener("click", copyInstanceURL)
 }

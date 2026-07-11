@@ -1,6 +1,6 @@
 import {bitsyLog} from "./system/system.js"
 import {scale, mapsize} from "./system/system.js"
-import { room } from "./engine/bitsy.js"
+import { room, dialog } from "./engine/bitsy.js"
 import { createExitData, createEndingData } from "./engine/world.js"
 import { clamp, deleteUnreferencedDialog } from "./util.js"
 import {iconUtils, events, localization} from "./editor_state.js"

@@ -2,10 +2,10 @@ import { TileType, labelElementFactory, rgbToHex, rgbToHsl, getDrawingDialogId, 
 import { initSystem, bitsyLog, tilesize, scale, mapsize, width, attachCanvas, loadGame, quitGame } from "./system/system.js"
 import { Resources } from "./generated/resources.js"
 
-import { clearGameData, getPal, getRoomPal, animationTime, initRoom,
-	curDefaultPal, sprite, tile, room, item, renderer, state, dialog, palette, flags,
+import { clearGameData, getPal, getRoomPal, animationTime, initRoom, soundPlayer,
+	curDefaultPal, sprite, tile, room, item, renderer, state, dialog, palette, flags, fontName,
 	setInventoryCallback, setVariableCallback, setGameResetCallback, setInitRoomCallback, textDirection,
-	loadWorldFromGameData, serializeWorld, updateNamesFromCurData } from "./engine/bitsy.js"
+	loadWorldFromGameData, serializeWorld, updateNamesFromCurData, resetAllAnimations } from "./engine/bitsy.js"
 import { titleDialogId, version, defaultFontName,
 	createDrawingData, createExitData, createEndingData} from "./engine/world.js"
 
@@ -30,7 +30,7 @@ import { makeTuneTool } from "./tools/tune.js"
 import { makeBlipTool } from "./tools/blip.js"
 
 import { setAboutPage, initAbout } from "./tools/about.js" // FIXME
-import { localization, readUrlParameters, iconUtils, fontManager,
+import { localization, readUrlParameters, iconUtils, fontManager, defaultFonts,
 	events, getPanelPrefs, showPanel, updatePanelPrefs, togglePanel, togglePanelCore } from "./editor_state.js"
 
 import { attachServer, updateText, userId } from "./system/multiplayer.js" // FIXME
@@ -324,7 +324,7 @@ export let curDialogEditor = null;
 export let curPlaintextDialogEditor = null; // the duplication is a bit weird, but better than recreating editors all the time?
 
 export function openDialogTool(dialogId, insertNextToId, showIfHidden) { // todo : rename since it doesn't always "open" it?
-	// console.log(new Error("who opened the dialog tool?"))
+	console.log("dialog tool reload: " + new Error().stack)
 
 	if (showIfHidden === undefined || showIfHidden === null) {
 		showIfHidden = true;
@@ -529,7 +529,7 @@ export function deleteDialog() {
 
 // TODO : move into the paint tool
 var paintDialogWidget = null;
-function reloadDialogUI() {
+export function reloadDialogUI() {
 	var dialogContent = document.getElementById("dialog");
 	dialogContent.innerHTML = "";
 
@@ -641,6 +641,13 @@ function Timer() {
 }
 
 var editMode = EditMode.Edit; // TODO : move to core.js?
+const editorWindow = document.querySelector("#editorWindow")
+let instanceTextInput
+
+/* MULTIPLAYER */
+export let server
+export let copresenceContext
+export const peerCursors = {}
 
 /* TOOL CONTROLLERS */
 export let roomTool;
@@ -660,7 +667,7 @@ export function setItemIndex(idx) { itemIndex = idx; }
 var roomIndex = 0;
 
 /* BROWSER COMPATIBILITY */
-var browserFeatures = {
+export var browserFeatures = {
 	colorPicker : false,
 	fileDownload : false,
 	blobURL : false
@@ -671,8 +678,8 @@ var gifencoder = new gif();
 var gifFrameData = [];
 
 /* EXPORT HTML */
-var makeURL = null;
-var exporter = new Exporter();
+export var makeURL = null;
+export var exporter = new Exporter();
 
 function detectBrowserFeatures() {
 	bitsyLog("BROWSER FEATURES", "editor");
@@ -739,7 +746,6 @@ export function resetFindTool() {
 	});
 }
 
-export let server
 export async function start() {
 	initSystem();
 
@@ -747,9 +753,12 @@ export async function start() {
 	events.Listen("game_data_change", function(event) {
 		// TODO : refactor "openDialogTool" to split out the actual opening from reloading
 		// force re-load the dialog tool
-		openDialogTool(titleDialogId, /*insertNextToId*/ null, /*showIfHidden*/ false);
+		// openDialogTool(titleDialogId, null, false); // titleDialogId, insertNextToId, showIfHidden
 	});
 	detectBrowserFeatures();
+
+	resizeCanvasOverlay()
+	copresenceContext = document.getElementById('pointerOverlay').getContext('2d');
 
 	// enable multiplayer editing
 	server = await attachServer(true)
@@ -788,16 +797,76 @@ export async function start() {
 	
     // listen to multiplayer server
     handle.on("change", () => {
-		// console.log('sync crdt')
-
 		var gamedataChanged = handle.doc().bitsy;
         Store.set("game_data", gamedataChanged)
 
 		mutex = handle.doc().mutex
+		console.log('sync crdt: update from ' + Object.entries(mutex))
 
-		on_game_data_change_core()
-		// reload_game_data(); // causes flicker
+		// on_game_data_change_core()
+		reload_game_data();
     })
+	
+	// share my cursor
+	document.addEventListener("mousemove", cursorOverlay)
+	document.addEventListener("mousedown", cursorDownOverlay)
+
+	// render shared cursors
+	const cursorIcon = bakeCursor()
+    handle.on("ephemeral-message", ({handle, senderId, message}) => {
+		let ctx = copresenceContext
+
+		// HACK: initialize peers on connection, not in the mousemove handler
+		let u = peerCursors[senderId]
+		if (u === undefined) {
+			let randomColor = '#000'
+			console.log('saw peer with color ' + handle[senderId])
+			if (!handle[senderId])
+				handle[senderId] = randomColor
+			peerCursors[senderId] = {color: handle[senderId]};
+		}
+
+		// update this peer's cursor ghost
+		if (message.type == "mousemove") {
+			u.mouseX = message.mouseX;
+			u.mouseY = message.mouseY;
+			u.age = 0;
+		}
+
+		// clear out timed-out peers
+		for (let i in peerCursors) {
+			if (peerCursors[i].age > 500)
+				delete peerCursors[i]
+		}
+
+		// redraw cursors
+		ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+		ctx.fillStyle = '#fff'
+
+		if (message.type == "mousedown") {
+			ctx.save()
+			ctx.fillStyle = '#ffa7'
+			ctx.translate(u.mouseX - editorWindow.scrollLeft,
+							u.mouseY - editorWindow.scrollTop);
+			ctx.beginPath()
+			ctx.arc(0, 0, 10, 0, 2*Math.PI)
+			ctx.fill()
+			ctx.restore()
+		}
+
+		for (let i in peerCursors) {
+			let msg = peerCursors[i]
+			++msg.age;
+			ctx.strokeStyle = msg.color; // always black
+
+			ctx.save();
+			ctx.translate(msg.mouseX - editorWindow.scrollLeft,
+							msg.mouseY - editorWindow.scrollTop);
+			ctx.fill(cursorIcon);
+			ctx.stroke(cursorIcon);
+			ctx.restore();
+		}
+	})
 
 	// now world data like `sprite` and `tile` is loaded
 	// let's make the find tool so that tool cards can use it
@@ -922,7 +991,7 @@ export async function start() {
 	}
 	
 	let instanceNameWidget = document.getElementsByClassName("instanceNameContainer")[0];
-	let instanceTextInput = document.createElement("input");
+	instanceTextInput = document.createElement("input");
 	instanceTextInput.classList.add("textInputField");
 	instanceTextInput.style.width = "calc(100% - 15px)"
 	instanceTextInput.type = "text";
@@ -967,6 +1036,36 @@ export async function start() {
 	testShim(gameTool);
 	// onclick handlers
 	bindToolDialogs();
+}
+
+function bakeCursor(scale = 1) {
+  const p = new Path2D();
+  p.moveTo(0, 0);           // tip (hotspot)
+  p.lineTo(0, 16 * scale);  // left edge bottom
+  p.lineTo(4 * scale, 12 * scale);  // inner notch
+  p.lineTo(7 * scale, 18 * scale);  // stylus tip
+  p.lineTo(9 * scale, 17 * scale);  // stylus right
+  p.lineTo(6 * scale, 11 * scale);  // back to body
+  p.lineTo(11 * scale, 11 * scale); // right shoulder
+  p.closePath();
+  return p;
+}
+
+function resizeCanvasOverlay() {
+	let canvas = document.getElementById('pointerOverlay')
+	canvas.width = window.innerWidth;
+	canvas.height = window.innerHeight;
+}
+window.addEventListener('resize', resizeCanvasOverlay, false)
+
+export function copyInstanceURL() {
+    navigator.clipboard.writeText(`${location.origin}${location.pathname}?instance=${Store.get("instance_name")}`)
+    instanceTextInput.value = "Copied instance URL!"
+	this.readOnly = true
+	setTimeout(() => {
+		instanceTextInput.value = Store.get("instance_name")
+		this.readOnly = false
+	}, 1000);
 }
 
 export function newDrawing() {
@@ -1924,6 +2023,7 @@ export function on_change_adv_dialog() {
 export function reload_game_data() {
 	// FIXME: why does palette revert?
 	// console.log(roomTool?.selectedId, getRoomPal(roomTool?.selectedId))
+	console.log("reload_game_data")
 
 	// same as core, but doesn't reset editor state
 	var gamedataStorage = Store.get("game_data");
@@ -1932,7 +2032,11 @@ export function reload_game_data() {
 	clearGameData();
 	loadWorldFromGameData(gamedataStorage);
 
-	events.Raise("game_data_change"); // who consumes this?
+	// reset animations
+	resetAllAnimations();
+	renderer.ClearCache(); // reset the renderer after loading the world to avoid nondeterminism
+
+	// events.Raise("game_data_change"); // callback defined in start()
 }
 
 export function on_game_data_change() {
@@ -1945,6 +2049,7 @@ export function on_game_data_change() {
 export function on_game_data_change_core() {
 	var gamedataStorage = Store.get("game_data");
 	bitsyLog(gamedataStorage, "editor");
+	console.log("on_game_data_change_core")
 	console.log('which tool?: ' + mutex[userId])
 
 	// FIXME: don't clobber the tool we're holding
@@ -1956,6 +2061,7 @@ export function on_game_data_change_core() {
 		spriteId = sortedSpriteIdList().filter(function (id) { return id != "A"; })[spriteIndex];
 		
 	clearGameData();
+	renderer.ClearCache();
 	loadWorldFromGameData(gamedataStorage); // reparse world if user directly manipulates game data
 
 	/*
@@ -1980,6 +2086,7 @@ export function on_game_data_change_core() {
 	if (drawing) {
 		curPaintMode = drawing.type;
 	}
+	*/
  
 	//fallback if there are no tiles, sprites, map
 	// TODO : switch to using stored default file data (requires separated parser / game data code)
@@ -1998,13 +2105,9 @@ export function on_game_data_change_core() {
 	if (Object.keys(item).length == 0) {
 		makeItem("0");
 	}
-	*/
-
-	// refresh images
-	renderer.ClearCache();
 
 	// try not to clobber editor state
-	/* roomIndex = 0;
+	// roomIndex = 0;
 
 	/*
 	var curPaintMode = TileType.Avatar;
@@ -2027,17 +2130,17 @@ export function on_game_data_change_core() {
 
 	// paintTool.reloadDrawing(); // this reloads the dialog UI
 	updateInventoryUI(localization);
-   */
+	*/
 
 	// FIXME: catch undefined fontName on startup
 	// if user pasted in a custom font into game data - update the stored custom font
-	/* if (defaultFonts.indexOf(fontName + fontManager.GetExtension()) == -1) {
+	if (defaultFonts.indexOf(fontName + fontManager.GetExtension()) == -1) {
 		var fontStorage = {
 			name : fontName,
 			fontdata : fontManager.GetData(fontName)
 		};
 		Store.set('custom_font', fontStorage);
-	} */
+	}
 
 	// TODO -- start using this for more things
 	// events.Raise("game_data_change"); // this event reloads all the panels, which we don't want
@@ -2754,7 +2857,7 @@ export function panel_onMouseMove(e) {
 
 	bitsyLog("********", "editor")
 }
-document.addEventListener("mousemove",panel_onMouseMove);
+document.addEventListener("mousemove", panel_onMouseMove);
 
 export function panel_onMouseUp(e) {
 	if (grabbedPanel.card == null) return;
@@ -2799,7 +2902,7 @@ export function getElementSize(e) { /* gets visible size */
 }
 
 // sort of a hack to avoid accidentally activating backpage and nextpage while scrolling through editor panels 
-function blockScrollBackpage(e) {
+export function blockScrollBackpage(e) {
 	var el = document.getElementById("editorWindow");
 	var maxX = el.scrollWidth - el.offsetWidth;
 
@@ -2808,6 +2911,21 @@ function blockScrollBackpage(e) {
 	// 	e.preventDefault();
 	// 	el.scrollLeft = Math.max(0, Math.min(maxX, el.scrollLeft + event.deltaX));
 	// }
+}
+
+// show other peoples' cursors in multiplayer
+export function cursorOverlay(e) {	
+	server.handle.broadcast({
+		type: "mousemove",
+		mouseX: e.pageX + editorWindow.scrollLeft,
+		mouseY: e.pageY + editorWindow.scrollTop
+	})
+}
+export function cursorDownOverlay(e) {
+	server.handle.broadcast({
+		type: "mousedown",
+		target: e.target
+	})
 }
 
 
@@ -2938,7 +3056,7 @@ export function hackUpdateEditorToolMenusOnLanguageChange() {
 }
 
 var curEditorLanguageCode = "en";
-function updateEditorLanguageStyle(newCode) {
+export function updateEditorLanguageStyle(newCode) {
 	document.body.classList.remove("lang_" + curEditorLanguageCode);
 	curEditorLanguageCode = newCode;
 	document.body.classList.add("lang_" + curEditorLanguageCode);

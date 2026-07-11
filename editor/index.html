@@ -51,9 +51,14 @@
 						<div class="titleWidgetContainer"></div>
 					</div>
 
-					<div id="titleFlexItem" class="bitsy-playmode-disable">
+					<div style="width: 400px;" id="instanceFlexItem">
 						<div class="instanceNameContainer"></div>
 					</div>
+					<button style="height: 25px;" id="instanceNameCopy">
+					<label title="copy instance URL" for="instanceNameCopy" id="instanceNameCopyLabel" class="bitsy-menu-label">
+						<span class="bitsy_icon">open_tool</span>
+					</label>
+					</button>
 
 					<!-- show tools -->
 					<input type="checkbox" value="toolsPanel" id="toolsCheck" autocomplete="off" />
@@ -125,7 +130,7 @@
 			</div>
 		</div>
 
-		<div id="editorWindow" > <!-- FIXME: onmousewheel="blockScrollBackpage(event);" -->
+		<div id="editorWindow" >
 			<div id="editorContent">
 
 				<div id="aboutPanel" class="bitsy-card bitsy-card-m bitsy-workbench-item">
@@ -833,6 +838,7 @@
 			</div> <!-- Editor Content -->
 		</div> <!-- Editor Window -->
 
+		<canvas id="pointerOverlay" class="overlay"></canvas>
 		</div>
 
 	</body>

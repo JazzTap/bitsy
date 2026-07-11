@@ -464,6 +464,7 @@ export function BitsySystem(name) {
 
 		memory.changed[next] = false;
 
+		// bitsy.log('_allocate', next, memory.blocks) // Error().stack
 		return next;
 	};
 

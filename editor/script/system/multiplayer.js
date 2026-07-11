@@ -7,7 +7,7 @@ import { BrowserWebSocketClientAdapter } from "https://esm.sh/@automerge/automer
 import { Resources } from "../generated/resources.js"
 import { Store } from "../store.js"
 
-export const DEBUG_LOCAL = true
+export const DEBUG_LOCAL = false
 export const serverURL = DEBUG_LOCAL ? "http://localhost:3030" : "https://duck-composed-closely.ngrok-free.app"
 
 export const updateText = AutomergeRepo.updateText

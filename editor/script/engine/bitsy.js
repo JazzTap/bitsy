@@ -122,7 +122,7 @@ export function clearGameData() {
 }
 
 // engine event hooks for the editor
-var onInventoryChanged = null;
+export var onInventoryChanged = null;
 var onVariableChanged = null;
 var onGameReset = null;
 var onInitRoom = null;
@@ -663,7 +663,7 @@ export function movePlayer(direction, isFirstMove) {
 	}
 }
 
-var transition;
+export var transition;
 if (engineFeatureFlags.isTransitionEnabled) {
 	transition = new TransitionManager();
 }
@@ -1709,13 +1709,16 @@ export function getRoomPal(roomId) {
 	return defaultId;
 }
 
-var isDialogMode = false;
-var isNarrating = false;
-var isEnding = false;
+export var isDialogMode = false;
+export var isNarrating = false;
+export var isEnding = false;
 
-var dialogModule;
-var dialogRenderer;
-var dialogBuffer;
+export function setNarrating(val) { isNarrating = val; }
+export function setEnding(val) { isEnding = val; }
+
+export var dialogModule;
+export var dialogRenderer;
+export var dialogBuffer;
 if (engineFeatureFlags.isDialogEnabled) {
 	dialogModule = new Dialog();
 	dialogRenderer = dialogModule.CreateRenderer();

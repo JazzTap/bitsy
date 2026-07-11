@@ -1,4 +1,7 @@
-import { initRoom } from "./bitsy.js";
+import { initRoom, names, fontName, sprite, tile, item, state, tune, blip,
+	 player, transition, dialogRenderer, dialogBuffer, soundPlayer,
+	onInventoryChanged, isEnding, isNarrating, setEnding, setNarrating,
+	updatePalette, drawRoom } from "./bitsy.js";
 import { bitsy } from "../system/system.js";
 import { events, isPlayerEmbeddedInEditor } from "../editor_state.js"
 
@@ -553,8 +556,8 @@ function propertyFunc(environment, parameters, onReturn) {
 }
 
 function endFunc(environment,parameters,onReturn) {
-	isEnding = true;
-	isNarrating = true;
+	setEnding(true);
+	setNarrating(true);
 	dialogRenderer.SetCentered(true);
 	dialogRenderer.DrawTextbox();
 	onReturn(null);

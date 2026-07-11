@@ -16,7 +16,7 @@
 		"vite-plugin-wasm": "^3.6.0"
 	},
 	"scripts": {
-		"test": "node ./dev/test_simultaneous_edits.cjs",
+		"test": "node --import ./tests/mock-dom.mjs index.js",
 		"client": "vite",
 		"build": "vite build",
 		"preview": "vite preview",

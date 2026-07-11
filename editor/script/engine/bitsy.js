@@ -122,7 +122,7 @@ export function clearGameData() {
 }
 
 // engine event hooks for the editor
-export export var onInventoryChanged = null;
+export var onInventoryChanged = null;
 var onVariableChanged = null;
 var onGameReset = null;
 var onInitRoom = null;
@@ -1712,6 +1712,9 @@ export function getRoomPal(roomId) {
 var isDialogMode = false;
 export var isNarrating = false;
 export var isEnding = false;
+
+export function setNarrating(value) { isNarrating = value };
+export function setEnding(value) { isEnding = value };
 
 var dialogModule;
 export var dialogRenderer;

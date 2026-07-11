@@ -1,13 +1,14 @@
-import * as AutomergeRepo from "https://esm.sh/@automerge/react@2.2.0/slim?bundle-deps"
-await AutomergeRepo.initializeWasm( fetch("https://esm.sh/@automerge/automerge@3.1.1/dist/automerge.wasm") )
+import * as AutomergeRepo from "@automerge/react/slim"
+import automergeWasmUrl from "@automerge/automerge/automerge.wasm?url"
+await AutomergeRepo.initializeWasm( fetch(automergeWasmUrl) )
 
-import { IndexedDBStorageAdapter } from "https://esm.sh/@automerge/automerge-repo-storage-indexeddb@2.1.0?bundle-deps"
-import { BrowserWebSocketClientAdapter } from "https://esm.sh/@automerge/automerge-repo-network-websocket@2.1.0?bundle-deps"
+import { IndexedDBStorageAdapter } from "@automerge/automerge-repo-storage-indexeddb"
+import { BrowserWebSocketClientAdapter } from "@automerge/automerge-repo-network-websocket"
 
 import { Resources } from "../generated/resources.js"
 import { Store } from "../store.js"
 
-export const DEBUG_LOCAL = false
+export const DEBUG_LOCAL = true
 export const serverURL = DEBUG_LOCAL ? "http://localhost:3030" : "https://duck-composed-closely.ngrok-free.app"
 
 export const updateText = AutomergeRepo.updateText
@@ -26,7 +27,7 @@ export async function attachServer(debug = false) {
     const params = new URLSearchParams(window.location.search);
 
     let handle
-    let instanceRaw = params.get('instance')
+    let instanceRaw = params.get('instance') || Store.get('multiplayer_bitsy_pending_instance')
     let instance = instanceRaw
     let instanceName
 

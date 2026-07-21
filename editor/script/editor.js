@@ -324,7 +324,7 @@ export let curDialogEditor = null;
 export let curPlaintextDialogEditor = null; // the duplication is a bit weird, but better than recreating editors all the time?
 
 export function openDialogTool(dialogId, insertNextToId, showIfHidden) { // todo : rename since it doesn't always "open" it?
-	console.log("dialog tool reload: " + new Error().stack)
+	// console.log("dialog tool reload: " + new Error().stack)
 
 	if (showIfHidden === undefined || showIfHidden === null) {
 		showIfHidden = true;

@@ -91,7 +91,7 @@ export function showPanel(id, insertNextToId) {
 }
 
 export function hidePanel(id) {
-	console.log("hide panel #"+id)
+	// console.log("hide panel #"+id)
 
 	// animate panel and tools button
 	document.getElementById(id).classList.add("close");

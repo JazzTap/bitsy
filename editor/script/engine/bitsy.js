@@ -136,7 +136,7 @@ export function setInitRoomCallback (foo) { onInitRoom = foo }
 
 export let renderer;
 if (engineFeatureFlags.isRendererEnabled) {
-	renderer = new TileRenderer("bitsy");
+	renderer = new TileRenderer("bitsy", bitsy);
 }
 
 var curGameData = null;

@@ -1,3 +1,4 @@
+import {renderer} from "../engine/bitsy.js"
 import {InputSystem} from "./input.js"
 import {SoundSystem} from "./soundchip.js"
 import {GraphicsSystem} from "./graphics.js"
@@ -91,7 +92,15 @@ export function updateSystem() {
 }
 
 export function setBitsy(override) {
-	bitsy = override // VERIFY
+	bitsy = override
+	renderer.bitsy = override
+
+	// HACK: dispatch to each process' renderer
+	for (var i = 0; i < processes.length; i++) {
+		let handle = processes[i].renderer
+		if (handle)
+			handle.bitsy = override
+	}
 }
 
 export function loadGame(canvas, gameData, defaultFontData) {
@@ -128,7 +137,7 @@ export function attachCanvas(c) {
 }
 
 /* PROCESSES */
-var processes = [];
+export var processes = [];
 
 export function addProcess(name) {
 	var proc = {};
@@ -171,8 +180,10 @@ export function BitsySystem(name) {
 	var initialPaletteSize = 64;
 	var tilePoolStart = null;
 	var tilePoolSize = 512;
+
 	// hack!!! (access for debugging)
 	this._graphics = graphics;
+	this._memory = memory;
 
 	function updateTextScale() {
 		// make sure the text scale matches the text mode
@@ -464,7 +475,7 @@ export function BitsySystem(name) {
 
 		memory.changed[next] = false;
 
-		// bitsy.log('_allocate', next, memory.blocks) // Error().stack
+		// bitsy.log('_allocate', next, memory.blocks)
 		return next;
 	};
 

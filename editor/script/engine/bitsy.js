@@ -779,7 +779,7 @@ export function updatePalette(palId) {
 }
 
 export function initRoom(roomId) {
-	bitsy.log("init room " + roomId);
+	console.log("init room ", roomId, renderer.bitsy._name);
 
 	updatePalette(getRoomPal(roomId));
 

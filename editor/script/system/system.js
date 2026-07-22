@@ -88,6 +88,7 @@ export function updateSystem() {
 	}
 
 	bitsy = mainProcess.system;
+	renderer.bitsy = mainProcess.system;
 	prevTime = curTime;
 }
 

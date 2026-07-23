@@ -4,7 +4,7 @@ import { bitsy } from "../system/system.js"
 import { tileColorStartIndex, createRoomData } from "../engine/world.js"
 import { initRoom, getSpriteAt, getItem, isWall, textColorIndex, textBackgroundIndex,
 		room, tile, sprite, item,
-		updateAnimation, setTile, drawRoom } from "../engine/bitsy.js"
+		renderer, updateAnimation, setTile, drawRoom } from "../engine/bitsy.js"
 
 import { makeToolCard } from "../card.js"
 import { drawGrid } from "../paint.js"

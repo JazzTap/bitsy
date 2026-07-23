@@ -1,6 +1,6 @@
 import { TileType, labelElementFactory, rgbToHex } from "./util.js"
 import { bitsy, processes, initSystem, bitsyLog, tilesize, scale, width,
-		attachCanvas, loadGame, quitGame } from "./system/system.js"
+		setBitsy, attachCanvas, loadGame, quitGame } from "./system/system.js"
 import { Resources } from "./generated/resources.js"
 
 import { clearGameData, soundPlayer,
@@ -149,6 +149,9 @@ export async function refreshGameDataCore(component = 'none') {
 	});
 	// change listener triggers autosave, don't need to repeat
 	// Store.set("game_data", gameDataNoFonts);
+
+	renderer.ClearCache(true);
+	roomTool.renderer.ClearCache(true);
 
 	// make sure to update the game tool!
 	// this ensures the game data text is up-to-date
@@ -439,7 +442,7 @@ export async function start() {
 	window.paintTool = paintTool;
 	window.markerTool = markerTool;
 	window.state = state;
-	window.bitsy = bitsy; // expose the main BitsySystem process
+	window.bitsy = bitsy; // expose the main process (defined in `system.js`)
 	window.processes = processes;
 
 	//draw everything
@@ -665,6 +668,7 @@ export function on_play_mode() {
 	document.getElementById("appRoot").classList.add("bitsy-playmode");
 
 	// clear render cache(s)
+	setBitsy(processes[0].system);
 	renderer.ClearCache();
 	roomTool.renderer.ClearCache();
 
@@ -677,6 +681,8 @@ export function on_edit_mode() {
 
 	document.getElementById("appRoot").classList.remove("bitsy-playmode");
 
+	// reset `bitsy` to main system so that the game cleans up correctly
+	setBitsy(processes[0].system);
 	quitGame();
 
 	// reparse world to reset any changes from gameplay
@@ -793,7 +799,6 @@ export function on_change_adv_dialog() {
 export function reload_game_data() {
 	// FIXME: why does palette revert?
 	// console.log(roomTool?.selectedId, getRoomPal(roomTool?.selectedId))
-	console.log("reload_game_data")
 
 	// same as core, but doesn't reset editor state
 	var gamedataStorage = Store.get("game_data");
@@ -806,7 +811,7 @@ export function reload_game_data() {
 	resetAllAnimations();
 	renderer.ClearCache(); // reset the renderer after loading the world to avoid nondeterminism
 
-	// events.Raise("game_data_change"); // callback defined in start()
+	events.Raise("game_data_change"); // redraw dialog editor, find tool, palette
 }
 
 export function on_game_data_change() {

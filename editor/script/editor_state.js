@@ -4,6 +4,7 @@ import { FontManager } from "./engine/font.js"
 import {Store} from "./store.js"
 import {IconUtils} from "./icons.js"
 import {EventManager} from "./event_manager.js"
+import { setAboutPage } from "./tools/about.js"
 
 export let isPlayerEmbeddedInEditor = true  // FIXME: flag for game player to make changes specific to editor
 
@@ -88,6 +89,14 @@ export function togglePanel(e) {
 
 export function showPanel(id, insertNextToId) {
 	togglePanelCore(id, true /*visible*/, true /*doUpdatePrefs*/, insertNextToId);
+}
+
+export function showAboutHandler(pagePath, insertNextToId) {
+	return () => showAbout(pagePath, insertNextToId);
+}
+export function showAbout(pagePath, insertNextToId) {
+	setAboutPage(pagePath);
+	showPanel("aboutPanel", insertNextToId);
 }
 
 export function hidePanelHandler(id) {

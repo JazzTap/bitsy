@@ -28,7 +28,7 @@ import { makeGameTool } from "./tools/game.js"
 import { makeTuneTool } from "./tools/tune.js"
 import { makeBlipTool } from "./tools/blip.js"
 
-import { setAboutPage, initAbout } from "./tools/about.js" // FIXME
+import { initAbout } from "./tools/about.js"
 import { localization, readUrlParameters, iconUtils, fontManager, defaultFonts,
 	events, getPanelPrefs, showPanel, togglePanel, togglePanelCore } from "./editor_state.js"
 
@@ -59,11 +59,6 @@ var EditorInputMode = {
 	Touch : 1
 };
 export var curEditorInputMode = EditorInputMode.Mouse;
-
-export function showAbout(pagePath, insertNextToId) {
-	setAboutPage(pagePath);
-	showPanel("aboutPanel", insertNextToId);
-}
 
 // todo : rename function
 export function getDrawingImageSource(drawing) {
@@ -564,6 +559,7 @@ export async function start() {
 	Store.set('panel_prefs', prefs); // save loaded prefs
 	var sortedWorkspace = prefs.workspace.sort( function(a,b) { return a.position - b.position; } );
 	var editorContent = document.getElementById("editorContent");
+	// restore workspace
 	for(i in sortedWorkspace) {
 		var panelSettings = sortedWorkspace[i];
 		var panelElement = document.getElementById(panelSettings.id);

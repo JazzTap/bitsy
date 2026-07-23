@@ -90,8 +90,11 @@ export function showPanel(id, insertNextToId) {
 	togglePanelCore(id, true /*visible*/, true /*doUpdatePrefs*/, insertNextToId);
 }
 
+export function hidePanelHandler(id) {
+	return () => hidePanel(id)
+}
 export function hidePanel(id) {
-	// console.log("hide panel #"+id)
+	// console.log("hide panel #", id, new Error().stack)
 
 	// animate panel and tools button
 	document.getElementById(id).classList.add("close");

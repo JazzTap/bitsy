@@ -10,7 +10,7 @@ import {start,
     on_drawing_name_change, on_toggle_wall, on_toggle_animated, on_palette_name_change
 } from "./script/editor.js"
 import {aboutOpenTab} from "./script/tools/about.js"
-import {showPanel, hidePanel, loadIcons} from "./script/editor_state.js"
+import {showPanel, hidePanelHandler, loadIcons} from "./script/editor_state.js"
 
 loadIcons()
 start()
@@ -96,14 +96,14 @@ export function bindToolDialogs () {
     document.querySelector("#showInventoryButton").addEventListener("click", showPanel("inventoryPanel", "paintPanel"))
     document.querySelector("#showFindColors").addEventListener("click", openFindTool("PAL", "colorsPanel"))
 
-    document.querySelector("#hideAbout").addEventListener("click", hidePanel("aboutPanel"))
-    document.querySelector("#hideExits").addEventListener("click", hidePanel("exitsPanel"))
-    document.querySelector("#hidePaint").addEventListener("click", hidePanel("paintPanel"))
-    document.querySelector("#hideFind").addEventListener("click", hidePanel("findPanel"))
-    document.querySelector("#hideColors").addEventListener("click", hidePanel("colorsPanel"))
-    document.querySelector("#hideDialog").addEventListener("click", hidePanel("dialogPanel"))
-    document.querySelector("#hideInventory").addEventListener("click", hidePanel("inventoryPanel"))
-    document.querySelector("#hideGif").addEventListener("click", hidePanel("gifPanel"))
+    document.querySelector("#hideAbout").addEventListener("click", hidePanelHandler("aboutPanel"))
+    document.querySelector("#hideExits").addEventListener("click", hidePanelHandler("exitsPanel"))
+    document.querySelector("#hidePaint").addEventListener("click", hidePanelHandler("paintPanel"))
+    document.querySelector("#hideFind").addEventListener("click", hidePanelHandler("findPanel"))
+    document.querySelector("#hideColors").addEventListener("click", hidePanelHandler("colorsPanel"))
+    document.querySelector("#hideDialog").addEventListener("click", hidePanelHandler("dialogPanel"))
+    document.querySelector("#hideInventory").addEventListener("click", hidePanelHandler("inventoryPanel"))
+    document.querySelector("#hideGif").addEventListener("click", hidePanelHandler("gifPanel"))
 
     document.querySelector("#showAboutExits").addEventListener("click", showAbout("./tools/exitsandendings", "exitsPanel"))
     document.querySelector("#showAboutPaint").addEventListener("click", showAbout("./tools/paint", "paintPanel"))

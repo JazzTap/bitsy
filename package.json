@@ -12,9 +12,12 @@
 		"ssh2": "^1.11.0"
 	},
 	"scripts": {
-        "test": "node ./dev/test_simultaneous_edits.cjs",
+		"test": "node ./dev/test_simultaneous_edits.cjs",
 		"client": "npx http-server ./editor/",
 		"server": "node ./automerge-repo-sync-server/src/index.js",
 		"dev": "concurrently \"npm run client\" \"npm run server\" "
+	},
+	"dependencies": {
+		"jsondiffpatch": "^0.7.6"
 	}
 }

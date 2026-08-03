@@ -1,3 +1,5 @@
+import * as jsondiffpatch from "https://esm.sh/jsondiffpatch"
+
 import { TileType, labelElementFactory, rgbToHex } from "./util.js"
 import { bitsy, processes, initSystem, bitsyLog, tilesize, scale, width,
 		setBitsy, attachCanvas, loadGame, quitGame } from "./system/system.js"
@@ -134,21 +136,78 @@ export function setDefaultGameState() {
 export let isPlayMode = false;
 export let mutex = {}
 
+/* MULTIPLAYER SYNC STATE */
+// TODO: Other tools should flip this off/on around
+// operations that must not be interrupted by a remote reload
+export let safe_to_update = true;
+export function setSafeToUpdate(val) {
+	safe_to_update = val;
+}
+// set when a remote change arrives while !safe_to_update, so we know to
+// catch up once it's safe again
+let pending_remote_update = false;
+
+// the Automerge heads corresponding to the last document state we actually
+// parsed into the editor, and the world-data snapshot that corresponds to it
+let checked_out_heads = null;
+let current_checkout = null;
+
+function headsEqual(a, b) {
+	if (!a || !b || a.length !== b.length) {
+		return false;
+	}
+	for (let i = 0; i < a.length; i++) {
+		if (a[i] !== b[i]) {
+			return false;
+		}
+	}
+	return true;
+}
+
 export async function refreshGameDataCore(component = 'none') {
 	if (isPlayMode) {
 		return; //never store game data while in playmode (TODO: wouldn't be necessary if the game data was decoupled from editor data)
 	}
-	flags.ROOM_FORMAT = 1; // always save out comma separated format, even if the old format is read in
 
 	console.log("refreshGameData: " + component)
 
-	var gameDataNoFonts = serializeWorld(true);
-	server.handle.change((doc) => {
-		updateText(doc, ["bitsy"], gameDataNoFonts);
-		doc.mutex[userId] = component; 
-	});
-	// change listener triggers autosave, don't need to repeat
-	// Store.set("game_data", gameDataNoFonts);
+	// commits any local edits, and also opportunistically catches up on a
+	// remote update we deferred while !safe_to_update
+	synchronize(component);
+}
+
+// Commit the user's local edits (if any) to the shared Automerge doc, then,
+// if it's safe to do so, pull in any remote changes we haven't parsed yet.
+//
+// Local edits are always committed first (regardless of safe_to_update) so
+// that reloading remote state afterwards can never clobber work the user
+// just did.
+export function synchronize(component = 'none') {
+	flags.ROOM_FORMAT = 1; // always save out comma separated format, even if the old format is read in
+
+	var editorState = serializeWorld(true);
+	var diff = jsondiffpatch.diff(current_checkout, editorState);
+
+	if (diff) {
+		server.handle.change((doc) => {
+			// const res = jsondiffpatch.patch(doc, editorState);
+			updateText(doc, ["bitsy"], editorState);
+			doc.mutex[userId] = component;
+		});
+		current_checkout = editorState;
+	}
+
+	if (pending_remote_update || !headsEqual(checked_out_heads, server.handle.heads())) {
+		// FIXME: 
+		// const gamedataStorage = server.handle.doc().bitsy;
+		// Store.set("game_data", gamedataStorage);
+
+		reload_game_data();
+
+		current_checkout = gamedataStorage;
+		checked_out_heads = server.handle.heads();
+		pending_remote_update = false;
+	}
 
 	renderer.ClearCache(true);
 	roomTool.renderer.ClearCache(true);
@@ -161,6 +220,7 @@ export async function refreshGameDataCore(component = 'none') {
 		gameTool.menu.update();
 	}
 }
+
 // josh w comeau https://stackoverflow.com/a/75988895
 const debounce = (callback, wait) => {
   let timeoutId = null;
@@ -336,17 +396,27 @@ export async function start() {
 		setDefaultGameState();
 		drawing = sprite["A"]; // will this break?
 	}
-	
+
+	// baseline snapshot: what we just loaded is, by definition, checked out
+	current_checkout = handle.doc().bitsy;
+	checked_out_heads = handle.heads();
+
     // listen to multiplayer server
     handle.on("change", () => {
-		var gamedataChanged = handle.doc().bitsy;
-        Store.set("game_data", gamedataChanged)
-
 		mutex = handle.doc().mutex
 		console.log('sync crdt: update from ' + Object.entries(mutex))
 
-		// on_game_data_change_core()
-		reload_game_data();
+		if (safe_to_update) {
+			synchronize();
+		}
+		else {
+			// defer: don't clobber whatever the user is in the middle of.
+			// synchronize() will pick this up next time we're safe (e.g. the
+			// next local edit, or whenever the caller re-checks after
+			// flipping safe_to_update back on).
+			pending_remote_update = true;
+			return;
+		}
     })
 	
 	// share my cursor

@@ -9,7 +9,7 @@ import { enableGlobalAudioContext } from "./system/soundchip.js";
 import {MouseInterface} from "./mouse.js"
 import {MenuInterface, buttonElementFactory, toggleElementFactory, createTextInputElement} from "./menu.js"
 import {events, showPanel, showAbout, hidePanel, iconUtils} from "./editor_state.js"
-import {mobileOffsetCorrection, refreshGameData} from "./editor.js"
+import {mobileOffsetCorrection, refreshGameData, setSafeToUpdate} from "./editor.js"
 
 /* TOOL CARDS */
 export function makeToolCard(processName, grabCard, findTool, localization, togglePanelAnimated, initFunction) {
@@ -182,6 +182,7 @@ export function makeToolCard(processName, grabCard, findTool, localization, togg
 	}
 
 	function onMouseDown(e) {
+		setSafeToUpdate(false); 
 		enableGlobalAudioContext();
 		e.preventDefault();
 		var off = getOffset(e);
@@ -203,6 +204,7 @@ export function makeToolCard(processName, grabCard, findTool, localization, togg
 		card.mouseState.down = false;
 		card.mouseState.hover = false;
 		card.menu.update();
+		setSafeToUpdate(true); 
 	};
 
 	function onMouseMove(e) {

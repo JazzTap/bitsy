@@ -6,7 +6,7 @@ import { bitsy, processes, initSystem, bitsyLog, tilesize, scale, width,
 import { Resources } from "./generated/resources.js"
 
 import { clearGameData, soundPlayer,
-	sprite, tile, room, item, renderer, state, dialog, palette, flags, fontName,
+	sprite, tile, room, item, renderer, state, dialog, palette, flags, fontName, variable, tune, blip, names,
 	setInventoryCallback, setVariableCallback, setGameResetCallback, setInitRoomCallback, textDirection,
 	loadWorldFromGameData, serializeWorld, resetAllAnimations } from "./engine/bitsy.js"
 import { titleDialogId, version, defaultFontName } from "./engine/world.js"
@@ -176,39 +176,123 @@ export async function refreshGameDataCore(component = 'none') {
 	synchronize(component);
 }
 
-// Commit the user's local edits (if any) to the shared Automerge doc, then,
-// if it's safe to do so, pull in any remote changes we haven't parsed yet.
-//
-// Local edits are always committed first (regardless of safe_to_update) so
-// that reloading remote state afterwards can never clobber work the user
-// just did.
-export function synchronize(component = 'none') {
-	flags.ROOM_FORMAT = 1; // always save out comma separated format, even if the old format is read in
+function snapshotWorld() {
+	var world = {};
+	world.palette = structuredClone(palette);
+	world.room = structuredClone(room);
+	world.tile = structuredClone(tile);
+	world.sprite = structuredClone(sprite);
+	world.item = structuredClone(item);
+	world.dialog = structuredClone(dialog);
+	// world.end = end;
+	world.variable = structuredClone(variable);
+	world.fontName = fontName;
+	world.textDirection = textDirection;
+	world.tune = structuredClone(tune);
+	world.blip = structuredClone(blip);
+	world.flags = structuredClone(flags);
+	world.names = structuredClone(names);
 
-	var editorState = serializeWorld(true);
-	var diff = jsondiffpatch.diff(current_checkout, editorState);
+	world.activeDrawing = drawing ? {
+		id: drawing.drw,
+		data: structuredClone(getDrawingImageSource(drawing))
+	} : {};
+	return world;
+}
+
+function overwrite(live, incoming) {
+	if (live instanceof Map) {
+		live.clear();
+		if (incoming instanceof Map) {
+			for (const [k, v] of incoming) live.set(k, v);
+		} else if (incoming && typeof incoming === "object") {
+			for (const k of Object.keys(incoming)) live.set(k, incoming[k]);
+		}
+	} else if (Array.isArray(live)) {
+		live.length = 0;
+		if (Array.isArray(incoming)) live.push(...incoming);
+	} else if (live && typeof live === "object") {
+		for (const k of Object.keys(live)) delete live[k];
+		if (incoming && typeof incoming === "object") Object.assign(live, incoming);
+	}
+}
+
+function applyRemoteWorld(remoteWorld) {
+	overwrite(palette, remoteWorld.palette);
+	overwrite(room, remoteWorld.room);
+	overwrite(tile, remoteWorld.tile);
+	overwrite(sprite, remoteWorld.sprite);
+	overwrite(item, remoteWorld.item);
+	overwrite(dialog, remoteWorld.dialog);
+	overwrite(flags, remoteWorld.flags);
+	overwrite(variable, remoteWorld.variable);
+	overwrite(tune, remoteWorld.tune);
+	overwrite(blip, remoteWorld.blip);
+	overwrite(names, remoteWorld.names);
+
+	// TODO: fontName / textDirection aren't synced
+
+	// we can't afford to sync the whole rendering cache, just the active drawing
+	if (remoteWorld.activeDrawing && remoteWorld.activeDrawing.id != null) {
+		var localSource = renderer.GetDrawingSource(remoteWorld.activeDrawing.id);
+		if (localSource) {
+			overwrite(localSource, remoteWorld.activeDrawing.data);
+		}
+		renderer.SetDrawingSource(remoteWorld.activeDrawing.id, localSource || remoteWorld.activeDrawing.data);
+
+		if (paintTool && drawing && drawing.drw === remoteWorld.activeDrawing.id) {
+			paintTool.reloadDrawing();
+		}
+	}
+	if (roomTool && roomTool.renderer) {
+		roomTool.renderer.ClearCache();
+		// roomTool.menu.update();
+
+		let roomId = roomTool?.getSelectedId() || 0;
+		roomTool.selectAtIndex(roomId);
+	}
+}
+
+export function synchronize(component = 'none') {
+	var world = snapshotWorld();
+
+	var diff = jsondiffpatch.diff(current_checkout, world);
 
 	if (diff) {
+		console.log("send patch:", diff)
 		server.handle.change((doc) => {
-			// const res = jsondiffpatch.patch(doc, editorState);
-			updateText(doc, ["bitsy"], editorState);
+			doc.world = world;
 			doc.mutex[userId] = component;
 		});
-		current_checkout = editorState;
+	} else {
+		console.log("no patch")
 	}
 
 	if (pending_remote_update || !headsEqual(checked_out_heads, server.handle.heads())) {
-		// FIXME: 
-		// const gamedataStorage = server.handle.doc().bitsy;
-		// Store.set("game_data", gamedataStorage);
+		flags.ROOM_FORMAT = 1; // always save out comma separated format, even if the old format is read in
 
-		reload_game_data();
+		var remoteWorld = server.handle.doc().world;
+		console.log("sync crdt: remote world diff", jsondiffpatch.diff(current_checkout, remoteWorld))
 
-		current_checkout = gamedataStorage;
+		if (remoteWorld) {
+			applyRemoteWorld(remoteWorld);
+			var gamedataStorage = serializeWorld();
+
+			Store.set("game_data", gamedataStorage);
+			reload_game_data();
+		}
+		current_checkout = snapshotWorld();
+
 		checked_out_heads = server.handle.heads();
 		pending_remote_update = false;
 	}
+	else {
+		var gamedataStorage = serializeWorld();
+		Store.set("game_data", gamedataStorage);
+		// we already reloaded! just persist the change.
+	}
 
+	resetAllAnimations();
 	renderer.ClearCache(true);
 	roomTool.renderer.ClearCache(true);
 
@@ -231,7 +315,7 @@ const debounce = (callback, wait) => {
     }, wait);
   };
 }
-export const refreshGameData = debounce((component) => refreshGameDataCore(component), 250)
+export const refreshGameData = debounce((component) => refreshGameDataCore(component), 50)
 
 /* TIMER */
 function Timer() {
@@ -356,6 +440,8 @@ export async function start() {
 		// TODO : refactor "openDialogTool" to split out the actual opening from reloading
 		// force re-load the dialog tool
 		// openDialogTool(titleDialogId, null, false); // titleDialogId, insertNextToId, showIfHidden
+
+		safe_to_update = true;
 	});
 	detectBrowserFeatures();
 
@@ -397,8 +483,6 @@ export async function start() {
 		drawing = sprite["A"]; // will this break?
 	}
 
-	// baseline snapshot: what we just loaded is, by definition, checked out
-	current_checkout = handle.doc().bitsy;
 	checked_out_heads = handle.heads();
 
     // listen to multiplayer server
@@ -410,10 +494,7 @@ export async function start() {
 			synchronize();
 		}
 		else {
-			// defer: don't clobber whatever the user is in the middle of.
-			// synchronize() will pick this up next time we're safe (e.g. the
-			// next local edit, or whenever the caller re-checks after
-			// flipping safe_to_update back on).
+			console.log("deferring remote update until safe_to_update is true")
 			pending_remote_update = true;
 			return;
 		}

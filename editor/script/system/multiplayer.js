@@ -8,10 +8,12 @@ import { IndexedDBStorageAdapter } from "https://esm.sh/@automerge/automerge-rep
 import { BrowserWebSocketClientAdapter } from "https://esm.sh/@automerge/automerge-repo-network-websocket@2.1.0?bundle-deps"
 // import { MessageChannelNetworkAdapter } from "https://esm.sh/@automerge/automerge-repo-network-messagechannel@2.0.0-alpha.14?bundle-deps"
 
+// import { loadWorldFromGameData } from "../engine/bitsy.js"
+import { defaultFontName, TextDirection, parseWorld } from "../engine/world.js"
 import { Resources } from "../generated/resources.js"
 import { Store } from "../store.js"
 
-export const DEBUG_LOCAL = false
+export const DEBUG_LOCAL = true
 export const serverURL = DEBUG_LOCAL ? "http://localhost:3030" : "https://duck-composed-closely.ngrok-free.app"
 
 export const updateText = AutomergeRepo.updateText
@@ -61,8 +63,6 @@ export async function attachServer(debug = false) {
 
     if (!handle) {
         // if there's no matching handle, spin up a new session
-	    var defaultData = Resources["defaultGameData.bitsy"]; // too much clutter from orphaned instances
-
         while (true) {
             // HACK: generate new slugs until we discover a free one
             instanceName = generateSlug();
@@ -77,12 +77,6 @@ export async function attachServer(debug = false) {
         }
 
         handle = repo.create()
-        handle.change(doc => {
-            doc.bitsy = defaultData;
-            doc.mutex = {};
-            doc.mutex[userId] = 'none';
-            doc.instance = instanceName; // assign instance slug
-        })
 
         let res = handle.url.split(':')[1]
         params.set('instance', res)
@@ -93,16 +87,42 @@ export async function attachServer(debug = false) {
             body: JSON.stringify({"handle": res, "iid": instanceName})})
     }
     else {
-        instanceName = handle.doc().instance;
-
-        let loc = {...handle.doc().mutex}
-        // append my userId to the mutex. userId should be unique across all clients
-        loc[userId] = 'none'
-        handle.change(doc => { doc.mutex = loc; })
+        instanceName = handle.doc()?.instance || instanceName || instanceRaw;
         
         let res = handle.url.split(':')[1]
         params.set('instance', res)
     }
+
+    // initialize the handle if needed
+    const currentDoc = handle.doc();
+    const isDocEmpty = currentDoc.world === undefined || currentDoc.world.room[0] === undefined;
+
+    if (isDocEmpty) {
+	    var defaultData = Resources["defaultGameData.bitsy"];
+        var localData = currentDoc.bitsy || Store.get("game_data") || defaultData;
+        let init = parseWorld(localData)
+        init.activeDrawing = {}; // also sync the renderer cache, so that sprites match
+
+        handle.change(doc => {
+            delete doc.bitsy;
+            doc.instance = instanceName;
+
+            if (!doc.mutex) doc.mutex = {};
+            doc.mutex[userId] = 'none';
+
+            doc.world = init;
+        });
+        console.log("clobbered empty upstream:", init)
+    } else {
+        handle.change(doc => {
+            if (!doc.mutex) doc.mutex = {};
+            doc.mutex[userId] = 'none';
+            if (!doc.instance && instanceName) {
+                doc.instance = instanceName;
+            }
+        });
+    }
+
     // update url: https://stackoverflow.com/a/56777426
     history.pushState({}, '', `${location.pathname}?${params.toString()}${location.hash}`)
     

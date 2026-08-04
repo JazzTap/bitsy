@@ -13,7 +13,7 @@ import { defaultFontName, TextDirection, parseWorld } from "../engine/world.js"
 import { Resources } from "../generated/resources.js"
 import { Store } from "../store.js"
 
-export const DEBUG_LOCAL = true
+export const DEBUG_LOCAL = false
 export const serverURL = DEBUG_LOCAL ? "http://localhost:3030" : "https://duck-composed-closely.ngrok-free.app"
 
 export const updateText = AutomergeRepo.updateText
@@ -95,7 +95,7 @@ export async function attachServer(debug = false) {
 
     // initialize the handle if needed
     const currentDoc = handle.doc();
-    const isDocEmpty = currentDoc.world === undefined || currentDoc.world.room[0] === undefined;
+    const isDocEmpty = currentDoc.world === undefined;
 
     if (isDocEmpty) {
 	    var defaultData = Resources["defaultGameData.bitsy"];
@@ -104,19 +104,21 @@ export async function attachServer(debug = false) {
         init.activeDrawing = {}; // also sync the renderer cache, so that sprites match
 
         handle.change(doc => {
-            delete doc.bitsy;
+            // delete doc.bitsy; // breaks old versions of the client obviously, rather than quietly
             doc.instance = instanceName;
 
             if (!doc.mutex) doc.mutex = {};
             doc.mutex[userId] = 'none';
 
             doc.world = init;
+            doc.bitsy = localData;
         });
-        console.log("clobbered empty upstream:", init)
+        console.log("updated upstream records:", init)
     } else {
         handle.change(doc => {
             if (!doc.mutex) doc.mutex = {};
             doc.mutex[userId] = 'none';
+
             if (!doc.instance && instanceName) {
                 doc.instance = instanceName;
             }

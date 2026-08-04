@@ -262,6 +262,7 @@ export function synchronize(component = 'none') {
 		console.log("send patch:", diff)
 		server.handle.change((doc) => {
 			doc.world = world;
+			doc.bitsy = Store.get("game_data"); // seems like the rendering cache has to get saved
 			doc.mutex[userId] = component;
 		});
 	} else {
@@ -277,10 +278,9 @@ export function synchronize(component = 'none') {
 		if (remoteWorld) {
 			applyRemoteWorld(remoteWorld);
 			var gamedataStorage = serializeWorld();
-
-			Store.set("game_data", gamedataStorage);
-			reload_game_data();
 		}
+		Store.set("game_data", gamedataStorage);
+		reload_game_data();
 		current_checkout = snapshotWorld();
 
 		checked_out_heads = server.handle.heads();
@@ -470,6 +470,9 @@ export async function start() {
 
 	//load last auto-save
 	var gamedataStorage = handle.doc().bitsy;
+	// applyRemoteWorld(structuredClone(handle.doc().world));
+	// const gamedataStorage = serializeWorld();
+	
 	if (gamedataStorage !== "") {
 		// FIXME: remote maybe not available immediately
 		Store.set("game_data", gamedataStorage)
@@ -482,6 +485,8 @@ export async function start() {
 		setDefaultGameState();
 		drawing = sprite["A"]; // will this break?
 	}
+	// FIXME: hack to guarantee game_data is defined
+	Store.set("game_data", serializeWorld())
 
 	checked_out_heads = handle.heads();
 
@@ -973,8 +978,9 @@ export function on_game_data_change() {
 }
 
 export function on_game_data_change_core() {
-	var gamedataStorage = Store.get("game_data");
+	var gamedataStorage = Store.get("game_data") || Resources["defaultGameData.bitsy"]; // FIXME: weird fallback
 	bitsyLog(gamedataStorage, "editor");
+
 	console.log("on_game_data_change_core")
 	console.log('which tool?: ' + mutex[userId])
 

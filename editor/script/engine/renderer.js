@@ -1,8 +1,11 @@
-import {bitsy} from "../system/system.js"
+import {bitsy as initBitsy} from "../system/system.js"
 import {tileColorStartIndex} from "./world.js"
 
 export function TileRenderer(debugName) {
-bitsy.log("!!!!! NEW TILE RENDERER: " + debugName);
+	
+this.bitsy = initBitsy
+this.bitsy.log("!!!!! NEW TILE RENDERER: " + debugName);
+console.log("I'm a TileRenderer with bitsy = ", initBitsy)
 
 var drawingCache = {
 	source: {},
@@ -15,7 +18,7 @@ function createRenderCacheId(drawingId, colorIndex) {
 	return drawingId + "_" + colorIndex;
 }
 
-function renderDrawing(drawing) {
+this.renderDrawing = function(drawing) {
 	// debugRenderCount++;
 	// bitsy.log("RENDER COUNT " + debugRenderCount);
 
@@ -33,25 +36,26 @@ function renderDrawing(drawing) {
 
 	for (var i = 0; i < drawingFrames.length; i++) {
 		var frameData = drawingFrames[i];
-		var frameTileId = renderTileFromDrawingData(frameData, col, bgc);
+		var frameTileId = this.renderTileFromDrawingData(frameData, col, bgc);
 		drawingCache.render[cacheId].push(frameTileId);
 	}
 	// console.log(col, bgc, drwId, drawingFrames)
 }
 
-function renderTileFromDrawingData(drawingData, col, bgc) {
-	var tileId = bitsy.tile();
+this.renderTileFromDrawingData = function(drawingData, col, bgc) {
+	var tileId = this.bitsy.tile();
 
 	var backgroundColor = tileColorStartIndex + bgc;
 	var foregroundColor = tileColorStartIndex + col;
 
-	bitsy.fill(tileId, backgroundColor);
+	// console.log(debugName, tileId);
+	this.bitsy.fill(tileId, backgroundColor);
 
-	for (var y = 0; y < bitsy.TILE_SIZE; y++) {
-		for (var x = 0; x < bitsy.TILE_SIZE; x++) {
+	for (var y = 0; y < this.bitsy.TILE_SIZE; y++) {
+		for (var x = 0; x < this.bitsy.TILE_SIZE; x++) {
 			var px = drawingData[y][x];
 			if (px === 1) {
-				bitsy.set(tileId, (y * bitsy.TILE_SIZE) + x, foregroundColor);
+				this.bitsy.set(tileId, (y * this.bitsy.TILE_SIZE) + x, foregroundColor);
 			}
 		}
 	}
@@ -91,23 +95,24 @@ function getDrawingFrameTileId(drawing, frameOverride) {
 	return getRenderedDrawingFrames(drawing)[frameIndex];
 }
 
-function getOrRenderDrawingFrame(drawing, frameOverride) {
-	// bitsy.log("frame render: " + drawing.type + " " + drawing.id + " f:" + frameOverride);
+this.getOrRenderDrawingFrame = function(drawing, frameOverride) {
+	// console.log("frame render: " + drawing.type + " " + drawing.id + " f:" + frameOverride);
 
 	if (!isDrawingRendered(drawing)) {
-		bitsy.log("frame render: doesn't exist " + drawing.id);
-		renderDrawing(drawing);
+		// console.log("frame render: doesn't exist " + drawing.id);
+		this.renderDrawing(drawing);
 	}
 
 	return getDrawingFrameTileId(drawing, frameOverride);
 }
 
-function deleteRenders(drawingId) {
+this.deleteRenders = function(drawingId) {
 	for (var cacheId in drawingCache.render) {
-		if (cacheId.indexOf(drawingId) === 0) {
+		// VERIFY: cacheIds are of form `${drawingId}_${col}`.
+		if (cacheId.indexOf(`${drawingId}_`) === 0) {
 			var tiles = drawingCache.render[cacheId];
 			for (var i = 0; i < tiles.length; i++) {
-				bitsy.delete(tiles[i]);
+				this.bitsy.delete(tiles[i]);
 			}
 			delete drawingCache.render[cacheId];
 		}
@@ -115,18 +120,26 @@ function deleteRenders(drawingId) {
 }
 
 /* PUBLIC INTERFACE */
-this.GetDrawingFrame = getOrRenderDrawingFrame;
+this.GetDrawingFrame = this.getOrRenderDrawingFrame;
 
 // todo : leave individual get and set stuff for now - should I remove later?
 // todo : better name for function?
 this.SetDrawings = function(drawingSource) {
 	drawingCache.source = drawingSource;
 	// need to reset entire render cache when all the drawings are changed
+	// console.log(drawingCache.render)
+
+	for (var cacheId in drawingCache.render) {
+		var tiles = drawingCache.render[cacheId];
+		for (var i = 0; i < tiles.length; i++) {
+			this.bitsy.delete(tiles[i]);
+		}
+	}
 	drawingCache.render = {};
 };
 
 this.SetDrawingSource = function(drawingId, drawingData) {
-	deleteRenders(drawingId);
+	this.deleteRenders(drawingId);
 	drawingCache.source[drawingId] = drawingData;
 };
 
@@ -145,7 +158,7 @@ this.ClearCache = function(forceReset) {
 		for (var cacheId in drawingCache.render) {
 			var tiles = drawingCache.render[cacheId];
 			for (var i = 0; i < tiles.length; i++) {
-				bitsy.delete(tiles[i]);
+				this.bitsy.delete(tiles[i]);
 			}
 		}
 	}
@@ -153,6 +166,6 @@ this.ClearCache = function(forceReset) {
 	drawingCache.render = {};
 };
 
-this.deleteDrawing = deleteRenders;
+this.deleteDrawing = this.deleteRenders;
 
 } // Renderer()

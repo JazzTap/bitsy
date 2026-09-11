@@ -8,7 +8,7 @@ import {createSpriteThumbnailRenderer, createTileThumbnailRenderer, createItemTh
 	createPaletteThumbnailRenderer, createRoomThumbnailRenderer, drawing, roomTool, paletteTool, tuneTool, blipTool,
 	sortedDialogIdList, sortedTileIdList, sortedSpriteIdList, sortedItemIdList, sortedRoomIdList, sortedPaletteIdList, sortedBase36IdList,
 	on_paint_sprite_ui_update, on_paint_avatar_ui_update, on_paint_tile_ui_update, on_paint_item_ui_update,
-	openDialogTool} from "./editor.js"
+	openDialogTool, selectRoom} from "./editor.js"
 
 import {events, localization, showPanel} from "./editor_state.js"
 

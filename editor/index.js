@@ -1,5 +1,5 @@
-import {start, 
-    toggleDialogCode, toggleToolBar, togglePlayMode, togglePanelAnimated, showAbout,
+import {start,
+    toggleDialogCode, toggleToolBar, togglePlayMode, togglePanelAnimated,
     prevMarker, nextMarker, startAddMarker, duplicateMarker, deleteMarker, newExit, newExitOneWay, newEnding, cancelAddMarker,
     changeExitDirection, selectMarkerRoom1, toggleMoveMarker1, selectMarkerRoom2, toggleMoveMarker2,
     on_paint_avatar, on_paint_tile, on_paint_sprite, on_paint_item, prev, next, newDrawing, duplicateDrawing, deleteDrawing,
@@ -10,7 +10,7 @@ import {start,
     on_drawing_name_change, on_toggle_wall, on_toggle_animated, on_palette_name_change
 } from "./script/editor.js"
 import {aboutOpenTab} from "./script/tools/about.js"
-import {showPanel, hidePanel, loadIcons} from "./script/editor_state.js"
+import {showPanel, showAboutHandler, hidePanelHandler, loadIcons} from "./script/editor_state.js"
 
 loadIcons()
 start()
@@ -20,11 +20,11 @@ export function testShim (gameTool) {
     // gameTool.show('') // navigate game tool to data tab
 }
 
-export function bindToolDialogs () { 
+export function bindToolDialogs () {
     // I get called during editor initialization by start()
-    
-    document.querySelectorAll(".bitsy-card-title").forEach(u => u.addEventListener("onmousedown", grabCard))
-    document.querySelector("#editorWindow").addEventListener("onmousewheel", blockScrollBackpage)
+
+    document.querySelectorAll(".bitsy-card-title").forEach(u => u.addEventListener("mousedown", grabCard))
+    document.querySelector("#editorWindow").addEventListener("wheel", blockScrollBackpage)
 
     document.querySelector("#dialogShowCodeCheck").addEventListener("click", toggleDialogCode)
     document.querySelector("#toolsCheck").addEventListener("click", toggleToolBar)
@@ -93,25 +93,25 @@ export function bindToolDialogs () {
     document.querySelector("#exitOptionsToggleCheck2").addEventListener("click", (event) => toggleExitOptions(1, event.target.checked))
     document.querySelector("#exitOptionsToggleCheck1_alt").addEventListener("click", (event) => toggleExitOptions(0, event.target.checked))
 
-    document.querySelector("#showInventoryButton").addEventListener("click", showPanel("inventoryPanel", "paintPanel"))
+    document.querySelector("#showInventoryButton").addEventListener("click", (event) => showPanel("inventoryPanel", "paintPanel"))
     document.querySelector("#showFindColors").addEventListener("click", openFindTool("PAL", "colorsPanel"))
 
-    document.querySelector("#hideAbout").addEventListener("click", hidePanel("aboutPanel"))
-    document.querySelector("#hideExits").addEventListener("click", hidePanel("exitsPanel"))
-    document.querySelector("#hidePaint").addEventListener("click", hidePanel("paintPanel"))
-    document.querySelector("#hideFind").addEventListener("click", hidePanel("findPanel"))
-    document.querySelector("#hideColors").addEventListener("click", hidePanel("colorsPanel"))
-    document.querySelector("#hideDialog").addEventListener("click", hidePanel("dialogPanel"))
-    document.querySelector("#hideInventory").addEventListener("click", hidePanel("inventoryPanel"))
-    document.querySelector("#hideGif").addEventListener("click", hidePanel("gifPanel"))
+    document.querySelector("#hideAbout").addEventListener("click", hidePanelHandler("aboutPanel"))
+    document.querySelector("#hideExits").addEventListener("click", hidePanelHandler("exitsPanel"))
+    document.querySelector("#hidePaint").addEventListener("click", hidePanelHandler("paintPanel"))
+    document.querySelector("#hideFind").addEventListener("click", hidePanelHandler("findPanel"))
+    document.querySelector("#hideColors").addEventListener("click", hidePanelHandler("colorsPanel"))
+    document.querySelector("#hideDialog").addEventListener("click", hidePanelHandler("dialogPanel"))
+    document.querySelector("#hideInventory").addEventListener("click", hidePanelHandler("inventoryPanel"))
+    document.querySelector("#hideGif").addEventListener("click", hidePanelHandler("gifPanel"))
 
-    document.querySelector("#showAboutExits").addEventListener("click", showAbout("./tools/exitsandendings", "exitsPanel"))
-    document.querySelector("#showAboutPaint").addEventListener("click", showAbout("./tools/paint", "paintPanel"))
-    document.querySelector("#showAboutFind").addEventListener("click", showAbout("./tools/find", "findPanel"))
-    document.querySelector("#showAboutColors").addEventListener("click", showAbout("./tools/color", "colorsPanel"))
-    document.querySelector("#showAboutDialog").addEventListener("click", showAbout("./tools/dialog", "dialogPanel"))
-    document.querySelector("#showAboutInventory").addEventListener("click", showAbout("./tools/inventory", "inventoryPanel"))
-    document.querySelector("#showAboutGif").addEventListener("click", showAbout("./tools/recordgif", "gifPanel"))
+    document.querySelector("#showAboutExits").addEventListener("click", showAboutHandler("./tools/exitsandendings", "exitsPanel"))
+    document.querySelector("#showAboutPaint").addEventListener("click", showAboutHandler("./tools/paint", "paintPanel"))
+    document.querySelector("#showAboutFind").addEventListener("click", showAboutHandler("./tools/find", "findPanel"))
+    document.querySelector("#showAboutColors").addEventListener("click", showAboutHandler("./tools/color", "colorsPanel"))
+    document.querySelector("#showAboutDialog").addEventListener("click", showAboutHandler("./tools/dialog", "dialogPanel"))
+    document.querySelector("#showAboutInventory").addEventListener("click", showAboutHandler("./tools/inventory", "inventoryPanel"))
+    document.querySelector("#showAboutGif").addEventListener("click", showAboutHandler("./tools/recordgif", "gifPanel"))
 
     document.querySelector("#dialogName").addEventListener("change", onDialogNameChange)
     document.querySelector("#exitTransitionEffectSelect").addEventListener("change", (event) => onChangeExitTransitionEffect(event.target.value, 0))

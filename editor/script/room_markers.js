@@ -5,7 +5,7 @@ import { createExitData, createEndingData } from "./engine/world.js"
 import { clamp, deleteUnreferencedDialog } from "./util.js"
 import {iconUtils, events, localization} from "./editor_state.js"
 import {createRoomThumbnailRenderer, CreateDefaultName, getContrastingColor, refreshGameData,
-	selectRoom, sortedRoomIdList, dialogTool, nextAvailableDialogId } from "./editor.js"
+	selectRoom, sortedRoomIdList, dialogTool, nextAvailableDialogId, copyExitData } from "./editor.js"
 
 export function RoomMarkerTool(markerCanvas1, markerCanvas2) {
 	var selectedRoom = null;

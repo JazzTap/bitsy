@@ -136,7 +136,7 @@ export function setInitRoomCallback (foo) { onInitRoom = foo }
 
 export let renderer;
 if (engineFeatureFlags.isRendererEnabled) {
-	renderer = new TileRenderer("bitsy");
+	renderer = new TileRenderer("bitsy", bitsy);
 }
 
 var curGameData = null;
@@ -779,7 +779,7 @@ export function updatePalette(palId) {
 }
 
 export function initRoom(roomId) {
-	bitsy.log("init room " + roomId);
+	console.log("init room ", roomId, renderer.bitsy._name);
 
 	updatePalette(getRoomPal(roomId));
 

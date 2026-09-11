@@ -1,4 +1,4 @@
-import {start, 
+import {start,
     toggleDialogCode, toggleToolBar, togglePlayMode, togglePanelAnimated,
     prevMarker, nextMarker, startAddMarker, duplicateMarker, deleteMarker, newExit, newExitOneWay, newEnding, cancelAddMarker,
     changeExitDirection, selectMarkerRoom1, toggleMoveMarker1, selectMarkerRoom2, toggleMoveMarker2,
@@ -20,11 +20,11 @@ export function testShim (gameTool) {
     // gameTool.show('') // navigate game tool to data tab
 }
 
-export function bindToolDialogs () { 
+export function bindToolDialogs () {
     // I get called during editor initialization by start()
-    
-    document.querySelectorAll(".bitsy-card-title").forEach(u => u.addEventListener("onmousedown", grabCard))
-    document.querySelector("#editorWindow").addEventListener("onmousewheel", blockScrollBackpage)
+
+    document.querySelectorAll(".bitsy-card-title").forEach(u => u.addEventListener("mousedown", grabCard))
+    document.querySelector("#editorWindow").addEventListener("wheel", blockScrollBackpage)
 
     document.querySelector("#dialogShowCodeCheck").addEventListener("click", toggleDialogCode)
     document.querySelector("#toolsCheck").addEventListener("click", toggleToolBar)

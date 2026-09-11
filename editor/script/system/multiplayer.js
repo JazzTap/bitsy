@@ -13,7 +13,7 @@ import { defaultFontName, TextDirection, parseWorld } from "../engine/world.js"
 import { Resources } from "../generated/resources.js"
 import { Store } from "../store.js"
 
-export const DEBUG_LOCAL = false
+export const DEBUG_LOCAL = true
 export const serverURL = DEBUG_LOCAL ? "http://localhost:3030" : "https://duck-composed-closely.ngrok-free.app"
 
 export const updateText = AutomergeRepo.updateText
@@ -88,7 +88,7 @@ export async function attachServer(debug = false) {
     }
     else {
         instanceName = handle.doc()?.instance || instanceName || instanceRaw;
-        
+
         let res = handle.url.split(':')[1]
         params.set('instance', res)
     }
@@ -127,7 +127,7 @@ export async function attachServer(debug = false) {
 
     // update url: https://stackoverflow.com/a/56777426
     history.pushState({}, '', `${location.pathname}?${params.toString()}${location.hash}`)
-    
+
     Store.set("instance_name", instanceName)
     console.log("got instance name: " + instanceName)
     return {repo, handle}

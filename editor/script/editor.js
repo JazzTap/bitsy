@@ -111,7 +111,7 @@ export function mobileOffsetCorrection(off,e,innerSize) {
 	return off;
 }
 
-/* DIALOG UI 
+/* DIALOG UI
 - hacky to make this all global
 - some of this should be folded into paint tool later
 */
@@ -175,23 +175,35 @@ export async function refreshGameDataCore(component = 'none') {
 	// remote update we deferred while !safe_to_update
 	synchronize(component);
 }
+// world snapshot / restore helpers with cache invalidation rule
+function currentWorldFields() {
+	return {
+		palette:  { ref: palette },
+		room:     { ref: room },
+		tile:     { ref: tile, clearGraphicsCache: true },
+		sprite:   { ref: sprite, clearGraphicsCache: true },
+		item:     { ref: item, clearGraphicsCache: true },
+		dialog:   { ref: dialog },
+		variable: { ref: variable },
+		tune:     { ref: tune },
+		blip:     { ref: blip },
+		flags:    { ref: flags },
+		names:    { ref: names },
+	};
+}
+const WORLD_FIELDS = Object.keys(currentWorldFields());
 
 function snapshotWorld() {
 	var world = {};
-	world.palette = structuredClone(palette);
-	world.room = structuredClone(room);
-	world.tile = structuredClone(tile);
-	world.sprite = structuredClone(sprite);
-	world.item = structuredClone(item);
-	world.dialog = structuredClone(dialog);
+	var fields = currentWorldFields();
+	for (const key of Object.keys(fields)) {
+		var ref = fields[key].ref;
+		// splat any Map instances to a plain object
+		world[key] = structuredClone(ref instanceof Map ? Object.fromEntries(ref) : ref);
+	}
 	// world.end = end;
-	world.variable = structuredClone(variable);
 	world.fontName = fontName;
 	world.textDirection = textDirection;
-	world.tune = structuredClone(tune);
-	world.blip = structuredClone(blip);
-	world.flags = structuredClone(flags);
-	world.names = structuredClone(names);
 
 	world.activeDrawing = drawing ? {
 		id: drawing.drw,
@@ -217,33 +229,107 @@ function overwrite(live, incoming) {
 	}
 }
 
-function applyRemoteWorld(remoteWorld) {
-	overwrite(palette, remoteWorld.palette);
-	overwrite(room, remoteWorld.room);
-	overwrite(tile, remoteWorld.tile);
-	overwrite(sprite, remoteWorld.sprite);
-	overwrite(item, remoteWorld.item);
-	overwrite(dialog, remoteWorld.dialog);
-	overwrite(flags, remoteWorld.flags);
-	overwrite(variable, remoteWorld.variable);
-	overwrite(tune, remoteWorld.tune);
-	overwrite(blip, remoteWorld.blip);
-	overwrite(names, remoteWorld.names);
-
-	// TODO: fontName / textDirection aren't synced
-
-	// we can't afford to sync the whole rendering cache, just the active drawing
-	if (remoteWorld.activeDrawing && remoteWorld.activeDrawing.id != null) {
-		var localSource = renderer.GetDrawingSource(remoteWorld.activeDrawing.id);
-		if (localSource) {
-			overwrite(localSource, remoteWorld.activeDrawing.data);
+// Overwrites the live state with `sourceWorld`. `diff` (when available) is the
+// jsondiffpatch delta these keys came from.
+function applyWorldFields(keys, sourceWorld, diff = null) {
+	var touchedGraphics = false;
+	var touchedRoom = false;
+	var fields = currentWorldFields();
+	for (const key of keys) {
+		var field = fields[key];
+		if (field) {
+			overwrite(field.ref, sourceWorld[key]);
+			if (field.clearGraphicsCache) {
+				renderer.ClearCache(true);
+				touchedGraphics = true;
+			}
+			if (key === "room") {
+				applyRemoteRoomUpdate(diff && diff.room);
+			}
+			if (key === "dialog" || key === "sprite") {
+				applyRemoteDialogUpdate(key, diff && diff[key]);
+			}
+		} else if (key === "activeDrawing") {
+			applyRemoteActiveDrawing(sourceWorld.activeDrawing);
+			touchedGraphics = true;
 		}
-		renderer.SetDrawingSource(remoteWorld.activeDrawing.id, localSource || remoteWorld.activeDrawing.data);
+		if (key === "room") {
+			touchedRoom = true;
+		}
+	}
+	return { touchedGraphics, touchedRoom };
+}
 
-		if (paintTool && drawing && drawing.drw === remoteWorld.activeDrawing.id) {
+// we can't afford to sync the whole rendering cache, just the active drawing
+function applyRemoteActiveDrawing(activeDrawing) {
+	if (!activeDrawing || activeDrawing.id == null) {
+		return;
+	}
+	var localSource = renderer.GetDrawingSource(activeDrawing.id);
+	if (localSource) {
+		overwrite(localSource, activeDrawing.data);
+	}
+	renderer.SetDrawingSource(activeDrawing.id, localSource || activeDrawing.data);
+
+	if (paintTool && drawing && drawing.drw === activeDrawing.id) {
+		paintTool.reloadDrawing();
+	}
+}
+
+// jsondiffpatch keys an object-diff by the changed entries' own ids, plus a
+// few metadata keys (e.g. "_t"); filter those out to get real ids.
+function changedIds(fieldDiff) {
+	if (!fieldDiff) {
+		return [];
+	}
+	return Object.keys(fieldDiff).filter((id) => !id.startsWith("_"));
+}
+
+function applyRemoteRoomUpdate(roomDiff) {
+	if (!roomTool || !roomTool.renderer) {
+		return;
+	}
+	var ids = changedIds(roomDiff);
+	if (ids.length === 0) {
+		return;
+	}
+	var currentRoomId = roomTool.getSelectedId ? roomTool.getSelectedId() : null;
+	if (currentRoomId == null || ids.includes(String(currentRoomId))) {
+		roomTool.renderer.ClearCache(true);
+		roomTool.selectAtIndex(currentRoomId || 0);
+	}
+}
+
+function applyRemoteDialogUpdate(key, fieldDiff) {
+	var ids = changedIds(fieldDiff);
+	if (ids.length === 0) {
+		return;
+	}
+
+	if (key === "dialog") {
+		for (const dialogId of ids) {
+			events.Raise("dialog_update", { dialogId, editorId: null });
+		}
+	} else if (key === "sprite") {
+		for (const spriteId of ids) {
+			var spriteData = sprite[spriteId];
+			if (spriteData && spriteData.dlg != null) {
+				events.Raise("dialog_update", { dialogId: spriteData.dlg, editorId: null });
+			}
+		}
+		// make sure the paint tool's sprite dialog preview (if any) is current
+		if (paintTool && drawing && drawing.type === TileType.Sprite && ids.includes(String(drawing.id))) {
 			paintTool.reloadDrawing();
 		}
 	}
+}
+
+function applyRemoteWorld(remoteWorld) {
+	applyWorldFields(WORLD_FIELDS, remoteWorld);
+	applyRemoteActiveDrawing(remoteWorld.activeDrawing);
+
+	// TODO: fontName / textDirection aren't synced
+
 	if (roomTool && roomTool.renderer) {
 		roomTool.renderer.ClearCache();
 		// roomTool.menu.update();
@@ -253,56 +339,108 @@ function applyRemoteWorld(remoteWorld) {
 	}
 }
 
-export function synchronize(component = 'none') {
-	var world = snapshotWorld();
+let during_commit = false;
 
-	var diff = jsondiffpatch.diff(current_checkout, world);
+export async function synchronize(component = 'none') {
+	during_commit = true;
+	try {
+		var world = snapshotWorld();
 
-	if (diff) {
-		console.log("send patch:", diff)
-		server.handle.change((doc) => {
-			doc.world = world;
-			doc.bitsy = Store.get("game_data"); // seems like the rendering cache has to get saved
-			doc.mutex[userId] = component;
+		var diff = jsondiffpatch.diff(current_checkout, world);
+
+		if (diff) {
+			console.log("send patch:", diff)
+			var changedKeys = Object.keys(diff);
+			server.handle.change((doc) => {
+				if (!doc.world) doc.world = {};
+				// only touch the top-level categories that actually changed, so
+				// automerge only has to generate ops for those, not the whole tree
+				for (const key of changedKeys) {
+					doc.world[key] = world[key];
+				}
+				// doc.bitsy is regenerated lazily on read (see load path), not written here
 		});
-	} else {
-		console.log("no patch")
-	}
+			current_checkout = world;
+			checked_out_heads = server.handle.heads();
 
-	if (pending_remote_update || !headsEqual(checked_out_heads, server.handle.heads())) {
-		flags.ROOM_FORMAT = 1; // always save out comma separated format, even if the old format is read in
-
-		var remoteWorld = server.handle.doc().world;
-		console.log("sync crdt: remote world diff", jsondiffpatch.diff(current_checkout, remoteWorld))
-
-		if (remoteWorld) {
-			applyRemoteWorld(remoteWorld);
-			var gamedataStorage = serializeWorld();
+			// mutex is presence/UI info, not document state - broadcast it like a
+			// cursor position instead of persisting it into the CRDT doc
+			server.handle.broadcast({ type: "mutex", userId, component });
+			mutex[userId] = component; // broadcasts don't echo back to the sender
+		} else {
+			console.log("no patch")
 		}
-		Store.set("game_data", gamedataStorage);
-		reload_game_data();
-		current_checkout = snapshotWorld();
 
-		checked_out_heads = server.handle.heads();
-		pending_remote_update = false;
+		if (pending_remote_update || !headsEqual(checked_out_heads, server.handle.heads())) {
+			flags.ROOM_FORMAT = 1; // always save out comma separated format, even if the old format is read in
+
+			var remoteWorld = server.handle.doc().world;
+			var remoteDiff = jsondiffpatch.diff(current_checkout, remoteWorld);
+			console.log("sync crdt: remote world diff", remoteDiff)
+
+			if (remoteDiff) {
+				applyRemoteDiff(remoteDiff, remoteWorld);
+			} else {
+				Store.set("game_data", serializeWorld());
+				reload_game_data();
+			}
+
+			checked_out_heads = server.handle.heads();
+			pending_remote_update = false;
+		}
+		else {
+			var gamedataStorage = serializeWorld();
+			Store.set("game_data", gamedataStorage);
+			// we already reloaded! just persist the change.
+		}
 	}
-	else {
-		var gamedataStorage = serializeWorld();
-		Store.set("game_data", gamedataStorage);
-		// we already reloaded! just persist the change.
+	finally {
+  		during_commit = false;
+
+		// make sure to update the game tool!
+		// this ensures the game data text is up-to-date
+		// TODO : this is kind of a hack and it undoes any scrolling the game data textarea
+		// I should look into a better solution soon (some kind of file-watching-like concept?)
+		if (gameTool) {
+			gameTool.menu.update();
+		}
+	}
+}
+
+// applies only the categories present in `diff` (produced against
+// current_checkout) instead of overwriting every category unconditionally.
+// keeps current_checkout in sync incrementally, without a full re-snapshot.
+function applyRemoteDiff(diff, remoteWorld) {
+	var { touchedGraphics, touchedRoom } = applyWorldFields(Object.keys(diff), remoteWorld, diff);
+
+	if (touchedGraphics) {
+		resetAllAnimations();
+	}
+	if (touchedGraphics || touchedRoom) {
+		if (roomTool && roomTool.renderer) {
+			roomTool.renderer.ClearCache(true);
+			let roomId = roomTool?.getSelectedId() || 0;
+			roomTool.selectAtIndex(roomId);
+		}
 	}
 
-	resetAllAnimations();
-	renderer.ClearCache(true);
-	roomTool.renderer.ClearCache(true);
+	// TODO: fontName / textDirection aren't synced
 
-	// make sure to update the game tool!
-	// this ensures the game data text is up-to-date
-	// TODO : this is kind of a hack and it undoes any scrolling the game data textarea
-	// I should look into a better solution soon (some kind of file-watching-like concept?)
-	if (gameTool) {
-		gameTool.menu.update();
+	current_checkout = jsondiffpatch.patch(structuredClone(current_checkout), diff);
+
+	Store.set("game_data", serializeWorld());
+	reload_game_data();
+}
+
+// regenerates the bitsy game-data text from the structured world doc on
+// demand, instead of shipping a redundant serialized copy (doc.bitsy) over
+// the wire on every commit
+function regenerateBitsyFromWorld(worldDoc) {
+	if (!worldDoc || Object.keys(worldDoc).length === 0) {
+		return "";
 	}
+	applyRemoteWorld(worldDoc);
+	return serializeWorld();
 }
 
 // josh w comeau https://stackoverflow.com/a/75988895
@@ -388,7 +526,7 @@ function detectBrowserFeatures() {
 			browserFeatures.colorPicker = false;
 			document.getElementById("pageColor").type = "text";
 		}
-		
+
 		document.body.removeChild(input);
 	} catch(e) {
 		browserFeatures.colorPicker = false;
@@ -468,11 +606,7 @@ export async function start() {
 		fontManager.AddResource(fontStorage.name + ".bitsyfont", fontStorage.fontdata);
 	}
 
-	//load last auto-save
-	var gamedataStorage = handle.doc().bitsy;
-	// applyRemoteWorld(structuredClone(handle.doc().world));
-	// const gamedataStorage = serializeWorld();
-	
+	// initialize the `drawing` pointer
 	if (gamedataStorage !== "") {
 		// FIXME: remote maybe not available immediately
 		Store.set("game_data", gamedataStorage)
@@ -485,26 +619,34 @@ export async function start() {
 		setDefaultGameState();
 		drawing = sprite["A"]; // will this break?
 	}
+
+	//load last auto-save - regenerate from the structured world doc, no
+	// separate serialized blob is persisted anymore
+	var initialWorldDoc = structuredClone(handle.doc().world);
+	var gamedataStorage = regenerateBitsyFromWorld(initialWorldDoc);
+	
 	// FIXME: hack to guarantee game_data is defined
 	Store.set("game_data", serializeWorld())
 
+	current_checkout = initialWorldDoc && Object.keys(initialWorldDoc).length ? initialWorldDoc : null;
 	checked_out_heads = handle.heads();
 
     // listen to multiplayer server
-    handle.on("change", () => {
-		mutex = handle.doc().mutex
-		console.log('sync crdt: update from ' + Object.entries(mutex))
+  handle.on("change", () => {
+    if (during_commit) {
+			return; // if head matches local, no changes to apply
+		}
 
 		if (safe_to_update) {
-			synchronize();
+ 			synchronize();
 		}
 		else {
-			console.log("deferring remote update until safe_to_update is true")
-			pending_remote_update = true;
-			return;
+ 			console.log("deferring remote update until safe_to_update is true")
+ 			pending_remote_update = true;
+ 			return;
 		}
-    })
-	
+  })
+
 	// share my cursor
 	document.addEventListener("mousemove", cursorOverlay)
 	document.addEventListener("mousedown", cursorDownOverlay)
@@ -512,6 +654,13 @@ export async function start() {
 	// render shared cursors
 	const cursorIcon = bakeCursor()
     handle.on("ephemeral-message", ({handle, senderId, message}) => {
+		// mutex is presence info (which tool a peer is using), not document
+		// state - it arrives as a transient broadcast, same as cursor position
+		if (message.type === "mutex") {
+			mutex[senderId] = message.component;
+			return;
+		}
+
 		let ctx = copresenceContext
 
 		// HACK: initialize peers on connection, not in the mousemove handler
@@ -629,7 +778,7 @@ export async function start() {
 
 	setInventoryCallback(function(id) {
 		updateInventoryUI(localization);
-	
+
 		// animate to draw attention to change
 		document.getElementById("inventoryItem_" + id).classList.add("flash");
 		setTimeout(
@@ -643,7 +792,7 @@ export async function start() {
 
 	setVariableCallback(function(id) {
 		updateInventoryUI(localization);
-	
+
 		// animate to draw attention to change
 		document.getElementById("inventoryVariable_" + id).classList.add("flash");
 		setTimeout(
@@ -689,7 +838,7 @@ export async function start() {
 		var widget = dialogTool.CreateTitleWidget();
 		titleTextWidgets[i].appendChild(widget.GetElement());
 	}
-	
+
 	let instanceNameWidget = document.getElementsByClassName("instanceNameContainer")[0];
 	instanceTextInput = document.createElement("input");
 	instanceTextInput.classList.add("textInputField");
@@ -844,7 +993,7 @@ export function on_edit_mode() {
 	// reparse world to reset any changes from gameplay
 	var gamedataStorage = Store.get("game_data");
 	loadWorldFromGameData(gamedataStorage);
-	
+
 	// clear render cache
 	renderer.ClearCache();
 	roomTool.renderer.ClearCache();
@@ -959,7 +1108,7 @@ export function reload_game_data() {
 	// same as core, but doesn't reset editor state
 	var gamedataStorage = Store.get("game_data");
 	bitsyLog(gamedataStorage, "editor");
-	
+
 	clearGameData();
 	loadWorldFromGameData(gamedataStorage);
 
@@ -985,13 +1134,13 @@ export function on_game_data_change_core() {
 	console.log('which tool?: ' + mutex[userId])
 
 	// FIXME: don't clobber the tool we're holding
-	let roomId = roomTool?.getSelectedId() || 0,  
+	let roomId = roomTool?.getSelectedId() || 0,
 		tuneId = tuneTool?.getSelectedId() || 0,
 		blipId = blipTool?.getSelectedId() || 0,
 		tileId = sortedTileIdList()[tileIndex],
 		itemId = sortedItemIdList()[itemIndex],
 		spriteId = sortedSpriteIdList().filter(function (id) { return id != "A"; })[spriteIndex];
-		
+
 	clearGameData();
 	renderer.ClearCache();
 	loadWorldFromGameData(gamedataStorage); // reparse world if user directly manipulates game data
@@ -1019,7 +1168,7 @@ export function on_game_data_change_core() {
 		curPaintMode = drawing.type;
 	}
 	*/
- 
+
 	//fallback if there are no tiles, sprites, map
 	// TODO : switch to using stored default file data (requires separated parser / game data code)
 	if (Object.keys(sprite).length == 0) {
@@ -1159,7 +1308,7 @@ export function togglePanelAnimated(e) {
 	}
 }
 
-// sort of a hack to avoid accidentally activating backpage and nextpage while scrolling through editor panels 
+// sort of a hack to avoid accidentally activating backpage and nextpage while scrolling through editor panels
 export function blockScrollBackpage(e) {
 	var el = document.getElementById("editorWindow");
 	var maxX = el.scrollWidth - el.offsetWidth;
@@ -1172,7 +1321,7 @@ export function blockScrollBackpage(e) {
 }
 
 // show other peoples' cursors in multiplayer
-export function cursorOverlay(e) {	
+export function cursorOverlay(e) {
 	server.handle.broadcast({
 		type: "mousemove",
 		mouseX: e.pageX + editorWindow.scrollLeft,
@@ -1208,9 +1357,9 @@ function togglePreviewDialog(event) {
 			}
 
 			on_play_mode();
-		
+
 			startPreviewDialog(
-				DialogTools.curDialogEditor.GetNode(), 
+				DialogTools.curDialogEditor.GetNode(),
 				function() {
 					togglePreviewDialog({ target : { checked : false } });
 				});

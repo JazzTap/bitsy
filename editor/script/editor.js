@@ -1,5 +1,3 @@
-import * as jsondiffpatch from "https://esm.sh/jsondiffpatch"
-
 import { TileType, labelElementFactory, rgbToHex } from "./util.js"
 import { bitsy, processes, initSystem, bitsyLog, tilesize, scale, width,
 		setBitsy, attachCanvas, loadGame, quitGame } from "./system/system.js"
@@ -34,7 +32,12 @@ import { initAbout } from "./tools/about.js"
 import { localization, readUrlParameters, iconUtils, fontManager, defaultFonts,
 	events, getPanelPrefs, showPanel, togglePanel, togglePanelCore } from "./editor_state.js"
 
-import { attachServer, updateText, userId } from "./system/multiplayer.js"
+import { updateText, userId } from "./system/multiplayer.js"
+
+import {
+	synchronize, setSafeToUpdate, mutex,
+	connectPersistence, getInitialDoc, onEphemeralMessage, broadcastEphemeral
+} from "./sync.js"
 
 import * as PaintTools from "./tile_animation.js"
 import * as DialogTools from "./dialog_tool_utils.js"
@@ -134,35 +137,6 @@ export function setDefaultGameState() {
 }
 
 export let isPlayMode = false;
-export let mutex = {}
-
-/* MULTIPLAYER SYNC STATE */
-// TODO: Other tools should flip this off/on around
-// operations that must not be interrupted by a remote reload
-export let safe_to_update = true;
-export function setSafeToUpdate(val) {
-	safe_to_update = val;
-}
-// set when a remote change arrives while !safe_to_update, so we know to
-// catch up once it's safe again
-let pending_remote_update = false;
-
-// the Automerge heads corresponding to the last document state we actually
-// parsed into the editor, and the world-data snapshot that corresponds to it
-let checked_out_heads = null;
-let current_checkout = null;
-
-function headsEqual(a, b) {
-	if (!a || !b || a.length !== b.length) {
-		return false;
-	}
-	for (let i = 0; i < a.length; i++) {
-		if (a[i] !== b[i]) {
-			return false;
-		}
-	}
-	return true;
-}
 
 export async function refreshGameDataCore(component = 'none') {
 	if (isPlayMode) {
@@ -174,135 +148,6 @@ export async function refreshGameDataCore(component = 'none') {
 	// commits any local edits, and also opportunistically catches up on a
 	// remote update we deferred while !safe_to_update
 	synchronize(component);
-}
-
-function snapshotWorld() {
-	var world = {};
-	world.palette = structuredClone(palette);
-	world.room = structuredClone(room);
-	world.tile = structuredClone(tile);
-	world.sprite = structuredClone(sprite);
-	world.item = structuredClone(item);
-	world.dialog = structuredClone(dialog);
-	// world.end = end;
-	world.variable = structuredClone(variable);
-	world.fontName = fontName;
-	world.textDirection = textDirection;
-	world.tune = structuredClone(tune);
-	world.blip = structuredClone(blip);
-	world.flags = structuredClone(flags);
-	world.names = structuredClone(names);
-
-	world.activeDrawing = drawing ? {
-		id: drawing.drw,
-		data: structuredClone(getDrawingImageSource(drawing))
-	} : {};
-	return world;
-}
-
-function overwrite(live, incoming) {
-	if (live instanceof Map) {
-		live.clear();
-		if (incoming instanceof Map) {
-			for (const [k, v] of incoming) live.set(k, v);
-		} else if (incoming && typeof incoming === "object") {
-			for (const k of Object.keys(incoming)) live.set(k, incoming[k]);
-		}
-	} else if (Array.isArray(live)) {
-		live.length = 0;
-		if (Array.isArray(incoming)) live.push(...incoming);
-	} else if (live && typeof live === "object") {
-		for (const k of Object.keys(live)) delete live[k];
-		if (incoming && typeof incoming === "object") Object.assign(live, incoming);
-	}
-}
-
-function applyRemoteWorld(remoteWorld) {
-	overwrite(palette, remoteWorld.palette);
-	overwrite(room, remoteWorld.room);
-	overwrite(tile, remoteWorld.tile);
-	overwrite(sprite, remoteWorld.sprite);
-	overwrite(item, remoteWorld.item);
-	overwrite(dialog, remoteWorld.dialog);
-	overwrite(flags, remoteWorld.flags);
-	overwrite(variable, remoteWorld.variable);
-	overwrite(tune, remoteWorld.tune);
-	overwrite(blip, remoteWorld.blip);
-	overwrite(names, remoteWorld.names);
-
-	// TODO: fontName / textDirection aren't synced
-
-	// we can't afford to sync the whole rendering cache, just the active drawing
-	if (remoteWorld.activeDrawing && remoteWorld.activeDrawing.id != null) {
-		var localSource = renderer.GetDrawingSource(remoteWorld.activeDrawing.id);
-		if (localSource) {
-			overwrite(localSource, remoteWorld.activeDrawing.data);
-		}
-		renderer.SetDrawingSource(remoteWorld.activeDrawing.id, localSource || remoteWorld.activeDrawing.data);
-
-		if (paintTool && drawing && drawing.drw === remoteWorld.activeDrawing.id) {
-			paintTool.reloadDrawing();
-		}
-	}
-	if (roomTool && roomTool.renderer) {
-		roomTool.renderer.ClearCache();
-		// roomTool.menu.update();
-
-		let roomId = roomTool?.getSelectedId() || 0;
-		roomTool.selectAtIndex(roomId);
-	}
-}
-
-export function synchronize(component = 'none') {
-	var world = snapshotWorld();
-
-	var diff = jsondiffpatch.diff(current_checkout, world);
-
-	if (diff) {
-		console.log("send patch:", diff)
-		server.handle.change((doc) => {
-			doc.world = world;
-			doc.bitsy = Store.get("game_data"); // seems like the rendering cache has to get saved
-			doc.mutex[userId] = component;
-		});
-	} else {
-		console.log("no patch")
-	}
-
-	if (pending_remote_update || !headsEqual(checked_out_heads, server.handle.heads())) {
-		flags.ROOM_FORMAT = 1; // always save out comma separated format, even if the old format is read in
-
-		var remoteWorld = server.handle.doc().world;
-		console.log("sync crdt: remote world diff", jsondiffpatch.diff(current_checkout, remoteWorld))
-
-		if (remoteWorld) {
-			applyRemoteWorld(remoteWorld);
-			var gamedataStorage = serializeWorld();
-		}
-		Store.set("game_data", gamedataStorage);
-		reload_game_data();
-		current_checkout = snapshotWorld();
-
-		checked_out_heads = server.handle.heads();
-		pending_remote_update = false;
-	}
-	else {
-		var gamedataStorage = serializeWorld();
-		Store.set("game_data", gamedataStorage);
-		// we already reloaded! just persist the change.
-	}
-
-	resetAllAnimations();
-	renderer.ClearCache(true);
-	roomTool.renderer.ClearCache(true);
-
-	// make sure to update the game tool!
-	// this ensures the game data text is up-to-date
-	// TODO : this is kind of a hack and it undoes any scrolling the game data textarea
-	// I should look into a better solution soon (some kind of file-watching-like concept?)
-	if (gameTool) {
-		gameTool.menu.update();
-	}
 }
 
 // josh w comeau https://stackoverflow.com/a/75988895
@@ -335,7 +180,6 @@ const editorWindow = document.querySelector("#editorWindow")
 let instanceTextInput
 
 /* MULTIPLAYER */
-export let server
 export let copresenceContext
 export const peerCursors = {}
 
@@ -441,16 +285,15 @@ export async function start() {
 		// force re-load the dialog tool
 		// openDialogTool(titleDialogId, null, false); // titleDialogId, insertNextToId, showIfHidden
 
-		safe_to_update = true;
+		setSafeToUpdate(true);
 	});
 	detectBrowserFeatures();
 
 	resizeCanvasOverlay()
 	copresenceContext = document.getElementById('pointerOverlay').getContext('2d');
 
-	// enable multiplayer editing
-	server = await attachServer(true)
-	let handle = server.handle
+	// enable multiplayer editing (persistence layer connection)
+	await connectPersistence()
 
 	readUrlParameters();
 
@@ -469,7 +312,7 @@ export async function start() {
 	}
 
 	//load last auto-save
-	var gamedataStorage = handle.doc().bitsy;
+	var gamedataStorage = (await getInitialDoc()).bitsy;
 	// applyRemoteWorld(structuredClone(handle.doc().world));
 	// const gamedataStorage = serializeWorld();
 	
@@ -488,30 +331,13 @@ export async function start() {
 	// FIXME: hack to guarantee game_data is defined
 	Store.set("game_data", serializeWorld())
 
-	checked_out_heads = handle.heads();
-
-    // listen to multiplayer server
-    handle.on("change", () => {
-		mutex = handle.doc().mutex
-		console.log('sync crdt: update from ' + Object.entries(mutex))
-
-		if (safe_to_update) {
-			synchronize();
-		}
-		else {
-			console.log("deferring remote update until safe_to_update is true")
-			pending_remote_update = true;
-			return;
-		}
-    })
-	
 	// share my cursor
 	document.addEventListener("mousemove", cursorOverlay)
 	document.addEventListener("mousedown", cursorDownOverlay)
 
 	// render shared cursors
 	const cursorIcon = bakeCursor()
-    handle.on("ephemeral-message", ({handle, senderId, message}) => {
+    onEphemeralMessage(({handle, senderId, message}) => {
 		let ctx = copresenceContext
 
 		// HACK: initialize peers on connection, not in the mousemove handler
@@ -1173,14 +999,14 @@ export function blockScrollBackpage(e) {
 
 // show other peoples' cursors in multiplayer
 export function cursorOverlay(e) {	
-	server.handle.broadcast({
+	broadcastEphemeral({
 		type: "mousemove",
 		mouseX: e.pageX + editorWindow.scrollLeft,
 		mouseY: e.pageY + editorWindow.scrollTop
 	})
 }
 export function cursorDownOverlay(e) {
-	server.handle.broadcast({
+	broadcastEphemeral({
 		type: "mousedown",
 		target: e.target
 	})

@@ -5,9 +5,10 @@ import { TextDirection } from "../engine/world.js";
 import { bitsy, bitsyLog } from "../system/system.js";
 import { ExporterUtils } from "../exporter.js"
 
-import { server, grabCard, findTool, togglePanelAnimated, refreshGameData, reloadDialogUI,
+import { grabCard, findTool, togglePanelAnimated, refreshGameData, reloadDialogUI,
 	setDefaultGameState, updateEditorTextDirection, exporter, updateEditorLanguageStyle,
 	hackUpdatePlaceholderText, hackUpdateEditorToolMenusOnLanguageChange } from "../editor.js"
+import {server} from "../sync.js"
 import { fontManager } from "../editor_state.js";
 import { updateInventoryUI } from "../inventory.js";
 import { updateText } from "../system/multiplayer.js";
@@ -223,7 +224,10 @@ export function makeGameTool(localization) {
 			var gamedataImported = fileText;
 			Store.set("game_data", gamedataImported);
 
-			server.handle.change((doc) => { updateText(doc, ["bitsy"], gamedataImported) })
+			server.handle.change((doc) => {
+				doc.world = parseWorld(gamedataImported);
+				updateText(doc, ["bitsy"], gamedataImported) }
+			)
 		}
 
 		window.newGameDialog = function newGameDialog() {

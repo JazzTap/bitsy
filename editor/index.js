@@ -23,8 +23,8 @@ export function testShim (gameTool) {
 export function bindToolDialogs () { 
     // I get called during editor initialization by start()
     
-    document.querySelectorAll(".bitsy-card-title").forEach(u => u.addEventListener("onmousedown", grabCard))
-    document.querySelector("#editorWindow").addEventListener("onmousewheel", blockScrollBackpage)
+    document.querySelectorAll(".bitsy-card-title").forEach(u => u.addEventListener("mousedown", grabCard))
+    document.querySelector("#editorWindow").addEventListener("mousewheel", blockScrollBackpage)
 
     document.querySelector("#dialogShowCodeCheck").addEventListener("click", toggleDialogCode)
     document.querySelector("#toolsCheck").addEventListener("click", toggleToolBar)

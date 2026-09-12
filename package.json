@@ -12,10 +12,12 @@
 		"ssh2": "^1.11.0"
 	},
 	"scripts": {
-		"test": "node ./dev/test_simultaneous_edits.cjs",
+		"setup-env": "node -e \"const fs=require('fs'); if(!fs.existsSync('editor/env.js')) fs.copyFileSync('editor/env.default.js', 'env.js');\"",
+    	"prestart": "npm run setup-env",
 		"client": "npx http-server ./editor/",
 		"server": "node ./automerge-repo-sync-server/src/index.js",
-		"dev": "concurrently \"npm run client\" \"npm run server\" "
+		"start": "concurrently \"npm run client\" \"npm run server\" ",
+		"test": "node ./dev/test_simultaneous_edits.cjs"
 	},
 	"dependencies": {
 		"jsondiffpatch": "^0.7.6"

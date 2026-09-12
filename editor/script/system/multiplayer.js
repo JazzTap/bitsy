@@ -13,7 +13,8 @@ import { defaultFontName, TextDirection, parseWorld } from "../engine/world.js"
 import { Resources } from "../generated/resources.js"
 import { Store } from "../store.js"
 
-export const DEBUG_LOCAL = false
+import {DEBUG_LOCAL} from "../../env.js"
+
 export const serverURL = DEBUG_LOCAL ? "http://localhost:3030" : "https://duck-composed-closely.ngrok-free.app"
 
 export const updateText = AutomergeRepo.updateText
@@ -87,38 +88,37 @@ export async function attachServer(debug = false) {
             body: JSON.stringify({"handle": res, "iid": instanceName})})
     }
     else {
-        instanceName = handle.doc()?.instance || instanceName || instanceRaw;
+        instanceName = (await handle.doc())?.instance || instanceName || instanceRaw;
         
         let res = handle.url.split(':')[1]
         params.set('instance', res)
     }
 
     // initialize the handle if needed
-    const currentDoc = handle.doc();
+    // `world` is the source of truth once it exists; `bitsy` is only used to
+    // seed `world` the first time (or if `world` has never been set).
+    const currentDoc = await handle.doc();
     const isDocEmpty = currentDoc.world === undefined;
 
     if (isDocEmpty) {
-	    var defaultData = Resources["defaultGameData.bitsy"];
+        var defaultData = Resources["defaultGameData.bitsy"];
         var localData = currentDoc.bitsy || Store.get("game_data") || defaultData;
         let init = parseWorld(localData)
-        init.activeDrawing = {}; // also sync the renderer cache, so that sprites match
+        init.activeDrawing = {};
+        
+        console.log("initialized world from bitsy:", init)
 
         handle.change(doc => {
-            // delete doc.bitsy; // breaks old versions of the client obviously, rather than quietly
             doc.instance = instanceName;
-
-            if (!doc.mutex) doc.mutex = {};
-            doc.mutex[userId] = 'none';
-
-            doc.world = init;
+            // if (!doc.mutex) doc.mutex = {};
+            // doc.mutex[userId] = 'none';
+            doc.world = JSON.parse(JSON.stringify(init)); // clobber cyclical references
             doc.bitsy = localData;
         });
-        console.log("updated upstream records:", init)
     } else {
         handle.change(doc => {
-            if (!doc.mutex) doc.mutex = {};
-            doc.mutex[userId] = 'none';
-
+            // if (!doc.mutex) doc.mutex = {};
+            // doc.mutex[userId] = 'none';
             if (!doc.instance && instanceName) {
                 doc.instance = instanceName;
             }

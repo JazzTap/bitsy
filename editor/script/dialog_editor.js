@@ -8,6 +8,7 @@ import { ThumbnailRenderer } from "./thumbnail.js"
 import { iconUtils, events } from "./editor_state.js" 
 import { refreshGameData, openDialogTool, nextAvailableDialogId, getCurDialogId } from "./editor.js"
 import { EventListener } from "./event_manager.js"
+import { setSafeToUpdate } from "./sync.js"
 
 // TODO : name?
 export function DialogTool(localization, sortedDialogIdList) {
@@ -377,7 +378,15 @@ export function DialogTool(localization, sortedDialogIdList) {
 			}
 			codeTextArea.onchange = OnTextChangeHandler;
 			codeTextArea.onkeyup = OnTextChangeHandler;
-			codeTextArea.onblur = OnTextChangeHandler;
+			codeTextArea.onfocus = function () {
+				console.log("dialog editor focus")
+				setSafeToUpdate(false);
+			};
+			codeTextArea.onblur = function () {
+				console.log("dialog editor defocus")
+				setSafeToUpdate(true);
+				OnTextChangeHandler();
+			};
 			dialogBoxContainer.appendChild(codeTextArea);
 		}
 

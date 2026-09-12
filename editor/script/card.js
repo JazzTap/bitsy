@@ -9,7 +9,8 @@ import { enableGlobalAudioContext } from "./system/soundchip.js";
 import {MouseInterface} from "./mouse.js"
 import {MenuInterface, buttonElementFactory, toggleElementFactory, createTextInputElement} from "./menu.js"
 import {events, showPanel, showAbout, hidePanel, iconUtils} from "./editor_state.js"
-import {mobileOffsetCorrection, refreshGameData, setSafeToUpdate} from "./editor.js"
+import {mobileOffsetCorrection, refreshGameData} from "./editor.js"
+import {setSafeToUpdate} from "./sync.js"
 
 /* TOOL CARDS */
 export function makeToolCard(processName, grabCard, findTool, localization, togglePanelAnimated, initFunction) {

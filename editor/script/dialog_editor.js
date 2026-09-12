@@ -379,11 +379,9 @@ export function DialogTool(localization, sortedDialogIdList) {
 			codeTextArea.onchange = OnTextChangeHandler;
 			codeTextArea.onkeyup = OnTextChangeHandler;
 			codeTextArea.onfocus = function () {
-				console.log("dialog editor focus")
 				setSafeToUpdate(false);
 			};
 			codeTextArea.onblur = function () {
-				console.log("dialog editor defocus")
 				setSafeToUpdate(true);
 				OnTextChangeHandler();
 			};
@@ -1146,7 +1144,13 @@ export function DialogTool(localization, sortedDialogIdList) {
 
 			textArea.onchange = OnDialogTextChange;
 			textArea.onkeyup = OnDialogTextChange;
-			textArea.onblur = OnDialogTextChange;
+			textArea.onfocus = function () {
+				setSafeToUpdate(false);
+			};
+			textArea.onblur = function () {
+				setSafeToUpdate(true);
+				OnDialogTextChange();
+			};
 
 			textArea.rows = Math.max(2, dialogText.split("\n").length + 1);
 

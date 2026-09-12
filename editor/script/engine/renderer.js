@@ -5,7 +5,6 @@ export function TileRenderer(debugName) {
 	
 this.bitsy = initBitsy
 this.bitsy.log("!!!!! NEW TILE RENDERER: " + debugName);
-console.log("I'm a TileRenderer with bitsy = ", initBitsy)
 
 var drawingCache = {
 	source: {},

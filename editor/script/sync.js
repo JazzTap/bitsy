@@ -20,6 +20,12 @@ import {
 	palette, room, tile, sprite, item, dialog, flags, variable, fontName,
 	textDirection, tune, blip, names, renderer, serializeWorld, resetAllAnimations
 } from "./engine/bitsy.js"
+import {
+	createWorldData, parseTile, parseSprite, parseItem, parseTune, placeSprites, getType
+} from "./engine/world.js"
+import {
+	serializeTiles, serializeSprites, serializeItems, serializeTunes
+} from "./engine/serialize.js"
 
 // live editor state this module needs to read/mutate as part of building
 // and applying world snapshots
@@ -64,23 +70,57 @@ function headsEqual(a, b) {
 	return true;
 }
 
+const SECTION_PARSERS = { TIL: parseTile, SPR: parseSprite, ITM: parseItem, TUNE: parseTune };
+
+// same dispatch loop as parseWorld, restricted to the four synced record types
+function parseSections(text) {
+	var parsed = createWorldData();
+	var parseState = { lines: text.split("\n"), index: 0, spriteStartLocations: {} };
+
+	while (parseState.index < parseState.lines.length) {
+		var i = parseState.index;
+		var line = parseState.lines[i];
+		var parseFn = (line.length > 0 && line.charAt(0) !== "#")
+			? SECTION_PARSERS[getType(line)]
+			: undefined;
+
+		if (parseFn) {
+			i = parseFn(parseState, parsed);
+			if (i <= parseState.index) i = parseState.index + 1; // never stall on a bad record
+		} else {
+			i++; // blank line, comment, or unknown line
+		}
+		parseState.index = i;
+	}
+
+	placeSprites(parseState, parsed);
+	return parsed;
+}
+
+function adopt(live, incoming) {
+	for (const k of Object.keys(live)) delete live[k];
+	if (incoming && typeof incoming === "object") Object.assign(live, incoming);
+}
+
 function snapshotWorld() {
 	var world = {};
 	world.palette = structuredClone(palette);
 	world.room = structuredClone(room);
-	world.tile = structuredClone(tile);
-	world.sprite = structuredClone(sprite);
-	world.item = structuredClone(item);
+	world.tile = serializeTiles();
+	world.sprite = serializeSprites();
+	world.item = serializeItems();
 	world.dialog = structuredClone(dialog);
 	// world.end = end;
+
 	world.variable = structuredClone(variable);
 	world.fontName = fontName;
 	world.textDirection = textDirection;
-	world.tune = structuredClone(tune);
+	world.tune = serializeTunes();
 	world.blip = structuredClone(blip);
 	world.flags = structuredClone(flags);
 	world.names = structuredClone(names);
 
+	// VERIFY: syncing the active drawing simplifies paintTool reload? check w/ different visible drawings
 	world.activeDrawing = drawing ? {
 		id: drawing.drw,
 		data: structuredClone(getDrawingImageSource(drawing))
@@ -108,19 +148,42 @@ function overwrite(live, incoming) {
 function applyRemoteWorld(remoteWorld) {
 	overwrite(palette, remoteWorld.palette);
 	overwrite(room, remoteWorld.room);
-	overwrite(tile, remoteWorld.tile);
-	overwrite(sprite, remoteWorld.sprite);
-	overwrite(item, remoteWorld.item);
 	overwrite(dialog, remoteWorld.dialog);
 	overwrite(flags, remoteWorld.flags);
 	overwrite(variable, remoteWorld.variable);
-	overwrite(tune, remoteWorld.tune);
 	overwrite(blip, remoteWorld.blip);
 	overwrite(names, remoteWorld.names);
 
+	var fields = [
+		["tile", tile], ["sprite", sprite], ["item", item], ["tune", tune]
+	];
+	var text = fields
+		.map(([key]) => remoteWorld[key])
+		.filter((v) => typeof v === "string")
+		.join("\n\n");
+	var parsed = text ? parseSections(text) : createWorldData();
+
+	// the parsers put frames in parsed.drawings; the renderer is what serializeDrawing reads
+	for (const drwId in parsed.drawings) {
+		renderer.SetDrawingSource(drwId, parsed.drawings[drwId]);
+	}
+
+	var tune0 = tune["0"]; // serializeTunes skips "0"
+	for (const [key, live] of fields) {
+		var incoming = remoteWorld[key];
+		if (typeof incoming === "string") {
+			adopt(live, parsed[key]);
+		} else if (incoming && typeof incoming === "object") {
+			adopt(live, incoming); // legacy doc: same behavior as the old overwrite
+		}
+		// undefined: field absent in doc, leave local state alone
+	}
+	if (typeof remoteWorld.tune === "string" && tune0 !== undefined && !("0" in tune)) {
+		tune["0"] = tune0;
+	}
+
 	// TODO: fontName / textDirection aren't synced
 
-	// we can't afford to sync the whole rendering cache, just the active drawing
 	if (remoteWorld.activeDrawing && remoteWorld.activeDrawing.id != null) {
 		var localSource = renderer.GetDrawingSource(remoteWorld.activeDrawing.id);
 		if (localSource) {
@@ -134,8 +197,6 @@ function applyRemoteWorld(remoteWorld) {
 	}
 	if (roomTool && roomTool.renderer) {
 		roomTool.renderer.ClearCache();
-		// roomTool.menu.update();
-
 		let roomId = roomTool?.getSelectedId() || 0;
 		roomTool.selectAtIndex(roomId);
 	}

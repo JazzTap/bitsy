@@ -2,7 +2,7 @@
 // import * as AutomergeRepo from "https://esm.sh/@automerge/automerge-repo@2.0.0-alpha.14/slim?bundle-deps"
 
 import * as AutomergeRepo from "https://esm.sh/@automerge/react@2.2.0/slim?bundle-deps"
-await AutomergeRepo.initializeWasm( fetch("https://esm.sh/@automerge/automerge@3.1.1/dist/automerge.wasm") )
+await AutomergeRepo.initializeWasm( fetch("https://esm.sh/@automerge/automerge/dist/automerge.wasm") )
 
 import { IndexedDBStorageAdapter } from "https://esm.sh/@automerge/automerge-repo-storage-indexeddb@2.1.0?bundle-deps"
 import { BrowserWebSocketClientAdapter } from "https://esm.sh/@automerge/automerge-repo-network-websocket@2.1.0?bundle-deps"

@@ -74,7 +74,7 @@ export function updateSystem() {
 
 	// update all active processes
 	for (var i = 0; i < processes.length; i++) {
-		bitsy = processes[i].system;
+		setBitsy(processes[i].system);
 		if (bitsy._active) {
 			bitsyLog(bitsy._name + " img count: " + bitsy._graphics._images.length, "system");
 			var shouldContinue = bitsy._update(deltaTime);

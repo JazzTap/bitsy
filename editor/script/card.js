@@ -263,6 +263,7 @@ export function makeToolCard(processName, grabCard, findTool, localization, togg
 	// hacky way to respond to changes outside the tool??
 	events.Listen("paint_edit", function() {
 		if (card.onGameDataChange) {
+			setBitsy(card.system);
 			card.onGameDataChange();
 		}
 	});

@@ -1753,6 +1753,9 @@ export function makeTuneTool() {
 			// force render refresh // todo : need to think about the architecture of sharing renderers
 			if (tool && tool.renderer) {
 				tool.renderer.ClearCache();
+				[melodyBarTileIds, harmonyBarTileIds].forEach(function(ids) {
+					if (ids) ids.forEach(function(id) { if (id != null) bitsy.delete(id); });
+				});
 				melodyBarTileIds = null;
 				harmonyBarTileIds = null;
 				blipTileIds = [];

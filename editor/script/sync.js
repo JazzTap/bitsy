@@ -11,6 +11,7 @@
  * used to build/apply a world snapshot and to trigger UI refresh. 
  */
 
+import { updateText } from "./system/multiplayer.js"
 import * as jsondiffpatch from "https://esm.sh/jsondiffpatch"
 
 import { attachServer, userId } from "./system/multiplayer.js"
@@ -45,6 +46,8 @@ export let safe_to_update = true;
 export function setSafeToUpdate(val) {
 	safe_to_update = val;
 }
+
+const TEXT_FIELDS = new Set(["tile", "sprite", "item", "tune"]);
 
 // set when a remote change arrives while !safe_to_update, so we know to
 // catch up once it's safe again
@@ -215,14 +218,36 @@ function sendLocalChanges(component = 'none') {
 		console.log("send patch:", diff)
 		var wasSafe = safe_to_update;
 		setSafeToUpdate(false);
+
 		server.handle.change((doc) => {
-			doc.world = world;
-			doc.bitsy = Store.get("game_data"); // seems like the rendering cache has to get saved
+			writeWorld(doc, world);
+			doc.bitsy = Store.get("game_data"); // now, save the rendering cache
 			// doc.mutex[userId] = component;
 		});
 		setSafeToUpdate(wasSafe);
 	} else {
 		console.log("no patch")
+	}
+}
+
+function writeWorld(doc, world) {
+	if (!doc.world) {
+		doc.world = world;
+		return;
+	}
+	for (const [k, v] of Object.entries(world)) {
+		// skip untouched fields so we don't rewrite (and clobber) them
+		if (current_checkout && !jsondiffpatch.diff(current_checkout[k], v)) continue;
+
+		if (TEXT_FIELDS.has(k) && typeof v === "string" && typeof doc.world[k] === "string") {
+			try {
+				updateText(doc, ["world", k], v);
+				continue;
+			} catch (e) {
+				// existing value is a scalar string, not a Text object: fall through
+			}
+		}
+		doc.world[k] = v; // legacy object format, first write, or non-text field
 	}
 }
 

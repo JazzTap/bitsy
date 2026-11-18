@@ -31,7 +31,7 @@ import {
 // live editor state this module needs to read/mutate as part of building
 // and applying world snapshots
 import {
-	drawing, paintTool, roomTool, gameTool,
+	drawing, paintTool, roomTool, gameTool, paletteTool,
 	getDrawingImageSource, reload_game_data
 } from "./editor.js"
 
@@ -256,6 +256,7 @@ function applyPendingRemoteIfSafe() {
 		pending_remote_update = true;
 		return;
 	}
+	const selectedRoomId = roomTool ? roomTool.getSelectedId() : null;
 
 	if (pending_remote_update || !headsEqual(checked_out_heads, server.handle.heads())) {
 		flags.ROOM_FORMAT = 1; // always save out comma separated format, even if the old format is read in
@@ -270,6 +271,8 @@ function applyPendingRemoteIfSafe() {
 		}
 		Store.set("game_data", gamedataStorage);
 		reload_game_data();
+
+		restoreSelection(selectedRoomId);   // after reload, before the snapshot
 		current_checkout = snapshotWorld();
 
 		checked_out_heads = server.handle.heads();
@@ -285,12 +288,28 @@ function applyPendingRemoteIfSafe() {
 	renderer.ClearCache(true);
 	roomTool.renderer.ClearCache(true);
 
-	// make sure to update the game tool!
-	// this ensures the game data text is up-to-date
+	// updating game tool ensures the game data text is up-to-date
 	// TODO : this is kind of a hack and it undoes any scrolling the game data textarea
 	// I should look into a better solution soon (some kind of file-watching-like concept?)
 	if (gameTool) {
 		gameTool.menu.update();
+	}
+}
+
+// not an edit: draw the room with its palette instead of reverting to default
+function restoreSelection(roomId) {
+	if (!roomTool || roomId == null || !room[roomId]) return;
+
+	const wasSafe = safe_to_update;
+	setSafeToUpdate(false);
+	try {
+		roomTool.select(roomId);
+		const pal = room[roomId].pal;
+		if (paletteTool && palette[pal] && paletteTool.GetSelectedId() !== pal) {
+			paletteTool.Select(pal);
+		}
+	} finally {
+		setSafeToUpdate(wasSafe);
 	}
 }
 

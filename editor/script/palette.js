@@ -1,7 +1,7 @@
 import { RGBtoHSV, hslToRgb } from "./util.js";
 import {events} from "./editor_state.js"
-import { palette, getPal, updateNamesFromCurData } from "./engine/bitsy.js";
-import { sortedPaletteIdList, roomTool, nextPaletteId } from "./editor.js"; // seems cyclic but it's fine?
+import { room, palette, getPal, updateNamesFromCurData } from "./engine/bitsy.js";
+import { sortedRoomIdList, sortedPaletteIdList, roomTool, nextPaletteId } from "./editor.js"; // seems cyclic but it's fine?
 import { localization } from "./editor_state.js";
 
 /* PALETTE TOOL STUFF

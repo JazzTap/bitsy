@@ -777,15 +777,11 @@ export function createBlipThumbnailRenderer() {
 export function on_change_adv_dialog() {
 	on_change_dialog();
 }
-
 export function reload_game_data() {
-	// FIXME: why does palette revert?
-	// console.log(roomTool?.selectedId, getRoomPal(roomTool?.selectedId))
-
 	// same as core, but doesn't reset editor state
 	var gamedataStorage = Store.get("game_data");
 	bitsyLog(gamedataStorage, "editor");
-	
+
 	clearGameData();
 	loadWorldFromGameData(gamedataStorage);
 
@@ -811,20 +807,19 @@ export function on_game_data_change_core() {
 	console.log('which tool?: ' + mutex[userId])
 
 	// FIXME: don't clobber the tool we're holding
-	let roomId = roomTool?.getSelectedId() || 0,  
-		tuneId = tuneTool?.getSelectedId() || 0,
-		blipId = blipTool?.getSelectedId() || 0,
+	let roomId = roomTool?.getSelectedId() ?? 0,
+		tuneId = tuneTool?.getSelectedId() ?? 0,
+		blipId = blipTool?.getSelectedId() ?? 0,
 		tileId = sortedTileIdList()[tileIndex],
 		itemId = sortedItemIdList()[itemIndex],
 		spriteId = sortedSpriteIdList().filter(function (id) { return id != "A"; })[spriteIndex];
-		
+
 	clearGameData();
 	renderer.ClearCache();
 	loadWorldFromGameData(gamedataStorage); // reparse world if user directly manipulates game data
 
-	/*
 	if (roomTool) {
-		roomTool.selectAtIndex(roomId);
+		roomTool.select(roomId);
 	}
 	if (tuneTool) {
 		tuneTool.selectAtIndex(tuneId);
@@ -833,6 +828,7 @@ export function on_game_data_change_core() {
 		blipTool.selectAtIndex(blipId);
 	}
 
+	/*
 	if (gameTool) {
 		gameTool.menu.update();
 	}
@@ -845,9 +841,8 @@ export function on_game_data_change_core() {
 		curPaintMode = drawing.type;
 	}
 	*/
- 
+
 	//fallback if there are no tiles, sprites, map
-	// TODO : switch to using stored default file data (requires separated parser / game data code)
 	if (Object.keys(sprite).length == 0 || sprite["A"] === undefined) {
 		PaintTools.makeSprite("A");
 		sprite["A"].room = null;
@@ -885,10 +880,10 @@ export function on_game_data_change_core() {
 		let ids = sortedSpriteIdList().filter(function (id) { return id != "A"; })
 		drawing = sprite[spriteId] || sprite[ids[0]];
 	}
-
-	// paintTool.reloadDrawing(); // this reloads the dialog UI
-	updateInventoryUI(localization);
 	*/
+
+	// paintTool.reloadDrawing(); // this reloads the dialog UI. irritating!
+	updateInventoryUI(localization);
 
 	// FIXME: catch undefined fontName on startup
 	// if user pasted in a custom font into game data - update the stored custom font

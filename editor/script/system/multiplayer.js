@@ -1,8 +1,8 @@
 // This approach requires the initializeWasm export not yet found in the stable 1.2.1 release [of automerge].
 // import * as AutomergeRepo from "https://esm.sh/@automerge/automerge-repo@2.0.0-alpha.14/slim?bundle-deps"
 
-import * as AutomergeRepo from "https://esm.sh/@automerge/react@2.2.0/slim?bundle-deps"
-await AutomergeRepo.initializeWasm( fetch("https://esm.sh/@automerge/automerge@3.1.1/dist/automerge.wasm") )
+import * as AutomergeRepo from "https://esm.sh/@automerge/react/slim?bundle-deps"
+await AutomergeRepo.initializeWasm( fetch("https://esm.sh/@automerge/automerge/dist/automerge.wasm") )
 
 import { IndexedDBStorageAdapter } from "https://esm.sh/@automerge/automerge-repo-storage-indexeddb@2.1.0?bundle-deps"
 import { BrowserWebSocketClientAdapter } from "https://esm.sh/@automerge/automerge-repo-network-websocket@2.1.0?bundle-deps"

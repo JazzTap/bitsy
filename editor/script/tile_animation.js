@@ -515,6 +515,7 @@ export function getCurPaintModeStr() {
 export function on_paint_avatar() {
 	setSpriteIndex(0);
 	setDrawing(sprite["A"]);
+	console.log(Object.keys(sprite));
 
 	paintTool.reloadDrawing();
 	on_paint_avatar_ui_update();

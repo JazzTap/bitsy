@@ -1,7 +1,7 @@
 import { makeToolCard } from "../card.js"
 import { Store } from "../store.js";
 import { fontName, setFont, serializeWorld, flags, setTextDirection, getTitle, setTitle } from "../engine/bitsy.js";
-import { TextDirection } from "../engine/world.js";
+import { TextDirection, parseWorld } from "../engine/world.js";
 import { bitsy, bitsyLog } from "../system/system.js";
 import { ExporterUtils } from "../exporter.js"
 

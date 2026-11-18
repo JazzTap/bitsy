@@ -848,7 +848,7 @@ export function on_game_data_change_core() {
  
 	//fallback if there are no tiles, sprites, map
 	// TODO : switch to using stored default file data (requires separated parser / game data code)
-	if (Object.keys(sprite).length == 0) {
+	if (Object.keys(sprite).length == 0 || sprite["A"] === undefined) {
 		PaintTools.makeSprite("A");
 		sprite["A"].room = null;
 		sprite["A"].x = -1;

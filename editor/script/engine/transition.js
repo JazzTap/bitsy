@@ -1,4 +1,4 @@
-import { getPal, player, room, tile, renderer, sprite, updatePaletteWithTileColors } from "./bitsy.js"
+import { getPal, player, room, tile, renderer, sprite, item, updatePaletteWithTileColors } from "./bitsy.js"
 import { tileColorStartIndex } from "./world.js"
 import { bitsy } from "../system/system.js"
 
